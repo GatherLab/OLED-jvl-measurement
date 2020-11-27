@@ -56,6 +56,12 @@ This shall be optional but may facilitate future error tracking and improvement 
 
 Measurement parameters can be selected on the right side. Pixels that worked in the Setup section are automatically selected. The user still has the possibility to exclude those pixels. The measurement is started using the "Start Measurement" button. A progress bar in the bottom status bar shows the progress of the measurement. The measured current and PD voltage are plotted directly on the center graph. Any problem messages are displayed in the bottom statusbar (that by default say "Ready")
 
+### Spectrum
+
+Tab to measure spectrum of an OLED pixel. It is unclear if this can be easily done to me, since I don't know about the api of the spectrum. Should, however, in principle be possible because it is probably also used for the goniometer measurements. The idea is to simply allow the user to measure the spectrum from the program as well instead of changing to the OceanView software. This could then be even combined with a direct calculation of the performance parameters if a spectrum was already measured. If it wasn't the autotube JVL just shows the current and photodiode voltage.
+
+For the measurement the user only has to provide the pixel that shall be measured and the voltage that shall be applied for the measurement. One could also think about a seperate background measurement button but we could also make the separate measurement of a background spectrum obsolete by turning the OLED off automatically after the measurement was done and then subtract the spectrum automatically.
+
 ### Goniometer
 
 Current motor/stage position is displayed visually on the top right including a angle reading. The offset angle can be changed manually for sample adjustment (by explicitly clicking on the move button to prevent unwanted movements).
