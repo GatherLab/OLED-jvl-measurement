@@ -18,6 +18,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.actionOptions.triggered.connect(self.show_settings)
 
+        # -------------------------------------------------------------------- #
+        # --------------------- Set Standard Parameters ---------------------- #
+        # -------------------------------------------------------------------- #
+
         # Set standard parameters for autotube measurement
         self.aw_min_voltage_spinBox.setValue(-2)
         self.aw_min_voltage_spinBox.setMinimum(-50)
