@@ -46,6 +46,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_pulse_duration_spinBox.setValue(2)
         self.gw_voltage_or_current_spinBox.setValue(5)
 
+        # Set standard parameters for Spectral Measurement
+        self.specw_voltage_spinBox.setValue(5)
+        self.specw_voltage_spinBox.setMaximum(50)
+
     def show_settings(self):
         self.SettingsWindow = QtWidgets.QWidget()
         ui = Ui_Settings()

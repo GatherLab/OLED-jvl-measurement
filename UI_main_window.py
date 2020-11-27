@@ -600,6 +600,226 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.autotube_widget, "")
 
         # -------------------------------------------------------------------- #
+        # ---------------------- Define Spectrum Widget ---------------------- #
+        # -------------------------------------------------------------------- #
+        self.spectrum_widget = QtWidgets.QWidget()
+        self.spectrum_widget.setObjectName("spectrum_widget")
+        self.spectrum_widget_gridLayout = QtWidgets.QGridLayout(self.spectrum_widget)
+        self.spectrum_widget_gridLayout.setObjectName("spectrum_widget_gridLayout")
+
+        # --------------- Central Widget with matplotlib graph --------------- #
+        self.specw_graph_widget = QtWidgets.QWidget(self.spectrum_widget)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.specw_graph_widget.sizePolicy().hasHeightForWidth()
+        )
+        self.specw_graph_widget.setSizePolicy(sizePolicy)
+        self.specw_graph_widget.setMinimumSize(QtCore.QSize(0, 442))
+        self.specw_graph_widget.setObjectName("specw_graph_widget")
+        self.specw_mpl_graph_gridLayout = QtWidgets.QGridLayout(self.specw_graph_widget)
+        self.specw_mpl_graph_gridLayout.setObjectName("specw_mpl_graph_gridLayout")
+        self.spectrum_widget_gridLayout.addWidget(self.specw_graph_widget, 0, 1, 1, 1)
+
+        # Define figure
+        figureSize = (11, 10)
+        self.specw_fig = FigureCanvas(Figure(figsize=figureSize))
+        self.specw_mpl_graph_gridLayout.addWidget(self.specw_fig)
+
+        self.specw_ax = self.specw_fig.figure.subplots()
+        self.specw_ax.set_facecolor("#E0E0E0")
+        self.specw_fig.figure.set_facecolor("#E0E0E0")
+        self.specw_mplToolbar = NavigationToolbar(
+            self.specw_fig, self.specw_graph_widget
+        )
+        self.specw_mplToolbar.setStyleSheet("background-color:#E0E0E0;")
+        self.specw_mpl_graph_gridLayout.addWidget(self.specw_mplToolbar)
+
+        # ----------------------- Define scroll area ---------------------------
+        self.specw_scrollArea = QtWidgets.QScrollArea(self.spectrum_widget)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.specw_scrollArea.sizePolicy().hasHeightForWidth()
+        )
+        self.specw_scrollArea.setSizePolicy(sizePolicy)
+        self.specw_scrollArea.setMinimumSize(QtCore.QSize(195, 0))
+        self.specw_scrollArea.setWidgetResizable(True)
+        self.specw_scrollArea.setObjectName("specw_scrollArea")
+        self.specw_scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.specw_scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 170, 655))
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.specw_scrollAreaWidgetContents.sizePolicy().hasHeightForWidth()
+        )
+        self.specw_scrollAreaWidgetContents.setSizePolicy(sizePolicy)
+        self.specw_scrollAreaWidgetContents.setObjectName(
+            "specw_scrollAreaWidgetContents"
+        )
+        self.specw_scrollArea_gridLayout = QtWidgets.QGridLayout(
+            self.specw_scrollAreaWidgetContents
+        )
+        self.specw_scrollArea_gridLayout.setObjectName("specw_scrollArea_gridLayout")
+
+        self.specw_header1_label = QtWidgets.QLabel(self.specw_scrollAreaWidgetContents)
+        self.specw_header1_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.specw_header1_label.setObjectName("specw_header1_label")
+        self.specw_scrollArea_gridLayout.addWidget(self.specw_header1_label, 0, 0, 1, 1)
+        self.specw_scrollArea.setWidget(self.specw_scrollAreaWidgetContents)
+        self.spectrum_widget_gridLayout.addWidget(self.specw_scrollArea, 0, 3, 1, 1)
+
+        # Set voltage
+        self.specw_voltage_label = QtWidgets.QLabel(self.specw_scrollAreaWidgetContents)
+        self.specw_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.specw_voltage_label.setObjectName("specw_voltage_label")
+        self.specw_scrollArea_gridLayout.addWidget(self.specw_voltage_label, 1, 0, 1, 1)
+        self.specw_voltage_spinBox = QtWidgets.QDoubleSpinBox(
+            self.specw_scrollAreaWidgetContents
+        )
+        self.specw_voltage_spinBox.setObjectName("specw_voltage_spinBox")
+        self.specw_scrollArea_gridLayout.addWidget(
+            self.specw_voltage_spinBox, 2, 0, 1, 1
+        )
+
+        # ---------------------- Select pixel widget ------------------------- #
+        self.specw_select_pixel_widget = QtWidgets.QWidget(
+            self.specw_scrollAreaWidgetContents
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.specw_select_pixel_widget.sizePolicy().hasHeightForWidth()
+        )
+        self.specw_select_pixel_widget.setSizePolicy(sizePolicy)
+        self.specw_select_pixel_widget.setMinimumSize(QtCore.QSize(100, 0))
+        self.specw_select_pixel_widget.setMaximumSize(QtCore.QSize(150, 124))
+        self.specw_select_pixel_widget.setObjectName("specw_select_pixel_widget")
+        self.gridLayout_4 = QtWidgets.QGridLayout(self.specw_select_pixel_widget)
+        self.gridLayout_4.setObjectName("gridLayout_4")
+        self.specw_select_pixel_label = QtWidgets.QLabel(
+            self.specw_scrollAreaWidgetContents
+        )
+        self.specw_select_pixel_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.specw_select_pixel_label.setObjectName("specw_select_pixel_label")
+        self.specw_scrollArea_gridLayout.addWidget(
+            self.specw_select_pixel_label, 3, 0, 1, 1
+        )
+
+        # Pixel 1
+        self.specw_pixel1_pushButton = QtWidgets.QPushButton(
+            self.specw_select_pixel_widget
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.specw_pixel1_pushButton.sizePolicy().hasHeightForWidth()
+        )
+        self.specw_pixel1_pushButton.setSizePolicy(sizePolicy)
+        self.specw_pixel1_pushButton.setMinimumSize(QtCore.QSize(0, 0))
+        self.specw_pixel1_pushButton.setCheckable(True)
+        self.specw_pixel1_pushButton.setChecked(False)
+        self.specw_pixel1_pushButton.setAutoRepeat(False)
+        self.specw_pixel1_pushButton.setObjectName("specw_pixel1_pushButton")
+        self.gridLayout_4.addWidget(self.specw_pixel1_pushButton, 0, 0, 1, 1)
+
+        # Pixel 2
+        self.specw_pixel2_pushButton = QtWidgets.QPushButton(
+            self.specw_select_pixel_widget
+        )
+        self.specw_pixel2_pushButton.setCheckable(True)
+        self.specw_pixel2_pushButton.setChecked(False)
+        self.specw_pixel2_pushButton.setObjectName("specw_pixel2_pushButton")
+        self.gridLayout_4.addWidget(self.specw_pixel2_pushButton, 2, 0, 1, 1)
+
+        # Pixel 3
+        self.specw_pixel3_pushButton = QtWidgets.QPushButton(
+            self.specw_select_pixel_widget
+        )
+        self.specw_pixel3_pushButton.setCheckable(True)
+        self.specw_pixel3_pushButton.setChecked(False)
+        self.specw_pixel3_pushButton.setObjectName("specw_pixel3_pushButton")
+        self.gridLayout_4.addWidget(self.specw_pixel3_pushButton, 3, 0, 1, 1)
+
+        # Pixel 4
+        self.specw_pixel4_pushButton = QtWidgets.QPushButton(
+            self.specw_select_pixel_widget
+        )
+        self.specw_pixel4_pushButton.setCheckable(True)
+        self.specw_pixel4_pushButton.setChecked(False)
+        self.specw_pixel4_pushButton.setObjectName("specw_pixel4_pushButton")
+        self.gridLayout_4.addWidget(self.specw_pixel4_pushButton, 4, 0, 1, 1)
+
+        # Pixel 5
+        self.specw_pixel5_pushButton = QtWidgets.QPushButton(
+            self.specw_select_pixel_widget
+        )
+        self.specw_pixel5_pushButton.setCheckable(True)
+        self.specw_pixel5_pushButton.setChecked(False)
+        self.specw_pixel5_pushButton.setObjectName("specw_pixel5_pushButton")
+        self.gridLayout_4.addWidget(self.specw_pixel5_pushButton, 0, 1, 1, 1)
+
+        # Pixel 6
+        self.specw_pixel6_pushButton = QtWidgets.QPushButton(
+            self.specw_select_pixel_widget
+        )
+        self.specw_pixel6_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.specw_pixel6_pushButton.setCheckable(True)
+        self.specw_pixel6_pushButton.setChecked(False)
+        self.specw_pixel6_pushButton.setObjectName("specw_pixel6_pushButton")
+        self.gridLayout_4.addWidget(self.specw_pixel6_pushButton, 2, 1, 1, 1)
+
+        # Pixel 7
+        self.specw_pixel7_pushButton = QtWidgets.QPushButton(
+            self.specw_select_pixel_widget
+        )
+        self.specw_pixel7_pushButton.setCheckable(True)
+        self.specw_pixel7_pushButton.setChecked(False)
+        self.specw_pixel7_pushButton.setObjectName("specw_pixel7_pushButton")
+        self.gridLayout_4.addWidget(self.specw_pixel7_pushButton, 3, 1, 1, 1)
+
+        # Pixel 8
+        self.specw_pixel8_pushButton = QtWidgets.QPushButton(
+            self.specw_select_pixel_widget
+        )
+        self.specw_pixel8_pushButton.setCheckable(True)
+        self.specw_pixel8_pushButton.setChecked(False)
+        self.specw_pixel8_pushButton.setObjectName("specw_pixel8_pushButton")
+        self.gridLayout_4.addWidget(self.specw_pixel8_pushButton, 4, 1, 1, 1)
+
+        self.specw_scrollArea_gridLayout.addWidget(
+            self.specw_select_pixel_widget, 4, 0, 1, 1, QtCore.Qt.AlignHCenter
+        )
+
+        # Save Spectrum button
+        self.specw_save_spectrum_pushButton = QtWidgets.QPushButton(
+            self.specw_scrollAreaWidgetContents
+        )
+        self.specw_save_spectrum_pushButton.setObjectName(
+            "specw_save_spectrum_pushButton"
+        )
+        self.specw_scrollArea_gridLayout.addWidget(
+            self.specw_save_spectrum_pushButton, 5, 0, 1, 1
+        )
+
+        self.tabWidget.addTab(self.spectrum_widget, "")
+
+        # -------------------------------------------------------------------- #
         # -------------------- Define Goniometer Window ---------------------- #
         # -------------------------------------------------------------------- #
         self.goniometer_widget = QtWidgets.QWidget()
@@ -1178,6 +1398,50 @@ class Ui_MainWindow(object):
             self.tabWidget.indexOf(self.autotube_widget),
             _translate("MainWindow", "Autotube JVL"),
         )
+
+        # self.specw_high_voltage_step_label.setText(
+        # _translate("MainWindow", "High Voltage Step (V)")
+        # )
+        self.specw_pixel2_pushButton.setText(_translate("MainWindow", "2"))
+        self.specw_pixel1_pushButton.setText(_translate("MainWindow", "1"))
+        self.specw_pixel4_pushButton.setText(_translate("MainWindow", "4"))
+        self.specw_pixel3_pushButton.setText(_translate("MainWindow", "3"))
+        self.specw_pixel8_pushButton.setText(_translate("MainWindow", "8"))
+        self.specw_pixel7_pushButton.setText(_translate("MainWindow", "7"))
+        self.specw_pixel6_pushButton.setText(_translate("MainWindow", "6"))
+        self.specw_pixel5_pushButton.setText(_translate("MainWindow", "5"))
+        # self.specw_max_voltage_label.setText(
+        # _translate("MainWindow", "Max Voltage (V)")
+        # )
+        self.specw_voltage_label.setText(_translate("MainWindow", "Set Voltage (V)"))
+        # self.specw_changeover_voltage_label.setText(
+        # _translate("MainWindow", "Changeover Voltage (V)")
+        # )
+        # self.specw_low_voltage_step_label.setText(
+        # _translate("MainWindow", "Low Voltage Step (V)")
+        # )
+        # self.specw_scan_compliance_label.setText(
+        # _translate("MainWindow", "Scan Compliance (A)")
+        # )
+        # self.specw_pd_saturation_checkBox.setText(
+        # _translate("MainWindow", "Check for PD Saturation")
+        # )
+        self.specw_select_pixel_label.setText(_translate("MainWindow", "Select Pixels"))
+        # self.specw_bad_contact_checkBox.setText(
+        # _translate("MainWindow", "Check fo Bad Contacts")
+        # )
+        self.specw_save_spectrum_pushButton.setText(
+            _translate("MainWindow", "Save Spectrum")
+        )
+        self.specw_header1_label.setText(
+            _translate("MainWindow", "Measurement Parameters")
+        )
+
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.spectrum_widget),
+            _translate("MainWindow", "Spectrum"),
+        )
+
         self.gw_header2.setText(_translate("MainWindow", "Measurement Parameters"))
         self.gw_pulse_duration_label.setText(
             _translate("MainWindow", "Pulse duration (s)")
