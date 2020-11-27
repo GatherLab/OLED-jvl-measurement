@@ -1,17 +1,27 @@
 # OLED-jvl-measurement
 
+Tested on Arch Linux with Python 3.8.6
+
 ## Introduction
 
 An easy to use tool to facilitate OLED characterisation using a fixed distance measurement setup as well as a goniometer for angle resolved EQE measurements.
 
 ## Requirements
 
-The used python version at the moment is Python 3.8.6. Formatting happens with black python formatter. Any changes to the code should be formatted accordingly.
+Formatting happens with black python formatter. Any changes to the code should be formatted accordingly.
 Please find all the package requirements in requirements.txt. I recommend using a virtual environment management tool like venv together with pip or anaconda to install the packages within a virtual environment using
 
 ```terminal
 pip install -r requirements.txt
 ```
+
+Execute the jvl_measurement.py file which is the main file e.g. with
+
+```terminal
+python3 jvl_measurement.py
+```
+
+The others are only dependencies.
 
 ## User Journey
 
