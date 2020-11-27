@@ -1,0 +1,1287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>973</width>
+    <height>695</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(44, 49, 60);
+color: rgb(255, 255, 255);
+font: 63 10pt &quot;Segoe UI&quot;;
+</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+            border: 2px solid rgb(52, 59, 72);
+            border-radius: 5px;
+            background-color: rgb(52, 59, 72);
+}
+QPushButton:hover {
+            background-color: rgb(57, 65, 80);
+            border: 2px solid rgb(61, 70, 86);
+}
+QPushButton:pressed {
+            background-color: rgb(35, 40, 49);
+            border: 2px solid rgb(43, 50, 61);
+}
+QPushButton:checked {
+            background-color: rgb(35, 40, 49);
+            border: 2px solid rgb(85, 170, 255);
+}</string>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="bottomMargin">
+     <number>6</number>
+    </property>
+    <item row="1" column="0">
+     <widget class="QWidget" name="gatherlab_picture" native="true">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="gatherlab_label">
+         <property name="text">
+          <string>Gatherlab JVL Measurement</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QProgressBar" name="progressBar">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>160</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="value">
+          <number>24</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>2</number>
+      </property>
+      <widget class="QWidget" name="setup_widget">
+       <attribute name="title">
+        <string>Setup</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_5">
+        <item row="2" column="0">
+         <widget class="QWidget" name="setup_sub_widget" native="true">
+          <layout class="QGridLayout" name="gridLayout_7">
+           <item row="4" column="0">
+            <widget class="QLabel" name="sw_header2_label">
+             <property name="styleSheet">
+              <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+             </property>
+             <property name="text">
+              <string>Current Tester</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <layout class="QHBoxLayout" name="sw_folder_path_horizontalLayout">
+             <item>
+              <widget class="QLineEdit" name="sw_folder_path_lineEdit">
+               <property name="readOnly">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="sw_browse_pushButton">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>60</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Browse</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="8" column="1">
+            <widget class="QDoubleSpinBox" name="sw_ct_voltage_spinBox">
+             <property name="suffix">
+              <string> V</string>
+             </property>
+             <property name="minimum">
+              <double>-5.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>15.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.100000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="sw_batch_name_label">
+             <property name="text">
+              <string>Batch Name</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="sw_device_number_label">
+             <property name="text">
+              <string>Device Number</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QSpinBox" name="sw_device_number_spinBox"/>
+           </item>
+           <item row="12" column="1">
+            <widget class="QTextEdit" name="sw_documentation_textEdit"/>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="sw_header1_label">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The file name the data is saved in in the end will be in the format yyyy-mm-dd_&amp;lt;batch-name&amp;gt;_d&amp;lt;device-number&amp;gt;_p&amp;lt;pixel-number&amp;gt;.csv.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+             </property>
+             <property name="text">
+              <string>Batch Name and File Path</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QWidget" name="sw_select_pixel_widget" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>100</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>171</width>
+               <height>200</height>
+              </size>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_6">
+              <item row="0" column="0">
+               <widget class="QLabel" name="sw_pixel_label">
+                <property name="styleSheet">
+                 <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+                </property>
+                <property name="text">
+                 <string>Select Pixels</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QPushButton" name="sw_pixel2_pushButton">
+                <property name="text">
+                 <string>2</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="sw_pixel1_pushButton">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>1</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+                <property name="autoRepeat">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="0">
+               <widget class="QPushButton" name="sw_pixel3_pushButton">
+                <property name="text">
+                 <string>3</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="0">
+               <widget class="QPushButton" name="sw_select_all_pushButton">
+                <property name="text">
+                 <string>Select All</string>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="QPushButton" name="sw_unselect_all_push_button">
+                <property name="text">
+                 <string>Unselect All</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <widget class="QPushButton" name="sw_pixel4_pushButton">
+                <property name="text">
+                 <string>4</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="0">
+               <widget class="QPushButton" name="sw_prebias_pushButton">
+                <property name="text">
+                 <string>Pre-Bias All</string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="1">
+               <widget class="QPushButton" name="sw_auto_test_pushButton">
+                <property name="text">
+                 <string>Auto Test All</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="1">
+               <widget class="QPushButton" name="sw_pixel8_pushButton">
+                <property name="text">
+                 <string>8</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QPushButton" name="sw_pixel7_pushButton">
+                <property name="text">
+                 <string>7</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QPushButton" name="sw_pixel6_pushButton">
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
+                <property name="text">
+                 <string>6</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QPushButton" name="sw_pixel5_pushButton">
+                <property name="text">
+                 <string>5</string>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="sw_change_voltage_label">
+             <property name="text">
+              <string>Change Voltage (V)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QLCDNumber" name="sw_current_lcdNumber">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="smallDecimalPoint">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLineEdit" name="sw_batch_name_lineEdit"/>
+           </item>
+           <item row="12" column="0">
+            <widget class="QLabel" name="sw_documentation_label">
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please write here any comments to the measurement of your batch. The comments will be saved as .md file within your selected file path. If there are any issues with the measurement setup or the software document it in a seperate line starting with [!] to ensure easy debugging.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+             </property>
+             <property name="text">
+              <string>Documentation</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="sw_folder_path_label">
+             <property name="text">
+              <string>Folder Path</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="autotube_widget">
+       <attribute name="title">
+        <string>Autotube JVL</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="1">
+         <widget class="QWidget" name="aw_graph" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>442</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QScrollArea" name="aw_scrollArea">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>195</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="aw_scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>170</width>
+             <height>655</height>
+            </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="12" column="0">
+             <widget class="QDoubleSpinBox" name="aw_scan_compliance_spinBox"/>
+            </item>
+            <item row="4" column="0">
+             <widget class="QDoubleSpinBox" name="aw_max_voltage_spinBox"/>
+            </item>
+            <item row="9" column="0">
+             <widget class="QLabel" name="aw_high_voltage_step_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>High Voltage Step (V)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="16" column="0" alignment="Qt::AlignHCenter">
+             <widget class="QWidget" name="aw_select_pixel_widget" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>150</width>
+                <height>124</height>
+               </size>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_4">
+               <item row="2" column="0">
+                <widget class="QPushButton" name="aw_pixel2_pushButton">
+                 <property name="text">
+                  <string>2</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QPushButton" name="aw_pixel1_pushButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>1</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                 <property name="autoRepeat">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QPushButton" name="aw_pixel4_pushButton">
+                 <property name="text">
+                  <string>4</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QPushButton" name="aw_pixel3_pushButton">
+                 <property name="text">
+                  <string>3</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QPushButton" name="aw_pixel8_pushButton">
+                 <property name="text">
+                  <string>8</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QPushButton" name="aw_pixel7_pushButton">
+                 <property name="text">
+                  <string>7</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QPushButton" name="aw_pixel6_pushButton">
+                 <property name="layoutDirection">
+                  <enum>Qt::LeftToRight</enum>
+                 </property>
+                 <property name="text">
+                  <string>6</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QPushButton" name="aw_pixel5_pushButton">
+                 <property name="text">
+                  <string>5</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="aw_max_voltage_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Max Voltage (V)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="aw_min_voltage_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Min Voltage (V)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="aw_changeover_voltage_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Changeover Voltage (V)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="7" column="0">
+             <widget class="QLabel" name="aw_low_voltage_step_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Low Voltage Step (V)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="0">
+             <widget class="QLabel" name="aw_scan_compliance_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Scan Compliance (A)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QDoubleSpinBox" name="aw_changeover_voltage_spinBox"/>
+            </item>
+            <item row="2" column="0">
+             <widget class="QDoubleSpinBox" name="aw_min_voltage_spinBox"/>
+            </item>
+            <item row="14" column="0">
+             <widget class="QCheckBox" name="aw_pd_saturation_checkBox">
+              <property name="text">
+               <string>Check for PD Saturation</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0">
+             <widget class="QDoubleSpinBox" name="aw_low_voltage_step_spinBox"/>
+            </item>
+            <item row="10" column="0">
+             <widget class="QDoubleSpinBox" name="aw_high_voltage_step_spinBox"/>
+            </item>
+            <item row="15" column="0">
+             <widget class="QLabel" name="aw_select_pixel_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Select Pixels</string>
+              </property>
+             </widget>
+            </item>
+            <item row="13" column="0">
+             <widget class="QCheckBox" name="aw_bad_contact_checkBox">
+              <property name="text">
+               <string>Check fo Bad Contacts</string>
+              </property>
+             </widget>
+            </item>
+            <item row="17" column="0">
+             <widget class="QPushButton" name="aw_start_measurement_pushButton">
+              <property name="text">
+               <string>Start Measurement</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="aw_header1_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Measurement Parameters</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <spacer name="aw_verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>17</width>
+            <height>472</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="goniometer_widget">
+       <attribute name="title">
+        <string>Goniometer</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
+         <widget class="QWidget" name="gw_graph" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QScrollArea" name="gw_scrollArea">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>195</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="gw_scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>-382</y>
+             <width>169</width>
+             <height>912</height>
+            </rect>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_9">
+            <item row="9" column="0">
+             <widget class="QLabel" name="gw_header2">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Measurement Parameters</string>
+              </property>
+             </widget>
+            </item>
+            <item row="20" column="0">
+             <widget class="QLabel" name="gw_pulse_duration_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Pulse duration (ms)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="22" column="0">
+             <widget class="QCheckBox" name="gw_voltage_scan_checkBox">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The parameters for the voltage scan can be set in the JVL tab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Voltage Scan</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="gw_header1">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Setup</string>
+              </property>
+             </widget>
+            </item>
+            <item row="27" column="0">
+             <widget class="QLabel" name="gw_pulse_duration_label_2">
+              <property name="styleSheet">
+               <string notr="true">font: 75 bold 10pt &quot;Noto Sans&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Select Pixel</string>
+              </property>
+             </widget>
+            </item>
+            <item row="17" column="0">
+             <widget class="QDoubleSpinBox" name="gw_homing_time_spinBox"/>
+            </item>
+            <item row="18" column="0">
+             <widget class="QLabel" name="gw_moving_time_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Moving Time (s)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QDoubleSpinBox" name="gw_offset_angle_spinBox"/>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="gw_offset_angle_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Offset Angle (°)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="19" column="0">
+             <widget class="QDoubleSpinBox" name="gw_moving_time_spinBox"/>
+            </item>
+            <item row="21" column="0">
+             <widget class="QDoubleSpinBox" name="gw_pulse_duration_spinBox"/>
+            </item>
+            <item row="29" column="0">
+             <widget class="QPushButton" name="gw_start_measurement_pushButton">
+              <property name="text">
+               <string>Start Measurement</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="gw_stage_position_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Stage Position</string>
+              </property>
+             </widget>
+            </item>
+            <item row="13" column="0">
+             <widget class="QDoubleSpinBox" name="gw_step_angle_spinBox">
+              <property name="maximum">
+               <double>180.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="24" column="0">
+             <widget class="QLabel" name="gw_voltage_or_current_label">
+              <property name="styleSheet">
+               <string notr="true">font: 75 bold 10pt &quot;Noto Sans&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Voltage or Current</string>
+              </property>
+             </widget>
+            </item>
+            <item row="25" column="0">
+             <widget class="QPushButton" name="gw_voltage_or_current_pushButton">
+              <property name="text">
+               <string>V or C</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="28" column="0" alignment="Qt::AlignHCenter">
+             <widget class="QWidget" name="widget_7" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>150</width>
+                <height>124</height>
+               </size>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_10">
+               <item row="2" column="0">
+                <widget class="QPushButton" name="gw_pixel2_pushButton">
+                 <property name="text">
+                  <string>2</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QPushButton" name="gw_pixel1_pushButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>1</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                 <property name="autoRepeat">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0">
+                <widget class="QPushButton" name="gw_pixel4_pushButton">
+                 <property name="text">
+                  <string>4</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QPushButton" name="gw_pixel3_pushButton">
+                 <property name="text">
+                  <string>3</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QPushButton" name="gw_pixel8_pushButton">
+                 <property name="text">
+                  <string>8</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QPushButton" name="gw_pixel7_pushButton">
+                 <property name="text">
+                  <string>7</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QPushButton" name="gw_pixel6_pushButton">
+                 <property name="layoutDirection">
+                  <enum>Qt::LeftToRight</enum>
+                 </property>
+                 <property name="text">
+                  <string>6</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QPushButton" name="gw_pixel5_pushButton">
+                 <property name="text">
+                  <string>5</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="10" column="0">
+             <widget class="QLabel" name="gw_scanning_angle_label">
+              <property name="styleSheet">
+               <string notr="true">font: 75 bold 10pt &quot;Noto Sans&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Scanning Angle</string>
+              </property>
+             </widget>
+            </item>
+            <item row="23" column="0">
+             <widget class="QPushButton" name="gw_el_or_pl_pushButton">
+              <property name="text">
+               <string>EL or PL</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="26" column="0">
+             <widget class="QDoubleSpinBox" name="gw_voltage_or_current_spinBox"/>
+            </item>
+            <item row="8" column="0">
+             <widget class="QPushButton" name="gw_move_pushButton">
+              <property name="text">
+               <string>Move</string>
+              </property>
+             </widget>
+            </item>
+            <item row="12" column="0">
+             <widget class="QLabel" name="gw_step_angle_label">
+              <property name="styleSheet">
+               <string notr="true">font: 75 bold 10pt &quot;Noto Sans&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Step Angle (°)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="14" column="0">
+             <widget class="QLabel" name="gw_integration_time_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Integration Time (ms)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="15" column="0">
+             <widget class="QDoubleSpinBox" name="gw_integration_time_spinBox"/>
+            </item>
+            <item row="16" column="0">
+             <widget class="QLabel" name="gw_homing_time_label">
+              <property name="styleSheet">
+               <string notr="true">font: 63 bold 10pt &quot;Segoe UI&quot;;</string>
+              </property>
+              <property name="text">
+               <string>Homing Time (s)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="gw_animation">
+              <property name="text">
+               <string>small animation</string>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="0">
+             <widget class="QSpinBox" name="gw_scanning_angle_spinBox">
+              <property name="minimum">
+               <number>-180</number>
+              </property>
+              <property name="maximum">
+               <number>180</number>
+              </property>
+              <property name="value">
+               <number>180</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <spacer name="gw_verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Expanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>17</width>
+            <height>472</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>973</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menudfg">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionLoad_Measurement_Parameters"/>
+    <addaction name="actionSave_Measurement_Parameters"/>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionOptions"/>
+    <addaction name="actionDocumentation"/>
+    <addaction name="actionOpen_Log"/>
+   </widget>
+   <addaction name="menudfg"/>
+   <addaction name="menuSettings"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="toolTip">
+    <string/>
+   </property>
+   <property name="statusTip">
+    <string/>
+   </property>
+   <property name="whatsThis">
+    <string/>
+   </property>
+   <property name="accessibleName">
+    <string/>
+   </property>
+  </widget>
+  <action name="actionOpen_Logs">
+   <property name="text">
+    <string>Open Logs</string>
+   </property>
+  </action>
+  <action name="actionOpen_Logfile_on_Machine">
+   <property name="text">
+    <string>Open Logfile on Machine</string>
+   </property>
+  </action>
+  <action name="actionChange_Path">
+   <property name="text">
+    <string>Change Saving Path</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options</string>
+   </property>
+  </action>
+  <action name="actionDocumentation">
+   <property name="text">
+    <string>Help</string>
+   </property>
+  </action>
+  <action name="actionLoad_Measurement_Parameters">
+   <property name="text">
+    <string>Load Measurement Parameters</string>
+   </property>
+  </action>
+  <action name="actionSave_Measurement_Parameters">
+   <property name="text">
+    <string>Save Measurement Settings</string>
+   </property>
+  </action>
+  <action name="actionOpen_Log">
+   <property name="text">
+    <string>Open Log</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
