@@ -90,6 +90,7 @@ class Ui_MainWindow(object):
         # Tab widget
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName("tabWidget")
+        self.tabWidget.setStyleSheet("QTabBar{font-weight: bold;}")
 
         # -------------------------------------------------------------------- #
         # --------------------------- Setup widget --------------------------- #
@@ -389,13 +390,6 @@ class Ui_MainWindow(object):
         self.aw_scrollArea.setWidget(self.aw_scrollAreaWidgetContents)
         self.gridLayout_2.addWidget(self.aw_scrollArea, 0, 3, 1, 1)
 
-        # Scan compliance
-        self.aw_scan_compliance_spinBox = QtWidgets.QDoubleSpinBox(
-            self.aw_scrollAreaWidgetContents
-        )
-        self.aw_scan_compliance_spinBox.setObjectName("aw_scan_compliance_spinBox")
-        self.gridLayout_3.addWidget(self.aw_scan_compliance_spinBox, 12, 0, 1, 1)
-
         # Max voltage
         self.aw_max_voltage_spinBox = QtWidgets.QDoubleSpinBox(
             self.aw_scrollAreaWidgetContents
@@ -555,6 +549,11 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addWidget(self.aw_low_voltage_step_spinBox, 8, 0, 1, 1)
 
         # Scan compliance
+        self.aw_scan_compliance_spinBox = QtWidgets.QDoubleSpinBox(
+            self.aw_scrollAreaWidgetContents
+        )
+        self.aw_scan_compliance_spinBox.setObjectName("aw_scan_compliance_spinBox")
+        self.gridLayout_3.addWidget(self.aw_scan_compliance_spinBox, 12, 0, 1, 1)
         self.aw_scan_compliance_label = QtWidgets.QLabel(
             self.aw_scrollAreaWidgetContents
         )
@@ -1181,7 +1180,7 @@ class Ui_MainWindow(object):
         )
         self.gw_header2.setText(_translate("MainWindow", "Measurement Parameters"))
         self.gw_pulse_duration_label.setText(
-            _translate("MainWindow", "Pulse duration (ms)")
+            _translate("MainWindow", "Pulse duration (s)")
         )
         # self.gw_voltage_scan_checkBox.setToolTip(
         # _translate(
@@ -1200,7 +1199,7 @@ class Ui_MainWindow(object):
         )
         self.gw_stage_position_label.setText(_translate("MainWindow", "Stage Position"))
         self.gw_voltage_or_current_header.setText(
-            _translate("MainWindow", "Voltage or Current")
+            _translate("MainWindow", "Voltage (V)/Current (mA)")
         )
         # self.gw_voltage_or_current_pushButton.setText(
         # _translate("MainWindow", "V or C")
