@@ -5,6 +5,7 @@
 # from UI_settings_window import Ui_Settings
 from UI_goniometer_animation import Ui_GoniometerAnimation
 from UI_toggle_switch import ToggleSwitch
+from UI_settings_window import Ui_Settings
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -1225,6 +1226,7 @@ class Ui_MainWindow(object):
 
         self.actionOptions = QtWidgets.QAction(MainWindow)
         self.actionOptions.setObjectName("actionOptions")
+        self.actionOptions.triggered.connect(self.show_settings)
 
         self.actionDocumentation = QtWidgets.QAction(MainWindow)
         self.actionDocumentation.setObjectName("actionDocumentation")
@@ -1532,3 +1534,9 @@ class Ui_MainWindow(object):
             self.global_path = file_dialog.selectedFiles()
 
         return self.global_path
+
+    def show_settings(self):
+        self.SettingsWindow = QtWidgets.QWidget()
+        ui = Ui_Settings()
+        ui.setupUi(self.SettingsWindow)
+        self.SettingsWindow.show()

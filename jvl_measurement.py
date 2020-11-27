@@ -1,13 +1,15 @@
 from UI_main_window import Ui_MainWindow
 from UI_settings_window import Ui_Settings
 
+from autotube_measurement import AutotubeMeasurement
+
 from PySide2 import QtCore, QtGui, QtWidgets
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     """
     This class contains the logic of the program and is explicitly seperated
-    from the UI classes
+    from the UI classes. However, it is a child class of Ui_MainWindow.
     """
 
     def __init__(self):
@@ -16,7 +18,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         super(MainWindow, self).__init__()
         self.setupUi(self)
-        self.actionOptions.triggered.connect(self.show_settings)
+
+        # Link actions to buttons
+        self.aw_start_measurement_pushButton.clicked.connect(
+            self.start_autotube_measurement
+        )
 
         # -------------------------------------------------------------------- #
         # --------------------- Set Standard Parameters ---------------------- #
@@ -54,11 +60,35 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_voltage_spinBox.setValue(5)
         self.specw_voltage_spinBox.setMaximum(50)
 
-    def show_settings(self):
-        self.SettingsWindow = QtWidgets.QWidget()
-        ui = Ui_Settings()
-        ui.setupUi(self.SettingsWindow)
-        self.SettingsWindow.show()
+    def read_autotube_parameters(self):
+        """
+        Function to read out the current measurement parameters that are
+        present when clicking the Start Measurement button
+        """
+        measurement_parameters = []
+        return measurement_parameters
+
+    def plot_autotube_measurement(self):
+        """
+        Function to plot the results from the autotube measurement to the central graph.
+        """
+        return
+
+    def start_autotube_measurement(self):
+        """
+        Function that executes the actual measurement (the logic of which is
+        stored in autotube_measurement.py). Iteration over the selected
+        pixels as well as a call for the plotting happens here.
+        """
+        measurement_parameters = self.read_autotube_parameters()
+
+        # This shall create an instance of the AutotubeMeasurement class
+        measurement = AutotubeMeasurement(measurement_parameters, pixel)
+
+        # Then we call measurement.measure() to measure and save all the measured data into the class itself
+        # Then we call measurement.save_data() to directly save the data to a file
+        # Then we call measurement.get_data() that returns the actual data so that we can feed it into plot_autotube_measurement
+        return
 
 
 # ---------------------------------------------------------------------------- #

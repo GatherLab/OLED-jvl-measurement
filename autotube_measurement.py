@@ -25,7 +25,7 @@ class AutotubeMeasurement(threading.Thread):
     Class that contains all the relevant functions for the autotube EL measurement task
     """
 
-    def __init__(self, measurement_parameters):
+    def __init__(self, measurement_parameters, pixel):
         """
         Initialise class. Measurement parameters are handed over from the GUI
         """
@@ -42,6 +42,27 @@ class AutotubeMeasurement(threading.Thread):
         # The testrunEL function is complete crap since it only initalises the
         # variables and then serves as a definition ground for other functions
         # --> Bad style
+
+    def measure(self):
+        """
+        Function to save the measured data to file. This should probably be
+        integrated into the AutotubeMeasurement class
+        """
+        return
+
+    def save_data(self):
+        """
+        Function to save the measured data to file. This should probably be
+        integrated into the AutotubeMeasurement class
+        """
+        return
+
+    def get_data(self):
+        """
+        Function to save the measured data to file. This should probably be
+        integrated into the AutotubeMeasurement class
+        """
+        return
 
     # def testrunEL(self):
 
