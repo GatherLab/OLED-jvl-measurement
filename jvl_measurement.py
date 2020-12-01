@@ -2,12 +2,14 @@ from UI_main_window import Ui_MainWindow
 from UI_settings_window import Ui_Settings
 
 from autotube_measurement import AutotubeMeasurement
+from current_tester import CurrentTester
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
 import time
 import os
 import json
+import functools
 
 import matplotlib.pylab as plt
 
@@ -35,6 +37,33 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Link actions to buttons
         self.aw_start_measurement_pushButton.clicked.connect(
             self.start_autotube_measurement
+        )
+
+        self.current_tester = CurrentTester()
+
+        self.sw_pixel1_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 1)
+        )
+        self.sw_pixel2_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 2)
+        )
+        self.sw_pixel3_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 3)
+        )
+        self.sw_pixel4_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 4)
+        )
+        self.sw_pixel5_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 5)
+        )
+        self.sw_pixel6_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 6)
+        )
+        self.sw_pixel7_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 7)
+        )
+        self.sw_pixel8_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 8)
         )
 
         # -------------------------------------------------------------------- #
@@ -72,6 +101,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Set standard parameters for Spectral Measurement
         self.specw_voltage_spinBox.setValue(5)
         self.specw_voltage_spinBox.setMaximum(50)
+
+    def toggle_pixel(self, pixel_number):
+        """
+        Toggle pixel on or off
+        """
+        return
 
     def read_setup_parameters(self):
         """

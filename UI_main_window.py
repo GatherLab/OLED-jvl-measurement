@@ -352,12 +352,14 @@ class Ui_MainWindow(object):
         self.aw_mpl_graph_gridLayout.addWidget(self.aw_fig)
 
         self.aw_ax = self.aw_fig.figure.subplots()
+        self.aw_ax.grid(True)
         self.aw_ax.set_facecolor("#E0E0E0")
         self.aw_ax.set_xlabel("Voltage (V)", fontsize=14)
         self.aw_ax.set_ylabel(
             "Current (mA)", color=(68 / 255, 188 / 255, 65 / 255), fontsize=14
         )
         self.aw_ax.axhline(linewidth=1, color="black")
+        self.aw_ax.axvline(linewidth=1, color="black")
         self.aw_ax2 = self.aw_ax.twinx()
         self.aw_ax2.set_ylabel(
             "Photodiode Voltage (V)",
