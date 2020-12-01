@@ -6,6 +6,7 @@ from autotube_measurement import AutotubeMeasurement
 from PySide2 import QtCore, QtGui, QtWidgets
 
 import time
+import os
 import matplotlib.pylab as plt
 
 # Set the keithley source and multimeter addresses that are needed for
@@ -157,15 +158,58 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         stored in autotube_measurement.py). Iteration over the selected
         pixels as well as a call for the plotting happens here.
         """
+
+        # Read out measurement and setup parameters from GUI
+        setup_parameters = self.read_setup_parameters()
+
+        if (
+            setup_parameters["folder_path"] == ""
+            or setup_parameters["batch_name"] == ""
+        ):
+            msgBox = QtWidgets.QMessageBox()
+            msgBox.setText("Please set folder path and batch name first!")
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgBox.setStyleSheet(
+                "background-color: rgb(44, 49, 60);\n"
+                "color: rgb(255, 255, 255);\n"
+                'font: 63 bold 10pt "Segoe UI";\n'
+                ""
+            )
+            msgBox.exec()
+
+            self.aw_start_measurement_pushButton.setChecked(False)
+
+            return
+
+        # Now check if the folder path ends on a / otherwise try to add it
+        if not setup_parameters["folder_path"][-1] == "/":
+            setup_parameters["folder_path"] = setup_parameters["folder_path"] + "/"
+            self.sw_folder_path_lineEdit.setText(setup_parameters["folder_path"])
+
+        # Now check if the read out path is a valid path
+        if not os.path.isdir(setup_parameters["folder_path"]):
+            msgBox = QtWidgets.QMessageBox()
+            msgBox.setText("Please enter a valid folder path")
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgBox.setStyleSheet(
+                "background-color: rgb(44, 49, 60);\n"
+                "color: rgb(255, 255, 255);\n"
+                'font: 63 bold 10pt "Segoe UI";\n'
+                ""
+            )
+            msgBox.exec()
+
+            self.aw_start_measurement_pushButton.setChecked(False)
+
+            return
+
+        measurement_parameters, selected_pixels = self.read_autotube_parameters()
+
         # Set progress bar to zero
         self.progressBar.setProperty("value", 0)
 
         # Update statusbar message
         self.statusbar.showMessage("Running", 10000000)
-
-        # Read out measurement and setup parameters from GUI
-        measurement_parameters, selected_pixels = self.read_autotube_parameters()
-        setup_parameters = self.read_setup_parameters()
 
         # This shall create an instance of the AutotubeMeasurement class
         progress = 0
@@ -197,7 +241,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             measurement.dummy_measure()
 
             # Call measurement.save_data() to directly save the data to a file
-            # measurement.save_data()
+            measurement.save_data()
 
             # Call measurement.get_data() that returns the actual data
             # so that we can feed it into plot_autotube_measurement

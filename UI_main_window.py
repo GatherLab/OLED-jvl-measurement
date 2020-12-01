@@ -48,6 +48,7 @@ class Ui_MainWindow(object):
             'font: 63 10pt "Segoe UI";\n'
             ""
         )
+
         self.center()
 
         # Define central widget of the MainWindow
@@ -1274,7 +1275,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.progressBar.sizePolicy().hasHeightForWidth())
         self.progressBar.setSizePolicy(sizePolicy)
         self.progressBar.setMinimumSize(QtCore.QSize(150, 15))
-        self.progressBar.setProperty("value", 24)
+        self.progressBar.setProperty("value", 0)
         self.progressBar.setObjectName("progressBar")
         self.progressBar.setStyleSheet(
             "QProgressBar"
@@ -1543,6 +1544,8 @@ class Ui_MainWindow(object):
 
         if file_dialog.exec():
             self.global_path = file_dialog.selectedFiles()
+
+        self.sw_folder_path_lineEdit.setText(self.global_path[0] + "/")
 
         return self.global_path
 

@@ -492,7 +492,7 @@ class AutotubeMeasurement(QtCore.QThread):
         )
         line07 = "### Measurement data ###"
         line08 = "OLEDVoltage\t OLEDCurrent\t Photodiode Voltage"
-        line09 = "V\t mA\t V"
+        line09 = "V\t mA\t V\n"
 
         header_lines = [
             line03,
@@ -509,7 +509,9 @@ class AutotubeMeasurement(QtCore.QThread):
             the_file.write("\n".join(header_lines))
 
         # Now write pandas dataframe to file
-        self.df_data.to_csv(self.file_path, mode="a", header=False, sep="\t")
+        self.df_data.to_csv(
+            self.file_path, index=False, mode="a", header=False, sep="\t"
+        )
 
         return
 
