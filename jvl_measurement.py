@@ -7,13 +7,15 @@ from PySide2 import QtCore, QtGui, QtWidgets
 
 import time
 import os
+import json
+
 import matplotlib.pylab as plt
 
 # Set the keithley source and multimeter addresses that are needed for
 # communication
-keithley_source_address = u"USB0::0x05E6::0x2450::04102170::INSTR"
-keithley_multimeter_address = u"USB0::0x05E6::0x2100::8003430::INSTR"
-com2_address = u"ASRL3::INSTR"
+# keithley_source_address = u"USB0::0x05E6::0x2450::04102170::INSTR"
+# keithley_multimeter_address = u"USB0::0x05E6::0x2100::8003430::INSTR"
+# com2_address = u"ASRL3::INSTR"
 photodiode_gain = 50
 
 
@@ -152,6 +154,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.aw_fig.draw()
 
+    def read_global_settings(self):
+        """
+        Read in global settings from file. The file can be changed using the
+        settings window.
+        """
+        # Load from file to fill the lines
+        with open("settings.json") as json_file:
+            data = json.load(json_file)
+        try:
+            settings = data["overwrite"]
+        except:
+            settings = data["default"]
+            print("Default device parameters taken")
+
+        return settings[0]
+
     def start_autotube_measurement(self):
         """
         Function that executes the actual measurement (the logic of which is
@@ -211,6 +229,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Update statusbar message
         self.statusbar.showMessage("Running", 10000000)
 
+        # Now read in the global settings from file
+        global_settings = self.read_global_settings()
+
         # This shall create an instance of the AutotubeMeasurement class
         progress = 0
         for pixel in selected_pixels:
@@ -228,9 +249,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             # Instantiate our class
             measurement = AutotubeMeasurement(
-                keithley_source_address,
-                keithley_multimeter_address,
-                com2_address,
+                global_settings["keithley_source_address"],
+                global_settings["keithley_multimeter_address"],
+                global_settings["arduino_com_address"],
                 photodiode_gain,
                 measurement_parameters,
                 pixel,

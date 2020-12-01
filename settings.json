@@ -1,0 +1,16 @@
+{
+    "overwrite": [
+        {
+            "keithley_source_address": "USB0::0x05E6::0x2450::04102170::INSTR",
+            "keithley_multimeter_address": "USB0::0x05E6::0x2100::8003430::INSTR",
+            "arduino_com_address": "ASRL3::INSTR"
+        }
+    ],
+    "default": [
+        {
+            "keithley_source_address": "USB0::0x05E6::0x2450::04102170::INSTR",
+            "keithley_multimeter_address": "USB0::0x05E6::0x2100::8003430::INSTR",
+            "arduino_com_address": "ASRL3::INSTR"
+        }
+    ]
+}

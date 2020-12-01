@@ -18,6 +18,8 @@ from matplotlib.backends.backend_qt5agg import (
 from matplotlib.figure import Figure
 import matplotlib.backends.backend_qt5
 
+import time
+
 
 # ---------------------------------------------------------------------------- #
 # --------------------------- Define Main Window ----------------------------- #
@@ -1550,7 +1552,18 @@ class Ui_MainWindow(object):
             self.sw_folder_path_lineEdit.setText(self.global_path[0] + "/")
 
     def show_settings(self):
-        self.SettingsWindow = QtWidgets.QWidget()
+        self.settings_window = QtWidgets.QDialog()
         ui = Ui_Settings()
-        ui.setupUi(self.SettingsWindow)
-        self.SettingsWindow.show()
+        ui.setupUi(self.settings_window, parent=self)
+
+        p = (
+            self.frameGeometry().center()
+            - QtCore.QRect(QtCore.QPoint(), self.settings_window.sizeHint()).center()
+        )
+
+        self.settings_window.move(p)
+
+        # self.settings_window.show()
+
+        result = self.settings_window.exec()
+        print(result)
