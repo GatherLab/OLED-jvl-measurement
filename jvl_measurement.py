@@ -9,6 +9,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 # communication
 keithley_source_address = u"USB0::0x05E6::0x2450::04102170::INSTR"
 keithley_multimeter_address = u"USB0::0x05E6::0x2100::8003430::INSTR"
+com2_address = u"ASRL3::INSTR"
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -138,6 +139,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             measurement = AutotubeMeasurement(
                 keithley_source_address,
                 keithley_multimeter_address,
+                com2_address,
                 measurement_parameters,
                 pixel,
             )

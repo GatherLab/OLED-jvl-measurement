@@ -89,6 +89,11 @@ The idea is that measurement parameters can be saved and loaded for later measur
 
 The settings tab is not yet clearly defined although it shall link to the documentation of the software (via Help) and allow to open the log file that logs possible errors occurring with the program. I don't know yet what the options tab contains but this might contain some global options that are only seldomly touched. If it is not necessary after all we can just delete it.
 
+#### Parameters for global settings
+
+- Keithley and arduino addresses
+- photodiode gain
+
 ## Documentation
 
 ### Arduino Communication
