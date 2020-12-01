@@ -77,6 +77,9 @@ class ArduinoUno:
         # self.queue.put(com.readall())
 
     def close_serial_connection(self):
+        """
+        Close connection to arduino
+        """
         self.uno.close()
 
     def open_relay(self, relay, state):
@@ -134,8 +137,7 @@ class KeithleySource:
         self.keith = rm.open_resource(keithley_source_address)
 
         # Write operational parameters to Sourcemeter (Voltage to OLED)
-        # reset instrument
-        self.keith.write("*rst")
+        self.reset()
         # set voltage as source
         self.keith.write("Source:Function Volt")
         # choose current for measuring
@@ -149,8 +151,16 @@ class KeithleySource:
         self.keith.write("Current:AZero OFF")  # turn off autozero
         self.keith.write("Source:Volt:Delay:AUTO OFF")  # turn off autodelay
 
+    def reset(self):
+        """
+        reset instrument
+        """
+        self.keith.write("*rst")
+
     def init_buffer(self, low_vlt, high_vlt):
-        # Buffer for Sourcemeter
+        """
+        Initialise buffer of source meter
+        """
         self.keith.write(
             'Trace:Make "OLEDbuffer", '
             + str(10 * max(len(low_vlt) + len(high_vlt), 10))
@@ -160,17 +170,27 @@ class KeithleySource:
         self.keith.write('Trace:Clear "OLEDbuffer"')
 
     def activate_output(self):
-        # Activate output on Keithley
+        """
+        Activate output
+        """
         self.keith.write("Output ON")
 
     def deactivate_output(self):
-        # Turn power off
+        """
+        Turn power off
+        """
         self.keith.write("Output OFF")
 
     def read_current(self):
-        return float(self.keithley_source.query('Read? "OLEDbuffer"')[:-1])
+        """
+        Read current on Keithley source meter
+        """
+        return float(self.keith.query('Read? "OLEDbuffer"')[:-1])
 
     def set_voltage(self, voltage):
+        """
+        Set the voltage on the source meter
+        """
         self.keith.write("Source:Volt " + str(voltage))
 
 
@@ -193,7 +213,7 @@ class KeithleyMultimeter:
 
         # Write operational parameters to Multimeter (Voltage from Photodiode)
         # reset instrument
-        self.keithmulti.write("*rst")
+        self.reset()
         # sets the voltage range
         self.keithmulti.write("SENSe:VOLTage:DC:RANGe 10")
         # sets the voltage resolution
@@ -204,10 +224,17 @@ class KeithleyMultimeter:
         self.keithmulti.write("TRIGer:SOURce BUS")
         # sets the trigger to activate immediately after 'idle' -> 'wait-for-trigger'
         self.keithmulti.write("TRIGer:DELay 0")
-
-    def init_wait_for_trigger_mode(self):
-        # Initiating 'wait_for_trigger' mode for Multimeter
+        # Activate wait for trigger mode
         self.keithmulti.write("INITiate")
 
+    def reset(self):
+        """
+        Reset instrument
+        """
+        self.keithmulti.write("*rst")
+
     def measure_voltage(self):
+        """
+        Returns an actual voltage reading on the keithley multimeter
+        """
         return float(self.keithmulti.query("MEASure:VOLTage:DC?"))

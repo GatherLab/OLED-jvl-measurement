@@ -53,6 +53,11 @@ class AutotubeMeasurement(threading.Thread):
         # self.PDcutoff = self.set_photodiode_gain(photodiode_gain)
         self.pixel = pixel
 
+        # Since the data shall be plotted after each measurement (it could also
+        # be done while measuring but I think there is not much benefit and the
+        # programming is uglier), only one pixel is scanned at a time
+        self.df_data = pd.DataFrame(columns=["voltage", "current", "pd_voltage"])
+
     # For some reason this function is not used at all
     # def set_photodiode_gain(self, photodiode_gain):
     #     """
@@ -120,31 +125,15 @@ class AutotubeMeasurement(threading.Thread):
 
         voltages_to_scan = np.append(low_vlt, high_vlt)
 
-        # Since the data shall be plotted after each measurement (it could also
-        # be done while measuring but I think there is not much benefit and the
-        # programming is uglier), only one pixel is scanned at a time
-        df_data = pd.DataFrame(columns=["voltage", "current", "pd_voltage"])
-
-        # Initiating 'wait_for_trigger' mode for Multimeter
-        self.keithley_multimeter.init_wait_for_trigger_mode()
         self.keithley_source.init_buffer(low_vlt, high_vlt)
 
         # Take PD voltage reading from Multimeter for background
         background_diodevoltage = self.keithley_multimeter.measure_voltage()
-        # self.queue.put(
-        #     "Background Photodiode Voltage :" + str(background_diodevoltage) + " V"
-        # )
-        # self.queue.put(
-        #     "\nSaving output to: "
-        #     + str(self.measurement_parameters.sample)
-        #     + "D"
-        #     + str(self.pixel)
-        #     + ".txt"
-        # )
 
-        # Open activate on the selected self.pixel
+        # Activate the relay of the selected pixel
         self.uno.open_relay(relay=self.pixel, state=1)
 
+        # Turn on the voltage
         self.keithley_source.activate_output()
 
         # Low Voltage Readings
@@ -162,46 +151,42 @@ class AutotubeMeasurement(threading.Thread):
             # check if compliance is reached
             if abs(oled_current) >= self.measurement_parameters.compliance:
                 self.keithley_source.deactivate_output()
-                # self.queue.put(" | compliance reached -> aborting")
+                raise Warning("Current compliance reached")
                 break
 
             # check for a bad contact
             if self.measurement_parameters.check_bad_contact == True and (voltage != 0):
                 if abs(oled_current) <= self.measurement_parameters.bad_contact:
                     self.keithley_source.deactivate_output()  # Turn power off
-                    # self.queue.put(" | probably bad contact -> aborting")
+                    raise Warning(
+                        "Pixel "
+                        + self.pixel
+                        + " probably has a bad contact. Measurement aborted."
+                    )
                     break
             # check for PD saturation
             if self.measurement_parameters.check_pd_saturation == True:
                 if diode_voltage >= self.measurement_parameters.pd_saturation:
-                    # self.queue.put(
-                    # "Photodiode reaches saturation. You might want to adjust"
-                    # " the photodiode_gain."
-                    # )
+                    raise Warning(
+                        "Photodiode reaches saturation. You might want to adjust the"
+                        " photodiode gain"
+                    )
                     break
 
-            # self.queue.put("OLED Current : " + str(oled_current * 1e3) + " mA")
-            # self.queue.put(
-            # "Photodiode Voltage :"
-            # + str(diode_voltage - background_diodevoltage)
-            # + " V"
-            # )
-            df_data.loc[i, "pd_voltage"] = diode_voltage - background_diodevoltage
+            self.df_data.loc[i, "pd_voltage"] = diode_voltage - background_diodevoltage
             # Current should be in mA
-            df_data.loc[i, "current"] = oled_current * 1e3
-            df_data.loc[i, "voltage"] = voltage
+            self.df_data.loc[i, "current"] = oled_current * 1e3
+            self.df_data.loc[i, "voltage"] = voltage
+
+            i += 1
 
         # Turn keithley off
         self.keithley_source.deactivate_output()
 
-        # Turn off all relays aphotodiode_gain
+        # Turn off all relays
         self.uno.open_relay(relay=self.pixel, state=0)
 
         self.uno.close_serial_connection()  # close COM port
-
-        # self.queue.put("\n\nMEASUREMENT COMPLETE")
-
-        return df_data
 
     def save_data(self):
         """
@@ -214,4 +199,4 @@ class AutotubeMeasurement(threading.Thread):
         """
         Function to return the data that is stored in the class' file structure.
         """
-        return
+        return self.df_data

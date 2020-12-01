@@ -10,6 +10,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 keithley_source_address = u"USB0::0x05E6::0x2450::04102170::INSTR"
 keithley_multimeter_address = u"USB0::0x05E6::0x2100::8003430::INSTR"
 com2_address = u"ASRL3::INSTR"
+photodiode_gain = 50
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -140,6 +141,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 keithley_source_address,
                 keithley_multimeter_address,
                 com2_address,
+                photodiode_gain,
                 measurement_parameters,
                 pixel,
             )
@@ -147,13 +149,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Call measurement.measure() to measure and save all the measured data into the class itself
             measurement.measure()
 
-            # Then we call measurement.save_data() to directly save the data to a file
+            # Call measurement.save_data() to directly save the data to a file
             measurement.save_data()
 
-            # Then we call measurement.get_data() that returns the actual data so that we can feed it into plot_autotube_measurement
-            jvl_data = measurement.get_data()
-
-            self.plot_autotube_measurement(jvl_data)
+            # Call measurement.get_data() that returns the actual data
+            # so that we can feed it into plot_autotube_measurement
+            self.plot_autotube_measurement(measurement.get_data()
 
 
 # ---------------------------------------------------------------------------- #
