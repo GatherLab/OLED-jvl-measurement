@@ -75,7 +75,7 @@ class Ui_Settings(QtWidgets.QDialog):
         self.gridLayout.addWidget(self.arduino_com_address_lineEdit, 3, 1, 1, 1)
 
         # Load from file to fill the lines
-        with open("settings.json") as json_file:
+        with open("settings/global_settings.json") as json_file:
             data = json.load(json_file)
         try:
             default_settings = data["overwrite"]
@@ -168,7 +168,7 @@ class Ui_Settings(QtWidgets.QDialog):
         )
 
         # Load the default parameter settings
-        with open("settings.json") as json_file:
+        with open("settings/global_settings.json") as json_file:
             data = json.load(json_file)
 
         # Add the default parameters to the new settings json
@@ -176,7 +176,7 @@ class Ui_Settings(QtWidgets.QDialog):
         settings_data["default"] = data["default"]
 
         # Save the entire thing again to the settings.json file
-        with open("settings.json", "w") as json_file:
+        with open("settings/global_settings.json", "w") as json_file:
             json.dump(settings_data, json_file, indent=4)
 
         print("Parameters saved")
@@ -185,7 +185,7 @@ class Ui_Settings(QtWidgets.QDialog):
         self.parent.settings_window.accept()
 
     def load_defaults(self):
-        with open("settings.json") as json_file:
+        with open("settings/global_settings.json") as json_file:
             data = json.load(json_file)
 
         default_settings = data["default"]

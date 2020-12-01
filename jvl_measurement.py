@@ -160,7 +160,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         settings window.
         """
         # Load from file to fill the lines
-        with open("settings.json") as json_file:
+        with open("settings/global_settings.json") as json_file:
             data = json.load(json_file)
         try:
             settings = data["overwrite"]
