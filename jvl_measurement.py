@@ -135,6 +135,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # This shall create an instance of the AutotubeMeasurement class
         for pixel in selected_pixels:
+            file_path = (
+                setup_parameters["folder_path"]
+                + setup_parameters["batch_name"]
+                + "_d"
+                + setup_parameters["device_number"]
+                + "_p"
+                + pixel
+                + ".csv"
+            )
 
             # Instantiate our class
             measurement = AutotubeMeasurement(
@@ -144,6 +153,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 photodiode_gain,
                 measurement_parameters,
                 pixel,
+                file_path,
             )
 
             # Call measurement.measure() to measure and save all the measured data into the class itself
@@ -154,7 +164,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             # Call measurement.get_data() that returns the actual data
             # so that we can feed it into plot_autotube_measurement
-            self.plot_autotube_measurement(measurement.get_data()
+            self.plot_autotube_measurement(measurement.get_data())
 
 
 # ---------------------------------------------------------------------------- #

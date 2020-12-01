@@ -35,6 +35,7 @@ class AutotubeMeasurement(threading.Thread):
         photodiode_gain,
         measurement_parameters,
         pixel,
+        file_path,
     ):
         """
         Initialise class. Measurement parameters are handed over from the GUI
@@ -57,6 +58,8 @@ class AutotubeMeasurement(threading.Thread):
         # be done while measuring but I think there is not much benefit and the
         # programming is uglier), only one pixel is scanned at a time
         self.df_data = pd.DataFrame(columns=["voltage", "current", "pd_voltage"])
+
+        self.file_path = file_path
 
     # For some reason this function is not used at all
     # def set_photodiode_gain(self, photodiode_gain):
@@ -193,6 +196,54 @@ class AutotubeMeasurement(threading.Thread):
         Function to save the measured data to file. This should probably be
         integrated into the AutotubeMeasurement class
         """
+        # Define Header
+        line03 = (
+            "Max voltage:   "
+            + str(self.measurement_parameters["max_voltage"])
+            + " V    "
+            + "Change voltage:   "
+            + str(self.measurement_parameters["change_voltage"])
+            + " V    "
+            + "Min voltage:   "
+            + str(self.measurement_parameters["min_voltage"])
+            + " V"
+        )
+        line04 = (
+            "Step voltage at low voltages:   "
+            + str(self.measurement_parameters["min_step_voltage"])
+            + "V"
+        )
+        line05 = (
+            "Step voltage at high voltages:   "
+            + str(self.measurement_parameters["max_step_voltage"])
+            + "V"
+        )
+        line06 = (
+            "Current Compliance:   "
+            + str(self.measurement_parameters["compliance"])
+            + " A"
+        )
+        line07 = "### Measurement data ###"
+        line08 = "OLEDVoltage\t OLEDCurrent\t Photodiode Voltage"
+        line09 = "V\t mA\t V"
+
+        header_lines = [
+            line03,
+            line04,
+            line05,
+            line06,
+            line07,
+            line08,
+            line09,
+        ]
+
+        # Write header lines to file
+        with open(self.file_path, "a") as the_file:
+            the_file.write("\n".join(header_lines))
+
+        # Now write pandas dataframe to file
+        self.df_data.to_csv(self.file_path, mode="a", header=False, sep="\t")
+
         return
 
     def get_data(self):
