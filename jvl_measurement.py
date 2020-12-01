@@ -5,6 +5,9 @@ from autotube_measurement import AutotubeMeasurement
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
+import time
+import matplotlib.pylab as plt
+
 # Set the keithley source and multimeter addresses that are needed for
 # communication
 keithley_source_address = u"USB0::0x05E6::0x2450::04102170::INSTR"
@@ -106,6 +109,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
             "pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
         }
+
+        # Boolean list for selected pixels
         selected_pixels = [
             self.aw_pixel1_pushButton.isChecked(),
             self.aw_pixel2_pushButton.isChecked(),
@@ -116,12 +121,28 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.aw_pixel7_pushButton.isChecked(),
             self.aw_pixel8_pushButton.isChecked(),
         ]
+
+        # Return only the pixel numbers of the selected pixels
+        selected_pixels_numbers = [i + 1 for i, x in enumerate(selected_pixels) if x]
+
         return measurement_parameters, selected_pixels
 
     def plot_autotube_measurement(self, jvl_data):
         """
         Function to plot the results from the autotube measurement to the central graph.
         """
+        # self.aw_fig.figure()
+
+        # Plot current
+        self.aw_ax.plot(jvl_data.voltage, jvl_data.current, color="orange", marker="o")
+        # twin object for two different y-axis on the sample plot
+        # make a plot with different y-axis using second axis object
+        self.aw_ax2.plot(
+            jvl_data.voltage, jvl_data.pd_voltage, color="blue", marker="o"
+        )
+
+        plt.show()
+
         return jvl_data
 
     def start_autotube_measurement(self):
@@ -130,18 +151,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         stored in autotube_measurement.py). Iteration over the selected
         pixels as well as a call for the plotting happens here.
         """
+        # Set progress bar to zero
+        self.progressBar.setProperty("value", 0)
+
+        # Read out measurement and setup parameters from GUI
         measurement_parameters, selected_pixels = self.read_autotube_parameters()
         setup_parameters = self.read_setup_parameters()
 
         # This shall create an instance of the AutotubeMeasurement class
+        progress = 0
         for pixel in selected_pixels:
             file_path = (
                 setup_parameters["folder_path"]
                 + setup_parameters["batch_name"]
                 + "_d"
-                + setup_parameters["device_number"]
+                + str(setup_parameters["device_number"])
                 + "_p"
-                + pixel
+                + str(pixel)
                 + ".csv"
             )
 
@@ -165,6 +191,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Call measurement.get_data() that returns the actual data
             # so that we can feed it into plot_autotube_measurement
             self.plot_autotube_measurement(measurement.get_data())
+
+            # Update progress bar
+            progress += 1
+            self.progressBar.setProperty("value", int(progress / len(selected_pixels)))
+
+            # Wait a few seconds so that the user can have a look at the graph
+            time.sleep(5)
 
 
 # ---------------------------------------------------------------------------- #

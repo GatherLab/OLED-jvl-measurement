@@ -19,7 +19,7 @@ class ArduinoUno:
 
         # Open COM port to Arduino (usually COM2):
         if com2_address not in visa_resources:
-            raise LookupError(
+            raise IOError(
                 "The Arduino Uno seems to be missing. Try to reconnect to computer."
             )
             # self.queue.put(
@@ -39,9 +39,7 @@ class ArduinoUno:
                 self.uno.close()
                 self.init_serial_connection()
             except IOError:
-                raise LookupError(
-                    "COM2 port to Arduino Uno already open. Restart Python."
-                )
+                raise IOError("COM2 port to Arduino Uno already open. Restart Python.")
                 # self.queue.put(
                 # "COM2 port to Arduino Uno already open."
                 # + "\nTry 'uno.close()' in your console or restarting IPython."
@@ -132,7 +130,7 @@ class KeithleySource:
 
         # Check if keithley source is present at the given address
         if keithley_source_address not in visa_resources:
-            raise LookupError("The SourceMeter seems to be absent or switched off.")
+            raise IOError("The SourceMeter seems to be absent or switched off.")
 
         self.keith = rm.open_resource(keithley_source_address)
 
@@ -207,7 +205,7 @@ class KeithleyMultimeter:
         visa_resources = rm.list_resources()
 
         if keithley_multimeter_address not in visa_resources:
-            raise LookupError("The Multimeter seems to be absent or switched off.")
+            raise IOError("The Multimeter seems to be absent or switched off.")
 
         self.keithmulti = rm.open_resource(keithley_multimeter_address)
 

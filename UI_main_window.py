@@ -350,6 +350,11 @@ class Ui_MainWindow(object):
 
         self.aw_ax = self.aw_fig.figure.subplots()
         self.aw_ax.set_facecolor("#E0E0E0")
+        self.aw_ax.set_xlabel("Voltage (V)", fontsize=14)
+        self.aw_ax.set_ylabel("Current (mA)", color="orange", fontsize=14)
+        self.aw_ax.axhline(linewidth=1, color="black")
+        self.aw_ax2 = self.aw_ax.twinx()
+        self.aw_ax2.set_ylabel("Photodiode Voltage (V)", color="blue", fontsize=14)
         self.aw_fig.figure.set_facecolor("#E0E0E0")
         self.aw_mplToolbar = NavigationToolbar(self.aw_fig, self.aw_graph_widget)
         self.aw_mplToolbar.setStyleSheet("background-color:#E0E0E0;")
