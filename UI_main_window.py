@@ -1543,11 +1543,11 @@ class Ui_MainWindow(object):
         # file_dialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
 
         if file_dialog.exec():
+            # Set global path to selected path
             self.global_path = file_dialog.selectedFiles()
 
-        self.sw_folder_path_lineEdit.setText(self.global_path[0] + "/")
-
-        return self.global_path
+            # Set the according line edit
+            self.sw_folder_path_lineEdit.setText(self.global_path[0] + "/")
 
     def show_settings(self):
         self.SettingsWindow = QtWidgets.QWidget()
