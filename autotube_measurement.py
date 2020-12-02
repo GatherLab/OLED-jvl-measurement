@@ -44,7 +44,7 @@ class AutotubeMeasurement(QtCore.QThread):
         # Initialise arduino and Keithley source and multimeter with the input addresses
         self.uno = MockArduinoUno(com2_address)
         self.keithley_source = MockKeithleySource(
-            keithley_source_address, measurement_parameters.compliance
+            keithley_source_address, measurement_parameters["scan_compliance"]
         )
         self.keithley_multimeter = MockKeithleyMultimeter(keithley_multimeter_address)
 
@@ -383,15 +383,15 @@ class AutotubeMeasurement(QtCore.QThread):
         # Define voltage steps
         # Voltage points for low OLED voltage
         low_vlt = np.arange(
-            self.measurement_parameters.min_voltage,
-            self.measurement_parameters.change_voltage,
-            self.measurement_parameters.max_step_voltage,
+            self.measurement_parameters["min_voltage"],
+            self.measurement_parameters["change_voltage"],
+            self.measurement_parameters["max_step_voltage"],
         )
         # Voltage points for high OLED voltage
         high_vlt = np.arange(
-            self.measurement_parameters.change_voltage,
-            self.measurement_parameters.max_voltage + 0.1,
-            self.measurement_parameters.min_step_voltage,
+            self.measurement_parameters["change_voltage"],
+            self.measurement_parameters["max_voltage + 0.1"],
+            self.measurement_parameters["min_step_voltage"],
         )
 
         voltages_to_scan = np.append(low_vlt, high_vlt)
@@ -420,14 +420,16 @@ class AutotubeMeasurement(QtCore.QThread):
             oled_current = self.keithley_source.read_current()
 
             # check if compliance is reached
-            if abs(oled_current) >= self.measurement_parameters.compliance:
+            if abs(oled_current) >= self.measurement_parameters["compliance"]:
                 self.keithley_source.deactivate_output()
                 raise Warning("Current compliance reached")
                 break
 
             # check for a bad contact
-            if self.measurement_parameters.check_bad_contact == True and (voltage != 0):
-                if abs(oled_current) <= self.measurement_parameters.bad_contact:
+            if self.measurement_parameters["check_bad_contact"] == True and (
+                voltage != 0
+            ):
+                if abs(oled_current) <= self.measurement_parameters["bad_contact"]:
                     self.keithley_source.deactivate_output()  # Turn power off
                     raise Warning(
                         "Pixel "
@@ -436,8 +438,8 @@ class AutotubeMeasurement(QtCore.QThread):
                     )
                     break
             # check for PD saturation
-            if self.measurement_parameters.check_pd_saturation == True:
-                if diode_voltage >= self.measurement_parameters.pd_saturation:
+            if self.measurement_parameters["check_pd_saturation"] == True:
+                if diode_voltage >= self.measurement_parameters["pd_saturation"]:
                     raise Warning(
                         "Photodiode reaches saturation. You might want to adjust the"
                         " photodiode gain"

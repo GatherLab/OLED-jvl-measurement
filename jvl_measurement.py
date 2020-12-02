@@ -10,6 +10,7 @@ import time
 import os
 import json
 import functools
+import numpy as np
 
 import matplotlib.pylab as plt
 
@@ -34,10 +35,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
 
-        # Link actions to buttons
-        self.aw_start_measurement_pushButton.clicked.connect(
-            self.start_autotube_measurement
-        )
+        # Update statusbar
+        self.statusbar.showMessage("Initialising Program", 10000000)
 
         # -------------------------------------------------------------------- #
         # -------------------------- Current Tester -------------------------- #
@@ -85,8 +84,36 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             functools.partial(self.toggle_pixel, 8)
         )
 
+        # Define array that contains all pushbuttons (or pointer to it)
+        # Only for easier handling of the current tester
+        self.pushbutton_array = [
+            self.sw_pixel1_pushButton,
+            self.sw_pixel2_pushButton,
+            self.sw_pixel3_pushButton,
+            self.sw_pixel4_pushButton,
+            self.sw_pixel5_pushButton,
+            self.sw_pixel6_pushButton,
+            self.sw_pixel7_pushButton,
+            self.sw_pixel8_pushButton,
+        ]
+
         # Connect voltage combo box
         self.sw_ct_voltage_spinBox.valueChanged.connect(self.voltage_changed)
+
+        # Connect automatic functions
+        self.sw_select_all_pushButton.clicked.connect(self.select_all_pixels)
+        self.sw_unselect_all_push_button.clicked.connect(self.unselect_all_pixels)
+        self.sw_prebias_pushButton.clicked.connect(self.prebias_pixels)
+        self.sw_auto_test_pushButton.clicked.connect(self.autotest_pixels)
+
+        # -------------------------------------------------------------------- #
+        # ---------------------- Autotube Measurement  ----------------------- #
+        # -------------------------------------------------------------------- #
+
+        # Link actions to buttons
+        self.aw_start_measurement_pushButton.clicked.connect(
+            self.start_autotube_measurement
+        )
 
         # -------------------------------------------------------------------- #
         # --------------------- Set Standard Parameters ---------------------- #
@@ -124,6 +151,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_voltage_spinBox.setValue(5)
         self.specw_voltage_spinBox.setMaximum(50)
 
+        # Update statusbar
+        self.statusbar.showMessage("Ready", 10000000)
+
     def activate_local_mode(self):
         """
         Function to reset the devices and toggle local mode to be able to
@@ -147,19 +177,37 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Start thread
         self.current_tester.start()
 
-        print("Current tester successfully reinstanciated")
+        # Update statusbar
+        self.statusbar.showMessage("Current tester successfully reinstanciated")
 
     def toggle_pixel(self, pixel_number):
         """
         Toggle pixel on or off by checking if the selected pixel was on
         already or not. This might require turning all pixels off first.
         """
-        if self.read_setup_parameters()["selected_pixel"][pixel_number - 1]:
+        selected_pixels = self.read_setup_parameters()["selected_pixel"]
+        if selected_pixels[pixel_number - 1]:
+            # Turn pixel on
             self.current_tester.uno.open_relay(pixel_number, True)
-            print("Pixel " + str(pixel_number) + " turned on")
+
+            # Update statusbar
+            self.statusbar.showMessage("Activated Pixel " + str(pixel_number), 10000000)
         else:
+            # Turn all pixels off first
             self.current_tester.uno.open_relay(pixel_number, False)
-            print("Pixel " + str(pixel_number) + " turned off")
+
+            # Get pixel numbers of those pixel that are True (activated)
+            activated_pixels = [i + 1 for i, x in enumerate(selected_pixels) if x]
+
+            for pixel in activated_pixels:
+                self.current_tester.uno.open_relay(pixel, True)
+
+            # Update statusbar
+            self.statusbar.showMessage(
+                "Deactivated Pixel " + str(pixel_number), 10000000
+            )
+
+            # print("Pixel " + str(pixel_number) + " turned off")
 
     @QtCore.Slot(float)
     def update_ammeter(self, current_reading):
@@ -178,7 +226,180 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         voltage = self.sw_ct_voltage_spinBox.value()
 
         # Activate output and set voltage
+        self.current_tester.keithley_source.activate_output()
         self.current_tester.keithley_source.set_voltage(voltage)
+
+        # Update statusbar
+        self.statusbar.showMessage(
+            "Voltage Changed to " + str(round(voltage, 2)) + " V", 10000000
+        )
+
+    def select_all_pixels(self):
+        """
+        Selects all pixels and applies the given voltage
+        """
+
+        # Toggle all buttons for the unselected pixels
+        pixel = 1
+        for push_button in self.pushbutton_array:
+            push_button.setChecked(True)
+            self.toggle_pixel(pixel)
+            pixel += 1
+
+        # Update statusbar
+        self.statusbar.showMessage("All Pixels Selected", 10000000)
+
+    def unselect_all_pixels(self):
+        """
+        Unselect all pixels
+        """
+
+        # Collectively turn off all pixels
+        self.current_tester.uno.open_relay(1, False)
+
+        # Uncheck all pixels
+        for push_button in self.pushbutton_array:
+            push_button.setChecked(False)
+
+        # Update statusbar
+        self.statusbar.showMessage("All Pixels Unselected", 10000000)
+
+    def prebias_pixels(self):
+        """
+        Prebias all pixels (e.g. at -2 V)
+        """
+
+        # Update statusbar
+        self.statusbar.showMessage("Prebiasing Pixels", 10000000)
+
+        # This should be in the global settings later on (probably not
+        # necessary to change every time but sometimes)
+        pre_bias_voltage = -2  # in V
+        biasing_time = 0.5  # in s
+        set_voltage = self.sw_ct_voltage_spinBox.value()
+
+        # Unselect all pixels first (in case some have been selected before)
+        self.unselect_all_pixels()
+
+        # Set voltage to prebias voltage
+        self.current_tester.keithley_source.set_voltage(pre_bias_voltage)
+        self.sw_ct_voltage_spinBox.setValue(pre_bias_voltage)
+
+        # Pre-bias all pixels automatically
+        pixel = 1
+        for push_button in self.pushbutton_array:
+            # Close all relays
+            self.current_tester.uno.open_relay(1, False)
+
+            # Set push button to checked and open relay of the pixel
+            push_button.setChecked(True)
+            self.current_tester.uno.open_relay(pixel, True)
+
+            # Turn on the voltage
+            self.current_tester.keithley_source.activate_output()
+
+            # Update GUI while being in a loop. It would be better to use
+            # separate threads but for now this is the easiest way
+            app.processEvents()
+
+            # Bias for half a second
+            time.sleep(biasing_time)
+
+            # Deactivate the pixel again
+            push_button.setChecked(False)
+            self.current_tester.uno.open_relay(pixel, False)
+
+            # Turn off the voltage
+            self.current_tester.keithley_source.deactivate_output()
+            pixel += 1
+
+        # Set voltage to prebias voltage
+        self.current_tester.keithley_source.activate_output()
+        self.current_tester.keithley_source.set_voltage(set_voltage)
+        self.sw_ct_voltage_spinBox.setValue(set_voltage)
+
+        # Update statusbar
+        self.statusbar.showMessage("Finished Prebiasing", 10000000)
+
+    def autotest_pixels(self):
+        """
+        Automatic testing of all pixels. The first very simple idea is as follows:
+            - The voltage for one pixel is slowly increased (maybe steps of
+            0.2) only until a certain current is reached. As soon as it is
+            reached, the pixel is marked as a working pixel
+            - If the current is too high for a low voltage (the threshold has
+            to be defined carefully), the pixel is thrown out and not marked
+            as working, since it is shorted
+            - All working pixels are in the end activated and the voltage is set back to zero. The user can then test if they work by checking them manually or just by increasing the voltage with all these pixels selected.
+        """
+
+        # Update statusbar
+        self.statusbar.showMessage("Autotesting Pixels", 10000000)
+
+        # Define voltage steps (in the future this could be settings in the
+        # global settings as well)
+        voltage_range = np.linspace(2, 7, 26)
+        biasing_time = 0.05
+
+        # Unselect all pixels first (in case some have been selected before)
+        self.unselect_all_pixels()
+
+        # Turn off the voltage (if that was not already done)
+        self.current_tester.keithley_source.deactivate_output()
+
+        # Go over all pixels
+        pixel = 1
+        working_pixels = []
+
+        for push_button in self.pushbutton_array:
+            # Close all relays
+            self.current_tester.uno.open_relay(1, False)
+
+            # Set push button to checked and open relay of the pixel
+            push_button.setChecked(True)
+            self.current_tester.uno.open_relay(pixel, True)
+
+            for voltage in voltage_range:
+                # Turn on the voltage at the value "voltage"
+                self.current_tester.keithley_source.activate_output()
+                self.current_tester.keithley_source.set_voltage(voltage)
+                self.sw_ct_voltage_spinBox.setValue(voltage)
+
+                # Update GUI while being in a loop. It would be better to use
+                # separate threads but for now this is the easiest way
+                app.processEvents()
+
+                # Bias for a certain time
+                time.sleep(biasing_time)
+
+                # Now read the current
+                current = self.current_tester.keithley_source.read_current()
+
+                if current >= 0.02 and current <= 5:
+                    working_pixels.append(pixel)
+                    break
+
+            # Deactivate the pixel again
+            push_button.setChecked(False)
+            self.current_tester.uno.open_relay(pixel, False)
+
+            # Turn off the voltage
+            self.current_tester.keithley_source.set_voltage(0)
+            self.current_tester.keithley_source.deactivate_output()
+            self.sw_ct_voltage_spinBox.setValue(0)
+            pixel += 1
+
+        # Now activate all pixels that do work
+        for pixel in working_pixels:
+            self.pushbutton_array[pixel - 1].setChecked(True)
+            self.toggle_pixel(pixel)
+            pixel += 1
+
+        # Set voltage to prebias voltage
+        self.current_tester.keithley_source.activate_output()
+
+        # Update statusbar
+        self.statusbar.showMessage("Finished Autotesting Pixels", 10000000)
 
     def read_setup_parameters(self):
         """
@@ -201,6 +422,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ],
             "documentation": self.sw_documentation_textEdit.toPlainText(),
         }
+
+        # Update statusbar
+        self.statusbar.showMessage("Setup Parameters Read", 10000000)
 
         return setup_parameters
 
@@ -235,6 +459,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Return only the pixel numbers of the selected pixels
         selected_pixels_numbers = [i + 1 for i, x in enumerate(selected_pixels) if x]
 
+        # Update statusbar
+        self.statusbar.showMessage("Autotube Parameters Read", 10000000)
+
         return measurement_parameters, selected_pixels_numbers
 
     def plot_autotube_measurement(self, jvl_data):
@@ -261,6 +488,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.aw_fig.draw()
 
+        # Update statusbar
+        self.statusbar.showMessage("Autotube Measurement Plotted", 10000000)
+
     def read_global_settings(self):
         """
         Read in global settings from file. The file can be changed using the
@@ -271,9 +501,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             data = json.load(json_file)
         try:
             settings = data["overwrite"]
+
+            # Update statusbar
+            self.statusbar.showMessage("Global Settings Read from File", 10000000)
         except:
             settings = data["default"]
-            print("Default device parameters taken")
+
+            # Update statusbar
+            self.statusbar.showMessage("Default Device Parameters Taken", 10000000)
 
         return settings[0]
 
@@ -283,6 +518,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         stored in autotube_measurement.py). Iteration over the selected
         pixels as well as a call for the plotting happens here.
         """
+
+        # Update statusbar
+        self.statusbar.showMessage("Autotube Measurement Started", 10000000)
 
         # Read out measurement and setup parameters from GUI
         setup_parameters = self.read_setup_parameters()
@@ -373,7 +611,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             # Call measurement.get_data() that returns the actual data
             # so that we can feed it into plot_autotube_measurement
-            self.plot_autotube_measurement(measurement.df_data())
+            self.plot_autotube_measurement(measurement.df_data)
 
             # Update progress bar
             progress += 1
@@ -392,7 +630,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_start_measurement_pushButton.setChecked(False)
 
         # Update statusbar
-        self.statusbar.showMessage("Finished Measurement", 10000000)
+        self.statusbar.showMessage("Autotube Measurement Finished", 10000000)
 
 
 # ---------------------------------------------------------------------------- #
