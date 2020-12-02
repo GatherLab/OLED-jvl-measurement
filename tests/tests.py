@@ -1,4 +1,5 @@
 import psutil
+import numpy as np
 
 
 class MockArduinoUno:
@@ -57,3 +58,15 @@ class MockKeithleyMultimeter:
     def measure_voltage(self):
         print("Voltage read")
         return float(psutil.cpu_percent() / 100)
+
+
+class MockOceanSpectrometer:
+    """
+    Mock class for testing
+    """
+
+    def __init__(self, integration_time):
+        print(integration_time)
+
+    def measure(self):
+        return np.arange(400, 900, 1), np.random.rand(500) * 100

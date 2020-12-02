@@ -23,7 +23,6 @@ class CurrentTester(QtCore.QThread):
     # https://stackoverflow.com/questions/36434706/pyqt-proper-use-of-emit-and-pyqtsignal
     # With pyside2 https://wiki.qt.io/Qt_for_Python_Signals_and_Slots
     update_ammeter_signal = QtCore.Signal(float)
-    finished = QtCore.Signal()
 
     def __init__(
         self,

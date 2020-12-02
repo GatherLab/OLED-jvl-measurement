@@ -1,5 +1,6 @@
 import pyvisa  # Keithley Module
 import serial  # Arduino Module
+import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
 import sys
 import time
@@ -239,3 +240,30 @@ class KeithleyMultimeter:
         Returns an actual voltage reading on the keithley multimeter
         """
         return float(self.keithmulti.query("MEASure:VOLTage:DC?"))
+
+
+class OceanSpectrometer:
+    """
+    Class to deal with the ocean spectrometer
+    """
+
+    def __init__(self, integration_time):
+        # List all spectrometers
+        maya_devices = sb.list_devices()
+
+        # Select our spectrometer (probably only in the list)
+        self.spectrometer = sb.Spectrometer(maya_devices[0])
+
+        # Set integration time of spectrometer
+        self.spectrometer.integration_time_micros(integration_time)
+
+    def measure(self):
+        """
+        Function to measure spectrum. The data structure might be already
+        altered in this function (this I have to see on the hardware device)
+        """
+        # The following yields lists of wavelength and intensity
+        # wavelength = self.spec.wavelengths()
+        # intensity = self.spec.intensities()
+
+        return self.spectrometer.spectrum()
