@@ -22,7 +22,7 @@ class SpectrumMeasurement(QtCore.QThread):
     update_spectrum_signal = QtCore.Signal(list, list)
 
     def __init__(
-        self, keithley_source_address, com2_address, integration_time, parent=None
+        self, com2_address, keithley_source_address, integration_time, parent=None
     ):
         # Variable to kill thread
         self.is_killed = False
@@ -31,6 +31,9 @@ class SpectrumMeasurement(QtCore.QThread):
         self.uno = MockArduinoUno(com2_address)
         self.keithley_source = MockKeithleySource(keithley_source_address, 1.05)
         self.spectrometer = MockOceanSpectrometer(integration_time)
+
+        # Connect signal to the updater from the parent class
+        self.update_spectrum_signal.connect(parent.update_spectrum)
 
     def run(self):
         """

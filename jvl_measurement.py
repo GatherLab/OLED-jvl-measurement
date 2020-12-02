@@ -3,6 +3,7 @@ from UI_settings_window import Ui_Settings
 
 from autotube_measurement import AutotubeMeasurement
 from current_tester import CurrentTester
+from spectrum_measurement import SpectrumMeasurement
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -86,7 +87,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Define array that contains all pushbuttons (or pointer to it)
         # Only for easier handling of the current tester
-        self.pushbutton_array = [
+        self.sw_pushbutton_array = [
             self.sw_pixel1_pushButton,
             self.sw_pixel2_pushButton,
             self.sw_pixel3_pushButton,
@@ -114,6 +115,81 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_start_measurement_pushButton.clicked.connect(
             self.start_autotube_measurement
         )
+
+        # -------------------------------------------------------------------- #
+        # ---------------------- Spectrum Measurement  ----------------------- #
+        # -------------------------------------------------------------------- #
+
+        self.spectrum_measurement = SpectrumMeasurement(
+            global_settings["arduino_com_address"],
+            global_settings["keithley_source_address"],
+            integration_time=300000,  # 300 ms
+            parent=self,
+        )
+
+        # Start thread
+        self.current_tester.start()
+
+        # Connect buttons
+        self.sw_activate_local_mode_pushButton.clicked.connect(self.activate_local_mode)
+
+        # Connect sw pixel to toggle function
+        self.sw_pixel1_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 1)
+        )
+        self.sw_pixel2_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 2)
+        )
+        self.sw_pixel3_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 3)
+        )
+        self.sw_pixel4_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 4)
+        )
+
+        self.specw_voltage_spinBox.valueChanged.connect(self.voltage_changed)
+
+        # Connect sw pixel to toggle function
+        self.specw_pixel1_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 1)
+        )
+        self.specw_pixel2_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 2)
+        )
+        self.specw_pixel3_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 3)
+        )
+        self.specw_pixel4_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 4)
+        )
+        self.specw_pixel5_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 5)
+        )
+        self.specw_pixel6_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 6)
+        )
+        self.specw_pixel7_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 7)
+        )
+        self.specw_pixel8_pushButton.clicked.connect(
+            functools.partial(self.toggle_pixel, 8)
+        )
+
+        # Define array that contains all pushbuttons (or pointer to it)
+        # Only for easier handling of the current tester
+        self.specw_pushbutton_array = [
+            self.specw_pixel1_pushButton,
+            self.specw_pixel2_pushButton,
+            self.specw_pixel3_pushButton,
+            self.specw_pixel4_pushButton,
+            self.specw_pixel5_pushButton,
+            self.specw_pixel6_pushButton,
+            self.specw_pixel7_pushButton,
+            self.specw_pixel8_pushButton,
+        ]
+
+        # Save spectrum button
+        self.specw_save_spectrum_pushButton.clicked.connect(self.save_spectrum)
 
         # -------------------------------------------------------------------- #
         # --------------------- Set Standard Parameters ---------------------- #
@@ -153,6 +229,62 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update statusbar
         self.statusbar.showMessage("Ready", 10000000)
+
+    # -------------------------------------------------------------------- #
+    # ------------------------- Global Functions ------------------------- #
+    # -------------------------------------------------------------------- #
+
+    def read_setup_parameters(self):
+        """
+        Function to read out the current fields entered in the setup tab
+        """
+        setup_parameters = {
+            "folder_path": self.sw_folder_path_lineEdit.text(),
+            "batch_name": self.sw_batch_name_lineEdit.text(),
+            "device_number": self.sw_device_number_spinBox.value(),
+            "test_voltage": self.sw_ct_voltage_spinBox.value(),
+            "selected_pixel": [
+                self.sw_pixel1_pushButton.isChecked(),
+                self.sw_pixel2_pushButton.isChecked(),
+                self.sw_pixel3_pushButton.isChecked(),
+                self.sw_pixel4_pushButton.isChecked(),
+                self.sw_pixel5_pushButton.isChecked(),
+                self.sw_pixel6_pushButton.isChecked(),
+                self.sw_pixel7_pushButton.isChecked(),
+                self.sw_pixel8_pushButton.isChecked(),
+            ],
+            "documentation": self.sw_documentation_textEdit.toPlainText(),
+        }
+
+        # Update statusbar
+        self.statusbar.showMessage("Setup Parameters Read", 10000000)
+
+        return setup_parameters
+
+    def read_global_settings(self):
+        """
+        Read in global settings from file. The file can be changed using the
+        settings window.
+        """
+        # Load from file to fill the lines
+        with open("settings/global_settings.json") as json_file:
+            data = json.load(json_file)
+        try:
+            settings = data["overwrite"]
+
+            # Update statusbar
+            self.statusbar.showMessage("Global Settings Read from File", 10000000)
+        except:
+            settings = data["default"]
+
+            # Update statusbar
+            self.statusbar.showMessage("Default Device Parameters Taken", 10000000)
+
+        return settings[0]
+
+    # -------------------------------------------------------------------- #
+    # -------------------------- Current Tester -------------------------- #
+    # -------------------------------------------------------------------- #
 
     def activate_local_mode(self):
         """
@@ -241,7 +373,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Toggle all buttons for the unselected pixels
         pixel = 1
-        for push_button in self.pushbutton_array:
+        for push_button in self.sw_pushbutton_array:
             push_button.setChecked(True)
             self.toggle_pixel(pixel)
             pixel += 1
@@ -258,7 +390,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.current_tester.uno.open_relay(1, False)
 
         # Uncheck all pixels
-        for push_button in self.pushbutton_array:
+        for push_button in self.sw_pushbutton_array:
             push_button.setChecked(False)
 
         # Update statusbar
@@ -287,7 +419,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Pre-bias all pixels automatically
         pixel = 1
-        for push_button in self.pushbutton_array:
+        for push_button in self.sw_pushbutton_array:
             # Close all relays
             self.current_tester.uno.open_relay(1, False)
 
@@ -351,7 +483,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         pixel = 1
         working_pixels = []
 
-        for push_button in self.pushbutton_array:
+        for push_button in self.sw_pushbutton_array:
             # Close all relays
             self.current_tester.uno.open_relay(1, False)
 
@@ -391,7 +523,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Now activate all pixels that do work
         for pixel in working_pixels:
-            self.pushbutton_array[pixel - 1].setChecked(True)
+            self.sw_pushbutton_array[pixel - 1].setChecked(True)
             self.toggle_pixel(pixel)
             pixel += 1
 
@@ -401,32 +533,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Update statusbar
         self.statusbar.showMessage("Finished Autotesting Pixels", 10000000)
 
-    def read_setup_parameters(self):
-        """
-        Function to read out the current fields entered in the setup tab
-        """
-        setup_parameters = {
-            "folder_path": self.sw_folder_path_lineEdit.text(),
-            "batch_name": self.sw_batch_name_lineEdit.text(),
-            "device_number": self.sw_device_number_spinBox.value(),
-            "test_voltage": self.sw_ct_voltage_spinBox.value(),
-            "selected_pixel": [
-                self.sw_pixel1_pushButton.isChecked(),
-                self.sw_pixel2_pushButton.isChecked(),
-                self.sw_pixel3_pushButton.isChecked(),
-                self.sw_pixel4_pushButton.isChecked(),
-                self.sw_pixel5_pushButton.isChecked(),
-                self.sw_pixel6_pushButton.isChecked(),
-                self.sw_pixel7_pushButton.isChecked(),
-                self.sw_pixel8_pushButton.isChecked(),
-            ],
-            "documentation": self.sw_documentation_textEdit.toPlainText(),
-        }
-
-        # Update statusbar
-        self.statusbar.showMessage("Setup Parameters Read", 10000000)
-
-        return setup_parameters
+    # -------------------------------------------------------------------- #
+    # ---------------------- Autotube Measurement  ----------------------- #
+    # -------------------------------------------------------------------- #
 
     def read_autotube_parameters(self):
         """
@@ -490,27 +599,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update statusbar
         self.statusbar.showMessage("Autotube Measurement Plotted", 10000000)
-
-    def read_global_settings(self):
-        """
-        Read in global settings from file. The file can be changed using the
-        settings window.
-        """
-        # Load from file to fill the lines
-        with open("settings/global_settings.json") as json_file:
-            data = json.load(json_file)
-        try:
-            settings = data["overwrite"]
-
-            # Update statusbar
-            self.statusbar.showMessage("Global Settings Read from File", 10000000)
-        except:
-            settings = data["default"]
-
-            # Update statusbar
-            self.statusbar.showMessage("Default Device Parameters Taken", 10000000)
-
-        return settings[0]
 
     def start_autotube_measurement(self):
         """
@@ -631,6 +719,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update statusbar
         self.statusbar.showMessage("Autotube Measurement Finished", 10000000)
+
+    # -------------------------------------------------------------------- #
+    # ---------------------- Spectrum Measurement  ----------------------- #
+    # -------------------------------------------------------------------- #
+    def save_spectrum(self):
+        """
+        Function that saves the spectrum (probably by doing another
+        measurement and shortly turning on the OLED for a background
+        measurement and then saving this into a single file)
+        """
+        return
+
+    @QtCore.Slot(list, list)
+    def update_spectrum(self, wavelength, intensity):
+        """
+        Function that is continuously evoked when the spectrum is updated by
+        the other thread
+        """
+        return
 
 
 # ---------------------------------------------------------------------------- #
