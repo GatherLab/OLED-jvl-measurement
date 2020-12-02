@@ -203,7 +203,17 @@ class Ui_MainWindow(object):
         self.sw_pixel_label = QtWidgets.QLabel(self.sw_select_pixel_widget)
         self.sw_pixel_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.sw_pixel_label.setObjectName("sw_pixel_label")
-        self.gridLayout_6.addWidget(self.sw_pixel_label, 0, 0, 1, 1)
+        self.gridLayout_6.addWidget(self.sw_pixel_label, 1, 0, 1, 1)
+
+        # Activate local mode button
+        self.sw_activate_local_mode_pushButton = QtWidgets.QPushButton(
+            self.sw_select_pixel_widget
+        )
+        self.sw_activate_local_mode_pushButton.setObjectName(
+            "sw_activate_local_mode_pushButton"
+        )
+        # self.sw_activate_local_mode_horizontalLayout.addWidget(self.sw_browse_pushButton)
+        self.gridLayout_6.addWidget(self.sw_activate_local_mode_pushButton, 0, 0, 1, 2)
 
         # Pixel 1
         self.sw_pixel1_pushButton = QtWidgets.QPushButton(self.sw_select_pixel_widget)
@@ -1343,6 +1353,9 @@ class Ui_MainWindow(object):
         )
         self.sw_header1_label.setText(
             _translate("MainWindow", "Batch Name and File Path")
+        )
+        self.sw_activate_local_mode_pushButton.setText(
+            _translate("MainWindow", "Activate Local Mode")
         )
         self.sw_pixel_label.setText(_translate("MainWindow", "Select Pixels"))
         self.sw_pixel2_pushButton.setText(_translate("MainWindow", "2"))

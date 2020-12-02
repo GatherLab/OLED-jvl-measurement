@@ -39,8 +39,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.start_autotube_measurement
         )
 
-        self.current_tester = CurrentTester()
+        # -------------------------------------------------------------------- #
+        # -------------------------- Current Tester -------------------------- #
+        # -------------------------------------------------------------------- #
 
+        # First init of current tester (should be activated when starting the
+        # program)
+        global_settings = self.read_global_settings()
+        self.current_tester = CurrentTester(
+            global_settings["arduino_com_address"],
+            global_settings["keithley_source_address"],
+            # global_settings["keithley_multimeter_address"],
+            parent=self,
+        )
+
+        # Start thread
+        self.current_tester.start()
+
+        # Connect buttons
+        self.sw_activate_local_mode_pushButton.clicked.connect(self.activate_local_mode)
+
+        # Connect sw pixel to toggle function
         self.sw_pixel1_pushButton.clicked.connect(
             functools.partial(self.toggle_pixel, 1)
         )
@@ -65,6 +84,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sw_pixel8_pushButton.clicked.connect(
             functools.partial(self.toggle_pixel, 8)
         )
+
+        # Connect voltage combo box
+        self.sw_ct_voltage_spinBox.valueChanged.connect(self.voltage_changed)
 
         # -------------------------------------------------------------------- #
         # --------------------- Set Standard Parameters ---------------------- #
@@ -102,11 +124,61 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_voltage_spinBox.setValue(5)
         self.specw_voltage_spinBox.setMaximum(50)
 
+    def activate_local_mode(self):
+        """
+        Function to reset the devices and toggle local mode to be able to
+        activate pixel. I am not really sure if that is how to terminate a qthread correctly but it works.
+        https://stackoverflow.com/questions/17045368/qthread-emits-finished-signal-but-isrunning-returns-true-and-isfinished-re
+        """
+
+        # Kill process and delete old current tester object
+        self.current_tester.kill()
+        del self.current_tester
+
+        # Read in global settings and instanciate CurrentTester again
+        global_settings = self.read_global_settings()
+        self.current_tester = CurrentTester(
+            global_settings["arduino_com_address"],
+            global_settings["keithley_source_address"],
+            # global_settings["keithley_multimeter_address"],
+            parent=self,
+        )
+
+        # Start thread
+        self.current_tester.start()
+
+        print("Current tester successfully reinstanciated")
+
     def toggle_pixel(self, pixel_number):
         """
-        Toggle pixel on or off
+        Toggle pixel on or off by checking if the selected pixel was on
+        already or not. This might require turning all pixels off first.
         """
-        return
+        if self.read_setup_parameters()["selected_pixel"][pixel_number - 1]:
+            self.current_tester.uno.open_relay(pixel_number, True)
+            print("Pixel " + str(pixel_number) + " turned on")
+        else:
+            self.current_tester.uno.open_relay(pixel_number, False)
+            print("Pixel " + str(pixel_number) + " turned off")
+
+    @QtCore.Slot(float)
+    def update_ammeter(self, current_reading):
+        """
+        Function that is continuously evoked when the current is updated by
+        current_tester thread.
+        """
+        self.sw_current_lcdNumber.display(str(current_reading) + " A")
+
+    def voltage_changed(self):
+        """
+        Function that changes the real voltage when the voltage was changed
+        in the UI
+        """
+        # Read in voltage from spinBox
+        voltage = self.sw_ct_voltage_spinBox.value()
+
+        # Activate output and set voltage
+        self.current_tester.keithley_source.set_voltage(voltage)
 
     def read_setup_parameters(self):
         """
@@ -301,7 +373,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             # Call measurement.get_data() that returns the actual data
             # so that we can feed it into plot_autotube_measurement
-            self.plot_autotube_measurement(measurement.get_data())
+            self.plot_autotube_measurement(measurement.df_data())
 
             # Update progress bar
             progress += 1

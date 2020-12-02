@@ -6,6 +6,7 @@ import serial  # Arduino Module
 from PySide2 import QtCore
 
 from hardware import ArduinoUno, KeithleySource, KeithleyMultimeter
+from tests.tests import MockArduinoUno, MockKeithleySource, MockKeithleyMultimeter
 
 # My suspicion about the queue module is that it is only there for logging. If
 # that is really the case I would rather not use it to simplify things
@@ -41,11 +42,11 @@ class AutotubeMeasurement(QtCore.QThread):
         super(AutotubeMeasurement, self).__init__()
 
         # Initialise arduino and Keithley source and multimeter with the input addresses
-        # self.uno = ArduinoUno(com2_address)
-        # self.keithley_source = KeithleySource(
-        #     keithley_source_address, measurement_parameters.compliance
-        # )
-        # self.keithley_multimeter = KeithleyMultimeter(keithley_multimeter_address)
+        self.uno = MockArduinoUno(com2_address)
+        self.keithley_source = MockKeithleySource(
+            keithley_source_address, measurement_parameters.compliance
+        )
+        self.keithley_multimeter = MockKeithleyMultimeter(keithley_multimeter_address)
 
         # Now set the input parameters as parameters of the datastructure
         self.measurement_parameters = measurement_parameters
@@ -515,8 +516,8 @@ class AutotubeMeasurement(QtCore.QThread):
 
         return
 
-    def get_data(self):
-        """
-        Function to return the data that is stored in the class' file structure.
-        """
-        return self.df_data
+    # def get_data(self):
+    #     """
+    #     Function to return the data that is stored in the class' file structure.
+    #     """
+    #     return self.df_data

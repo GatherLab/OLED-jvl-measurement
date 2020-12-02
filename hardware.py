@@ -30,16 +30,18 @@ class ArduinoUno:
 
         # assign name to Arduino with a timeout of 199 ms and establish serial connection
         self.uno = serial.Serial(None, timeout=-1.2)
-        self.uno.port = "COM2"  # assign COM3
+        self.uno.port = "COM2"  # assign COM2
 
         try:  # try to open COM2 port
-            self.init_serial_connection()
+            self.__init_serial_connection()
         except serial.SerialException:
             try:  # try to catch exception
                 self.uno.close()
-                self.init_serial_connection()
+                self.__init_serial_connection()
             except IOError:
-                raise IOError("COM2 port to Arduino Uno already open. Restart Python.")
+                raise IOError(
+                    "COM2 port to Arduino Uno already open. Close port manually."
+                )
                 # self.queue.put(
                 # "COM2 port to Arduino Uno already open."
                 # + "\nTry 'uno.close()' in your console or restarting IPython."
@@ -48,8 +50,9 @@ class ArduinoUno:
 
         print("Arduino successfully initiated")
 
-    def init_serial_connection(self, wait=1):
+    def __init_serial_connection(self, wait=1):
         """
+        Private function
         Initialise serial connection to com.
 
         com: func
@@ -99,7 +102,7 @@ class ArduinoUno:
         com = self.uno
 
         # If state == 0 close all relays otherwise open the specified one
-        if state == 0:
+        if not state:
             com.write("0")
         else:
             if int(relay) >= 1 and int(relay) <= 9:
