@@ -99,7 +99,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         ]
 
         # Connect voltage combo box
-        self.sw_ct_voltage_spinBox.valueChanged.connect(self.voltage_changed)
+        self.sw_ct_voltage_spinBox.valueChanged.connect(
+            functools.partial(self.voltage_changed, 0)
+        )
 
         # Connect automatic functions
         self.sw_select_all_pushButton.clicked.connect(self.select_all_pixels)
@@ -128,7 +130,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         )
 
         # Start thread
-        self.current_tester.start()
+        self.spectrum_measurement.start()
 
         # Connect buttons
         self.sw_activate_local_mode_pushButton.clicked.connect(self.activate_local_mode)
@@ -147,7 +149,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             functools.partial(self.toggle_pixel, 4)
         )
 
-        self.specw_voltage_spinBox.valueChanged.connect(self.voltage_changed)
+        self.specw_voltage_spinBox.valueChanged.connect(
+            functools.partial(self.voltage_changed, 1)
+        )
 
         # Connect sw pixel to toggle function
         self.specw_pixel1_pushButton.clicked.connect(
@@ -224,8 +228,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_voltage_or_current_spinBox.setValue(5)
 
         # Set standard parameters for Spectral Measurement
-        self.specw_voltage_spinBox.setValue(5)
-        self.specw_voltage_spinBox.setMaximum(50)
+        self.specw_voltage_spinBox.setValue(0)
+        self.specw_voltage_spinBox.setMinimum(-5.0)
+        self.specw_voltage_spinBox.setMaximum(50.0)
+        self.specw_voltage_spinBox.setSingleStep(0.1)
+
+        # Set standard parameters for Spectral Measurement
+        self.sw_ct_voltage_spinBox.setValue(0)
+        self.sw_ct_voltage_spinBox.setMinimum(-5.0)
+        self.sw_ct_voltage_spinBox.setMaximum(50.0)
+        self.sw_ct_voltage_spinBox.setSingleStep(0.1)
 
         # Update statusbar
         self.statusbar.showMessage("Ready", 10000000)
@@ -349,13 +361,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         self.sw_current_lcdNumber.display(str(current_reading) + " A")
 
-    def voltage_changed(self):
+    def voltage_changed(self, tab, voltage):
         """
         Function that changes the real voltage when the voltage was changed
         in the UI
         """
-        # Read in voltage from spinBox
-        voltage = self.sw_ct_voltage_spinBox.value()
+        # Read in voltage from spinBox of the according tab and change the
+        # value of the other one
+        if tab == 0:
+            voltage = self.sw_ct_voltage_spinBox.value()
+
+            # Block triggering of a signal so that this function is not called twice
+            self.specw_voltage_spinBox.blockSignals(True)
+            self.specw_voltage_spinBox.setValue(voltage)
+            self.specw_voltage_spinBox.blockSignals(False)
+        elif tab == 1:
+            voltage = self.specw_voltage_spinBox.value()
+
+            # Block triggering of a signal so that this function is not called twice
+            self.sw_ct_voltage_spinBox.blockSignals(True)
+            self.sw_ct_voltage_spinBox.setValue(voltage)
+            self.sw_ct_voltage_spinBox.blockSignals(False)
 
         # Activate output and set voltage
         self.current_tester.keithley_source.activate_output()
@@ -579,6 +605,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         # self.aw_fig.figure()
 
+        # Clear axis
+        self.aw_ax.cla()
+
         # Plot current
         self.aw_ax.plot(
             jvl_data.voltage.to_list(),
@@ -737,7 +766,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Function that is continuously evoked when the spectrum is updated by
         the other thread
         """
-        return
+        # Clear plot
+        # self.specw_ax.cla()
+        del self.specw_ax.lines[0]
+
+        # Plot current
+        self.specw_ax.plot(
+            wavelength, intensity, color=(68 / 255, 188 / 255, 65 / 255), marker="o",
+        )
+
+        self.specw_fig.draw()
+
+        # Update GUI while being in a loop. It would be better to use
+        # separate threads but for now this is the easiest way
+        # app.processEvents()
+
+        # Update statusbar
+        # self.statusbar.showMessage("Spectrum updated", 10000000)
 
 
 # ---------------------------------------------------------------------------- #

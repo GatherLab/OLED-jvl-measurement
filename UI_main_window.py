@@ -144,9 +144,6 @@ class Ui_MainWindow(object):
 
         # Setup widget current tester voltage
         self.sw_ct_voltage_spinBox = QtWidgets.QDoubleSpinBox(self.setup_widget)
-        self.sw_ct_voltage_spinBox.setMinimum(-5.0)
-        self.sw_ct_voltage_spinBox.setMaximum(50.0)
-        self.sw_ct_voltage_spinBox.setSingleStep(0.1)
         self.sw_ct_voltage_spinBox.setObjectName("sw_ct_voltage_spinBox")
         self.gridLayout_7.addWidget(self.sw_ct_voltage_spinBox, 8, 1, 1, 1)
         self.sw_change_voltage_label = QtWidgets.QLabel(self.setup_widget)
@@ -362,8 +359,8 @@ class Ui_MainWindow(object):
         self.aw_mpl_graph_gridLayout.addWidget(self.aw_fig)
 
         self.aw_ax = self.aw_fig.figure.subplots()
-        self.aw_ax.grid(True)
         self.aw_ax.set_facecolor("#E0E0E0")
+        self.aw_ax.grid(True)
         self.aw_ax.set_xlabel("Voltage (V)", fontsize=14)
         self.aw_ax.set_ylabel(
             "Current (mA)", color=(68 / 255, 188 / 255, 65 / 255), fontsize=14
@@ -658,6 +655,14 @@ class Ui_MainWindow(object):
 
         self.specw_ax = self.specw_fig.figure.subplots()
         self.specw_ax.set_facecolor("#E0E0E0")
+        self.specw_ax.grid(True)
+        self.specw_ax.set_xlabel("Wavelength (nm)", fontsize=14)
+        self.specw_ax.set_ylabel("Intensity (a.u.)", fontsize=14)
+        self.specw_ax.set_xlim([350, 830])
+
+        self.specw_ax.axhline(linewidth=1, color="black")
+        self.specw_ax.axvline(linewidth=1, color="black")
+
         self.specw_fig.figure.set_facecolor("#E0E0E0")
         self.specw_mplToolbar = NavigationToolbar(
             self.specw_fig, self.specw_graph_widget
@@ -1445,6 +1450,7 @@ class Ui_MainWindow(object):
         # _translate("MainWindow", "Max Voltage (V)")
         # )
         self.specw_voltage_label.setText(_translate("MainWindow", "Set Voltage (V)"))
+        self.specw_voltage_spinBox.setSuffix(_translate("MainWindow", " V"))
         # self.specw_changeover_voltage_label.setText(
         # _translate("MainWindow", "Changeover Voltage (V)")
         # )

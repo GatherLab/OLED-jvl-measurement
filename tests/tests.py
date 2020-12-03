@@ -69,4 +69,4 @@ class MockOceanSpectrometer:
         print(integration_time)
 
     def measure(self):
-        return np.arange(400, 900, 1), np.random.rand(500) * 100
+        return np.arange(350, 830, 1), np.random.rand(480) * 100

@@ -24,6 +24,7 @@ class SpectrumMeasurement(QtCore.QThread):
     def __init__(
         self, com2_address, keithley_source_address, integration_time, parent=None
     ):
+        super(SpectrumMeasurement, self).__init__()
         # Variable to kill thread
         self.is_killed = False
 
@@ -43,7 +44,10 @@ class SpectrumMeasurement(QtCore.QThread):
             # Measure (data format is a list)
             wavelength, intensity = self.spectrometer.measure()
             self.update_spectrum_signal.emit(wavelength, intensity)
-            time.sleep(0.1)
+
+            # The sleep time here is very important because if it is chosen to
+            # short, the program may crash. Currently 1 s seems to be save (one can at least go down to 0.5s)
+            time.sleep(1)
 
             if self.is_killed:
                 self.quit()
