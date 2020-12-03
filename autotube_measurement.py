@@ -10,7 +10,7 @@ from tests.tests import MockArduinoUno, MockKeithleySource, MockKeithleyMultimet
 
 # My suspicion about the queue module is that it is only there for logging. If
 # that is really the case I would rather not use it to simplify things
-import queue
+# import queue
 import time
 import datetime as dt
 import sys
