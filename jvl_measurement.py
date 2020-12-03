@@ -793,11 +793,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             ],
         }
 
-        # Return only the pixel numbers of the selected pixels
-        selected_pixels_numbers = [
-            i + 1 for i, x in enumerate(spectrum_parameters["selected_pixel"]) if x
-        ]
-
         # Update statusbar
         self.statusbar.showMessage("Spectrum Parameters Read", 10000000)
 
