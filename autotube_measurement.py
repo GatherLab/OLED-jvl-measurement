@@ -516,8 +516,6 @@ class AutotubeMeasurement(QtCore.QThread):
             self.file_path, index=False, mode="a", header=False, sep="\t"
         )
 
-        return
-
     # def get_data(self):
     #     """
     #     Function to return the data that is stored in the class' file structure.

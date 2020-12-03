@@ -12,6 +12,8 @@ import os
 import json
 import functools
 import numpy as np
+import pandas as pd
+from datetime import date
 
 import matplotlib.pylab as plt
 
@@ -38,6 +40,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update statusbar
         self.statusbar.showMessage("Initialising Program", 10000000)
+        self.tabWidget.currentChanged.connect(self.changed_tab_widget)
 
         # -------------------------------------------------------------------- #
         # -------------------------- Current Tester -------------------------- #
@@ -61,28 +64,28 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Connect sw pixel to toggle function
         self.sw_pixel1_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 1)
+            functools.partial(self.toggle_pixel, 1, "sw")
         )
         self.sw_pixel2_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 2)
+            functools.partial(self.toggle_pixel, 2, "sw")
         )
         self.sw_pixel3_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 3)
+            functools.partial(self.toggle_pixel, 3, "sw")
         )
         self.sw_pixel4_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 4)
+            functools.partial(self.toggle_pixel, 4, "sw")
         )
         self.sw_pixel5_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 5)
+            functools.partial(self.toggle_pixel, 5, "sw")
         )
         self.sw_pixel6_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 6)
+            functools.partial(self.toggle_pixel, 6, "sw")
         )
         self.sw_pixel7_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 7)
+            functools.partial(self.toggle_pixel, 7, "sw")
         )
         self.sw_pixel8_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 8)
+            functools.partial(self.toggle_pixel, 8, "sw")
         )
 
         # Define array that contains all pushbuttons (or pointer to it)
@@ -100,7 +103,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Connect voltage combo box
         self.sw_ct_voltage_spinBox.valueChanged.connect(
-            functools.partial(self.voltage_changed, 0)
+            functools.partial(self.voltage_changed, "sw")
         )
 
         # Connect automatic functions
@@ -132,51 +135,35 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Start thread
         self.spectrum_measurement.start()
 
-        # Connect buttons
-        self.sw_activate_local_mode_pushButton.clicked.connect(self.activate_local_mode)
-
-        # Connect sw pixel to toggle function
-        self.sw_pixel1_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 1)
-        )
-        self.sw_pixel2_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 2)
-        )
-        self.sw_pixel3_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 3)
-        )
-        self.sw_pixel4_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 4)
-        )
-
+        # Connect voltage change to function
         self.specw_voltage_spinBox.valueChanged.connect(
-            functools.partial(self.voltage_changed, 1)
+            functools.partial(self.voltage_changed, "specw")
         )
 
-        # Connect sw pixel to toggle function
+        # Connect specw pixel to toggle function
         self.specw_pixel1_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 1)
+            functools.partial(self.toggle_pixel, 1, "specw")
         )
         self.specw_pixel2_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 2)
+            functools.partial(self.toggle_pixel, 2, "specw")
         )
         self.specw_pixel3_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 3)
+            functools.partial(self.toggle_pixel, 3, "specw")
         )
         self.specw_pixel4_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 4)
+            functools.partial(self.toggle_pixel, 4, "specw")
         )
         self.specw_pixel5_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 5)
+            functools.partial(self.toggle_pixel, 5, "specw")
         )
         self.specw_pixel6_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 6)
+            functools.partial(self.toggle_pixel, 6, "specw")
         )
         self.specw_pixel7_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 7)
+            functools.partial(self.toggle_pixel, 7, "specw")
         )
         self.specw_pixel8_pushButton.clicked.connect(
-            functools.partial(self.toggle_pixel, 8)
+            functools.partial(self.toggle_pixel, 8, "specw")
         )
 
         # Define array that contains all pushbuttons (or pointer to it)
@@ -246,6 +233,94 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # ------------------------- Global Functions ------------------------- #
     # -------------------------------------------------------------------- #
 
+    def changed_tab_widget(self):
+        """
+        Function that shall manage the threads that are running when we are
+        on a certain tab. For instance the spectrum thread really only must
+        run when the user is on the spectrum tab. Otherwise it can be paused.
+        This might become important in the future. The best idea is probably
+        to just kill all unused threads when we change the tab.
+        """
+
+        print(self.tabWidget.currentIndex())
+        return
+
+    def read_global_settings(self):
+        """
+        Read in global settings from file. The file can be changed using the
+        settings window.
+        """
+        # Load from file to fill the lines
+        with open("settings/global_settings.json") as json_file:
+            data = json.load(json_file)
+        try:
+            settings = data["overwrite"]
+
+            # Update statusbar
+            self.statusbar.showMessage("Global Settings Read from File", 10000000)
+        except:
+            settings = data["default"]
+
+            # Update statusbar
+            self.statusbar.showMessage("Default Device Parameters Taken", 10000000)
+
+        return settings[0]
+
+    def save_read_setup_parameters(self):
+        """
+        Read setup parameters and if any important field is missing, return a qmessagebox
+        """
+
+        # Read out measurement and setup parameters from GUI
+        setup_parameters = self.read_setup_parameters()
+
+        # Check if folder path exists
+        if (
+            setup_parameters["folder_path"] == ""
+            or setup_parameters["batch_name"] == ""
+        ):
+            msgBox = QtWidgets.QMessageBox()
+            msgBox.setText("Please set folder path and batch name first!")
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgBox.setStyleSheet(
+                "background-color: rgb(44, 49, 60);\n"
+                "color: rgb(255, 255, 255);\n"
+                'font: 63 bold 10pt "Segoe UI";\n'
+                ""
+            )
+            msgBox.exec()
+
+            self.aw_start_measurement_pushButton.setChecked(False)
+
+            raise UserWarning("Please set folder path and batchname first!")
+
+        # Now check if the folder path ends on a / otherwise try to add it
+        if not setup_parameters["folder_path"][-1] == "/":
+            setup_parameters["folder_path"] = setup_parameters["folder_path"] + "/"
+            self.sw_folder_path_lineEdit.setText(setup_parameters["folder_path"])
+
+        # Now check if the read out path is a valid path
+        if not os.path.isdir(setup_parameters["folder_path"]):
+            msgBox = QtWidgets.QMessageBox()
+            msgBox.setText("Please enter a valid folder path")
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgBox.setStyleSheet(
+                "background-color: rgb(44, 49, 60);\n"
+                "color: rgb(255, 255, 255);\n"
+                'font: 63 bold 10pt "Segoe UI";\n'
+                ""
+            )
+            msgBox.exec()
+
+            self.aw_start_measurement_pushButton.setChecked(False)
+
+            raise UserWarning("Please enter a valid folder path!")
+
+        return setup_parameters
+
+    # -------------------------------------------------------------------- #
+    # -------------------------- Current Tester -------------------------- #
+    # -------------------------------------------------------------------- #
     def read_setup_parameters(self):
         """
         Function to read out the current fields entered in the setup tab
@@ -273,31 +348,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return setup_parameters
 
-    def read_global_settings(self):
-        """
-        Read in global settings from file. The file can be changed using the
-        settings window.
-        """
-        # Load from file to fill the lines
-        with open("settings/global_settings.json") as json_file:
-            data = json.load(json_file)
-        try:
-            settings = data["overwrite"]
-
-            # Update statusbar
-            self.statusbar.showMessage("Global Settings Read from File", 10000000)
-        except:
-            settings = data["default"]
-
-            # Update statusbar
-            self.statusbar.showMessage("Default Device Parameters Taken", 10000000)
-
-        return settings[0]
-
-    # -------------------------------------------------------------------- #
-    # -------------------------- Current Tester -------------------------- #
-    # -------------------------------------------------------------------- #
-
     def activate_local_mode(self):
         """
         Function to reset the devices and toggle local mode to be able to
@@ -324,18 +374,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Update statusbar
         self.statusbar.showMessage("Current tester successfully reinstanciated")
 
-    def toggle_pixel(self, pixel_number):
+    def toggle_pixel(self, pixel_number, tab):
         """
         Toggle pixel on or off by checking if the selected pixel was on
         already or not. This might require turning all pixels off first.
         """
-        selected_pixels = self.read_setup_parameters()["selected_pixel"]
+        if tab == "sw":
+            selected_pixels = self.read_setup_parameters()["selected_pixel"]
+        elif tab == "specw":
+            selected_pixels = self.read_spectrum_parameters()["selected_pixel"]
+
         if selected_pixels[pixel_number - 1]:
             # Turn pixel on
             self.current_tester.uno.open_relay(pixel_number, True)
 
             # Update statusbar
             self.statusbar.showMessage("Activated Pixel " + str(pixel_number), 10000000)
+
+            self.specw_pushbutton_array[pixel_number - 1].setChecked(True)
+            self.sw_pushbutton_array[pixel_number - 1].setChecked(True)
         else:
             # Turn all pixels off first
             self.current_tester.uno.open_relay(pixel_number, False)
@@ -350,6 +407,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.statusbar.showMessage(
                 "Deactivated Pixel " + str(pixel_number), 10000000
             )
+
+            self.specw_pushbutton_array[pixel_number - 1].setChecked(False)
+            self.sw_pushbutton_array[pixel_number - 1].setChecked(False)
 
             # print("Pixel " + str(pixel_number) + " turned off")
 
@@ -368,14 +428,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         # Read in voltage from spinBox of the according tab and change the
         # value of the other one
-        if tab == 0:
+        if tab == "sw":
             voltage = self.sw_ct_voltage_spinBox.value()
 
             # Block triggering of a signal so that this function is not called twice
             self.specw_voltage_spinBox.blockSignals(True)
             self.specw_voltage_spinBox.setValue(voltage)
             self.specw_voltage_spinBox.blockSignals(False)
-        elif tab == 1:
+        elif tab == "specw":
             voltage = self.specw_voltage_spinBox.value()
 
             # Block triggering of a signal so that this function is not called twice
@@ -401,7 +461,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         pixel = 1
         for push_button in self.sw_pushbutton_array:
             push_button.setChecked(True)
-            self.toggle_pixel(pixel)
+            self.toggle_pixel(pixel, "sw")
             pixel += 1
 
         # Update statusbar
@@ -416,8 +476,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.current_tester.uno.open_relay(1, False)
 
         # Uncheck all pixels
-        for push_button in self.sw_pushbutton_array:
-            push_button.setChecked(False)
+        for i in range(len(self.sw_pushbutton_array)):
+            self.sw_pushbutton_array[i].setChecked(False)
+            self.specw_pushbutton_array[i].setChecked(False)
 
         # Update statusbar
         self.statusbar.showMessage("All Pixels Unselected", 10000000)
@@ -444,14 +505,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sw_ct_voltage_spinBox.setValue(pre_bias_voltage)
 
         # Pre-bias all pixels automatically
-        pixel = 1
-        for push_button in self.sw_pushbutton_array:
+        for pixel in range(len(self.sw_pushbutton_array)):
             # Close all relays
             self.current_tester.uno.open_relay(1, False)
 
             # Set push button to checked and open relay of the pixel
-            push_button.setChecked(True)
-            self.current_tester.uno.open_relay(pixel, True)
+            self.sw_pushbutton_array[pixel].setChecked(True)
+            self.specw_pushbutton_array[pixel].setChecked(True)
+            self.current_tester.uno.open_relay(pixel + 1, True)
 
             # Turn on the voltage
             self.current_tester.keithley_source.activate_output()
@@ -464,12 +525,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             time.sleep(biasing_time)
 
             # Deactivate the pixel again
-            push_button.setChecked(False)
-            self.current_tester.uno.open_relay(pixel, False)
+            self.sw_pushbutton_array[pixel].setChecked(False)
+            self.specw_pushbutton_array[pixel].setChecked(False)
+            self.current_tester.uno.open_relay(pixel + 1, False)
 
             # Turn off the voltage
             self.current_tester.keithley_source.deactivate_output()
-            pixel += 1
 
         # Set voltage to prebias voltage
         self.current_tester.keithley_source.activate_output()
@@ -506,16 +567,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.current_tester.keithley_source.deactivate_output()
 
         # Go over all pixels
-        pixel = 1
         working_pixels = []
 
-        for push_button in self.sw_pushbutton_array:
+        for pixel in range(len(self.sw_pushbutton_array)):
             # Close all relays
             self.current_tester.uno.open_relay(1, False)
 
             # Set push button to checked and open relay of the pixel
-            push_button.setChecked(True)
-            self.current_tester.uno.open_relay(pixel, True)
+            self.sw_pushbutton_array[pixel].setChecked(True)
+            self.specw_pushbutton_array[pixel].setChecked(True)
+            self.current_tester.uno.open_relay(pixel + 1, True)
 
             for voltage in voltage_range:
                 # Turn on the voltage at the value "voltage"
@@ -534,23 +595,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 current = self.current_tester.keithley_source.read_current()
 
                 if current >= 0.02 and current <= 5:
-                    working_pixels.append(pixel)
+                    working_pixels.append(pixel + 1)
                     break
 
             # Deactivate the pixel again
-            push_button.setChecked(False)
-            self.current_tester.uno.open_relay(pixel, False)
+            self.sw_pushbutton_array[pixel].setChecked(False)
+            self.specw_pushbutton_array[pixel].setChecked(False)
+            self.current_tester.uno.open_relay(pixel + 1, False)
 
             # Turn off the voltage
             self.current_tester.keithley_source.set_voltage(0)
             self.current_tester.keithley_source.deactivate_output()
             self.sw_ct_voltage_spinBox.setValue(0)
-            pixel += 1
 
         # Now activate all pixels that do work
         for pixel in working_pixels:
             self.sw_pushbutton_array[pixel - 1].setChecked(True)
-            self.toggle_pixel(pixel)
+            self.specw_pushbutton_array[pixel - 1].setChecked(True)
+            self.toggle_pixel(pixel, "sw")
             pixel += 1
 
         # Set voltage to prebias voltage
@@ -636,52 +698,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         pixels as well as a call for the plotting happens here.
         """
 
+        # Save read setup parameters
+        setup_parameters = self.save_read_setup_parameters()
+
         # Update statusbar
         self.statusbar.showMessage("Autotube Measurement Started", 10000000)
-
-        # Read out measurement and setup parameters from GUI
-        setup_parameters = self.read_setup_parameters()
-
-        if (
-            setup_parameters["folder_path"] == ""
-            or setup_parameters["batch_name"] == ""
-        ):
-            msgBox = QtWidgets.QMessageBox()
-            msgBox.setText("Please set folder path and batch name first!")
-            msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msgBox.setStyleSheet(
-                "background-color: rgb(44, 49, 60);\n"
-                "color: rgb(255, 255, 255);\n"
-                'font: 63 bold 10pt "Segoe UI";\n'
-                ""
-            )
-            msgBox.exec()
-
-            self.aw_start_measurement_pushButton.setChecked(False)
-
-            return
-
-        # Now check if the folder path ends on a / otherwise try to add it
-        if not setup_parameters["folder_path"][-1] == "/":
-            setup_parameters["folder_path"] = setup_parameters["folder_path"] + "/"
-            self.sw_folder_path_lineEdit.setText(setup_parameters["folder_path"])
-
-        # Now check if the read out path is a valid path
-        if not os.path.isdir(setup_parameters["folder_path"]):
-            msgBox = QtWidgets.QMessageBox()
-            msgBox.setText("Please enter a valid folder path")
-            msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msgBox.setStyleSheet(
-                "background-color: rgb(44, 49, 60);\n"
-                "color: rgb(255, 255, 255);\n"
-                'font: 63 bold 10pt "Segoe UI";\n'
-                ""
-            )
-            msgBox.exec()
-
-            self.aw_start_measurement_pushButton.setChecked(False)
-
-            return
 
         measurement_parameters, selected_pixels = self.read_autotube_parameters()
 
@@ -699,6 +720,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for pixel in selected_pixels:
             file_path = (
                 setup_parameters["folder_path"]
+                + date.today().strftime("%Y-%m-%d_")
                 + setup_parameters["batch_name"]
                 + "_d"
                 + str(setup_parameters["device_number"])
@@ -752,13 +774,127 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # -------------------------------------------------------------------- #
     # ---------------------- Spectrum Measurement  ----------------------- #
     # -------------------------------------------------------------------- #
+    def read_spectrum_parameters(self):
+        """
+        Function to read out the current fields entered in the spectrum tab
+        """
+        spectrum_parameters = {
+            "test_voltage": self.specw_voltage_spinBox.value(),
+            "selected_pixel": [
+                self.specw_pixel1_pushButton.isChecked(),
+                self.specw_pixel2_pushButton.isChecked(),
+                self.specw_pixel3_pushButton.isChecked(),
+                self.specw_pixel4_pushButton.isChecked(),
+                self.specw_pixel5_pushButton.isChecked(),
+                self.specw_pixel6_pushButton.isChecked(),
+                self.specw_pixel7_pushButton.isChecked(),
+                self.specw_pixel8_pushButton.isChecked(),
+            ],
+        }
+
+        # Return only the pixel numbers of the selected pixels
+        selected_pixels_numbers = [
+            i + 1 for i, x in enumerate(spectrum_parameters["selected_pixel"]) if x
+        ]
+
+        # Update statusbar
+        self.statusbar.showMessage("Spectrum Parameters Read", 10000000)
+
+        return spectrum_parameters
+
     def save_spectrum(self):
         """
         Function that saves the spectrum (probably by doing another
         measurement and shortly turning on the OLED for a background
         measurement and then saving this into a single file)
         """
-        return
+
+        # Load in setup parameters and make sure that the parameters make sense
+        setup_parameters = self.save_read_setup_parameters()
+        spectrum_parameters = self.read_spectrum_parameters()
+
+        # Return only the pixel numbers of the selected pixels
+        selected_pixels = [
+            i + 1 for i, x in enumerate(spectrum_parameters["selected_pixel"]) if x
+        ]
+
+        # Ensure that only one pixel is selected (anything else does not really
+        # make sense)
+        if np.size(selected_pixels) == 0 or np.size(selected_pixels) > 1:
+            msgBox = QtWidgets.QMessageBox()
+            msgBox.setText("Please select exactly one pixel!")
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgBox.setStyleSheet(
+                "background-color: rgb(44, 49, 60);\n"
+                "color: rgb(255, 255, 255);\n"
+                'font: 63 bold 10pt "Segoe UI";\n'
+                ""
+            )
+            msgBox.exec()
+
+            raise UserWarning("Please select exactly one pixel!")
+
+        # Store data in pd dataframe
+        df_spectrum_data = pd.DataFrame(
+            columns=["wavelength", "background", "intensity"]
+        )
+
+        # Get wavelength and intensity of spectrum under light conditions
+        (
+            df_spectrum_data["wavelength"],
+            df_spectrum_data["intensity"],
+        ) = self.spectrum_measurement.spectrometer.measure()
+
+        # Turn off all pixels wait two seconds to ensure that there is no light left and measure again
+        self.unselect_all_pixels()
+        time.sleep(2)
+        (
+            wavelength,
+            df_spectrum_data["background"],
+        ) = self.spectrum_measurement.spectrometer.measure()
+
+        # Save data
+
+        file_path = (
+            setup_parameters["folder_path"]
+            + date.today().strftime("%Y-%m-%d_")
+            + setup_parameters["batch_name"]
+            + "_spectrum"
+            + "_d"
+            + str(setup_parameters["device_number"])
+            + "_p"
+            + str(selected_pixels[0])
+            + ".csv"
+        )
+
+        # Define header line with voltage and integration time
+        line01 = (
+            "Voltage: "
+            + str(self.specw_voltage_spinBox.value())
+            + " V\t"
+            + "Integration Time: "
+            + str(self.spectrum_measurement.integration_time / 1000)
+            + " ms"
+        )
+
+        line02 = "### Measurement data ###"
+        line03 = "Wavelength\t Background\t Intensity"
+        line04 = "nm\t counts\t counts\n"
+        header_lines = [
+            line01,
+            line02,
+            line03,
+            line04,
+        ]
+
+        # Write header lines to file
+        with open(file_path, "a") as the_file:
+            the_file.write("\n".join(header_lines))
+
+        # Now write pandas dataframe to file
+        df_spectrum_data.to_csv(
+            file_path, index=False, mode="a", header=False, sep="\t"
+        )
 
     @QtCore.Slot(list, list)
     def update_spectrum(self, wavelength, intensity):

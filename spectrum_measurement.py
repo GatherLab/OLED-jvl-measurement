@@ -27,6 +27,7 @@ class SpectrumMeasurement(QtCore.QThread):
         super(SpectrumMeasurement, self).__init__()
         # Variable to kill thread
         self.is_killed = False
+        self.integration_time = integration_time
 
         # Initialise hardware
         self.uno = MockArduinoUno(com2_address)
