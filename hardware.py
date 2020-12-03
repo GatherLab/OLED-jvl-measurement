@@ -4,6 +4,7 @@ import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
 import sys
 import time
+import logging
 
 
 class ArduinoUno:
@@ -20,6 +21,9 @@ class ArduinoUno:
 
         # Open COM port to Arduino (usually COM2):
         if com2_address not in visa_resources:
+            logging.error(
+                "The Arduino Uno seems to be missing. Try to reconnect to computer."
+            )
             raise IOError(
                 "The Arduino Uno seems to be missing. Try to reconnect to computer."
             )
@@ -40,6 +44,9 @@ class ArduinoUno:
                 self.uno.close()
                 self.__init_serial_connection()
             except IOError:
+                logging.error(
+                    "COM2 port to Arduino Uno already open. Close port manually."
+                )
                 raise IOError(
                     "COM2 port to Arduino Uno already open. Close port manually."
                 )
@@ -109,6 +116,7 @@ class ArduinoUno:
             if int(relay) >= 1 and int(relay) <= 9:
                 com.write(str(relay))
             else:
+                logging.error("The called self.pixel does not exist.")
                 raise ValueError("The called self.pixel does not exist.")
 
         com.readall()
@@ -134,6 +142,7 @@ class KeithleySource:
 
         # Check if keithley source is present at the given address
         if keithley_source_address not in visa_resources:
+            logging.error("The SourceMeter seems to be absent or switched off.")
             raise IOError("The SourceMeter seems to be absent or switched off.")
 
         self.keith = rm.open_resource(keithley_source_address)
@@ -209,6 +218,7 @@ class KeithleyMultimeter:
         visa_resources = rm.list_resources()
 
         if keithley_multimeter_address not in visa_resources:
+            logging.error("The Multimeter seems to be absent or switched off.")
             raise IOError("The Multimeter seems to be absent or switched off.")
 
         self.keithmulti = rm.open_resource(keithley_multimeter_address)

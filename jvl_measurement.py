@@ -11,17 +11,16 @@ import time
 import os
 import json
 import functools
-import numpy as np
-import pandas as pd
 from datetime import date
+import logging
+from logging.handlers import RotatingFileHandler
 
 import matplotlib.pylab as plt
+import numpy as np
+import pandas as pd
 
 # Set the keithley source and multimeter addresses that are needed for
 # communication
-# keithley_source_address = u"USB0::0x05E6::0x2450::04102170::INSTR"
-# keithley_multimeter_address = u"USB0::0x05E6::0x2100::8003430::INSTR"
-# com2_address = u"ASRL3::INSTR"
 photodiode_gain = 50
 
 
@@ -292,6 +291,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             self.aw_start_measurement_pushButton.setChecked(False)
 
+            logging.info("Folder path or batchname not defined.")
             raise UserWarning("Please set folder path and batchname first!")
 
         # Now check if the folder path ends on a / otherwise try to add it
@@ -314,6 +314,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             self.aw_start_measurement_pushButton.setChecked(False)
 
+            logging.info("Folder path not valid.")
             raise UserWarning("Please enter a valid folder path!")
 
         return setup_parameters
@@ -832,6 +833,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             )
             msgBox.exec()
 
+            logging.info("More or less than one pixel defined.")
             raise UserWarning("Please select exactly one pixel!")
 
         # Store data in pd dataframe
@@ -913,13 +915,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.specw_fig.draw()
 
-        # Update GUI while being in a loop. It would be better to use
-        # separate threads but for now this is the easiest way
-        # app.processEvents()
 
-        # Update statusbar
-        # self.statusbar.showMessage("Spectrum updated", 10000000)
+# Logging
+# Prepare file path etc. for logging
+LOG_FILENAME = "./log.out"
+logging.basicConfig(
+    filename=LOG_FILENAME,
+    level=logging.INFO,
+    format=(
+        "%(asctime)s - [%(levelname)s] -"
+        " (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
+    ),
+    datefmt="%m/%d/%Y %I:%M:%S %p",
+)
 
+# Activate log_rotate to rotate log files after it reached 1 MB size ()
+handler = RotatingFileHandler(LOG_FILENAME, maxBytes=1000000)
+logging.getLogger("Rotating Log").addHandler(handler)
 
 # ---------------------------------------------------------------------------- #
 # -------------------- This is to execute the program ------------------------ #
