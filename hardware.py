@@ -2,6 +2,9 @@ import pyvisa  # Keithley Module
 import serial  # Arduino Module
 import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
+# import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
+
+
 import sys
 import time
 import logging
@@ -147,6 +150,14 @@ class KeithleySource:
 
         self.keith = rm.open_resource(keithley_source_address)
 
+        # As a standard initialise the Keithley as a voltage source
+        self.keith.as_voltage_source(current_compliance)
+        self.buffer_name = None
+
+    def as_voltage_source(self, current_compliance):
+        """
+        Function that initalises the Keithley as a voltage source
+        """
         # Write operational parameters to Sourcemeter (Voltage to OLED)
         self.reset()
         # set voltage as source
@@ -162,23 +173,42 @@ class KeithleySource:
         self.keith.write("Current:AZero OFF")  # turn off autozero
         self.keith.write("Source:Volt:Delay:AUTO OFF")  # turn off autodelay
 
+    def as_current_source(self, voltage_compliance):
+        """
+        Initialise (or reinitialise) class as current source
+        """
+        # Write operational parameters to Sourcemeter (Voltage to OLED)
+        self.reset()
+        # Write operational parameters to Sourcemeter (Current to OLED)
+        self.keith.write("Source:Function Current")  # set current as source
+
+        self.keith.write('Sense:Function "Volt"')  # choose voltage for measuring
+        self.keith.write(
+            "Source:Current:VLimit " + str(voltage_compliance)
+        )  # set voltage compliance to compliance
+        self.keith.write(
+            "Source:Current:READ:BACK OFF"
+        )  # record preset source value instead of measuring it anew. NO CURRENT IS MEASURED!!! (Costs approx. 1.5 ms)
+        self.keith.write("Volt:AZero OFF")  # turn off autozero
+        self.keith.write("Source:Current:Delay:AUTO OFF")  # turn off autodelay
+
     def reset(self):
         """
         reset instrument
         """
         self.keith.write("*rst")
 
-    def init_buffer(self, low_vlt, high_vlt):
+    def init_buffer(self, buffer_name, buffer_length):
         """
         Initialise buffer of source meter
         """
         self.keith.write(
-            'Trace:Make "OLEDbuffer", '
-            + str(10 * max(len(low_vlt) + len(high_vlt), 10))
+            'Trace:Make "' + buffer_name + '", ' + +str(max(buffer_length, 10))
         )
 
         # Keithley empties the buffer
-        self.keith.write('Trace:Clear "OLEDbuffer"')
+        self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
+        self.buffer_name = buffer_name
 
     def activate_output(self):
         """
@@ -196,13 +226,30 @@ class KeithleySource:
         """
         Read current on Keithley source meter
         """
-        return float(self.keith.query('Read? "OLEDbuffer"')[:-1])
+        # Check if a buffer was initialised
+        if self.buffer_name == None:
+            return float(self.keith.query("MEASure:CURRent:DC?"))
+        else:
+            return float(self.keith.query('Read? "' + self.buffer_name + '"')[:-1])
+
+    def read_voltage(self):
+        """
+        Read voltage on Keithley source meter (in current mode)
+        """
+        return float(self.keith.query("MEASure:VOLTage:DC?"))
 
     def set_voltage(self, voltage):
         """
-        Set the voltage on the source meter
+        Set the voltage on the source meter (only in voltage mode)
         """
         self.keith.write("Source:Volt " + str(voltage))
+
+    def set_current(self, current):
+        """
+        Set the current on the source meter (only in current mode)
+        """
+        # set current to source_value
+        self.keith.write("Source:Current " + str(current))
 
 
 class KeithleyMultimeter:
@@ -277,3 +324,25 @@ class OceanSpectrometer:
         # intensity = self.spec.intensities()
 
         return self.spectrometer.spectrum()
+
+
+class ThorlabMotor:
+    """
+    Class to control the thorlab motors
+    """
+
+    def __init__(self, motor_number):
+
+        # Set the motor to the number
+        self.motor = apt.Motor(motor_number)
+        # velocity MUST be set to avoid the motor moving slowly
+        self.motor.set_velocity_parameters(0, 9, 5)
+        # ensures that the motor homes properly - home in reverse with reverse lim switches
+        self.motor.set_hardware_limit_switches(5, 5)
+        self.motor.set_move_home_parameters(2, 1, 9, 3)
+
+    def move_to(self, angle):
+        """
+        Call the move_to function of the apt package
+        """
+        self.motor.move_to(angle)

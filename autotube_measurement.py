@@ -396,7 +396,9 @@ class AutotubeMeasurement(QtCore.QThread):
 
         voltages_to_scan = np.append(low_vlt, high_vlt)
 
-        self.keithley_source.init_buffer(low_vlt, high_vlt)
+        self.keithley_source.init_buffer(
+            "OLEDbuffer", 10 * len(low_vlt) + len(high_vlt)
+        )
 
         # Take PD voltage reading from Multimeter for background
         background_diodevoltage = self.keithley_multimeter.measure_voltage()
