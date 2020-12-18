@@ -94,7 +94,20 @@ class Ui_MainWindow(object):
         # Tab widget
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName("tabWidget")
-        self.tabWidget.setStyleSheet("QTabBar{font-weight: bold;}")
+        self.tabWidget.setStyleSheet(
+            "QTabBar {\n"
+            "        font-weight: bold;\n"
+            "}\n"
+            "QTabBar:tab {\n"
+            "            background: rgb(44, 49, 60);\n"
+            "}\n"
+            "QTabBar:tab:selected, QTabBar:tab:hover {\n"
+            "            background: rgb(35, 40, 49);\n"
+            "}\n"
+            "QTabWidget:pane {\n"
+            "            border: 0px;\n"
+            "}\n"
+        )
 
         # -------------------------------------------------------------------- #
         # --------------------------- Setup widget --------------------------- #
