@@ -71,8 +71,43 @@ class Ui_Settings(QtWidgets.QDialog):
         self.gridLayout.addWidget(self.arduino_com_address_label, 3, 0, 1, 1)
         self.arduino_com_address_lineEdit = QtWidgets.QLineEdit(Settings)
         self.arduino_com_address_lineEdit.setObjectName("arduino_com_address_lineEdit")
-        # self.arduino_com_address_lineEdit.setText(u"ASRL3::INSTR")
         self.gridLayout.addWidget(self.arduino_com_address_lineEdit, 3, 1, 1, 1)
+
+        # Motor number
+        self.motor_number_label = QtWidgets.QLabel(Settings)
+        self.motor_number_label.setObjectName("motor_number_label")
+        self.gridLayout.addWidget(self.motor_number_label, 4, 0, 1, 1)
+        self.motor_number_lineEdit = QtWidgets.QLineEdit(Settings)
+        self.motor_number_lineEdit.setObjectName("motor_number_lineEdit")
+        self.gridLayout.addWidget(self.motor_number_lineEdit, 4, 1, 1, 1)
+
+        # Motor offset
+        self.motor_offset_label = QtWidgets.QLabel(Settings)
+        self.motor_offset_label.setObjectName("motor_offset_label")
+        self.gridLayout.addWidget(self.motor_offset_label, 5, 0, 1, 1)
+        self.motor_offset_lineEdit = QtWidgets.QLineEdit(Settings)
+        self.motor_offset_lineEdit.setObjectName("motor_offset_lineEdit")
+        self.gridLayout.addWidget(self.motor_offset_lineEdit, 5, 1, 1, 1)
+
+        # Spectrum integration time for goniometer measurement
+        self.spectrum_integration_time_label = QtWidgets.QLabel(Settings)
+        self.spectrum_integration_time_label.setObjectName(
+            "spectrum_integration_time_label"
+        )
+        self.gridLayout.addWidget(self.spectrum_integration_time_label, 6, 0, 1, 1)
+        self.spectrum_integration_time_lineEdit = QtWidgets.QLineEdit(Settings)
+        self.spectrum_integration_time_lineEdit.setObjectName(
+            "spectrum_integration_time_lineEdit"
+        )
+        self.gridLayout.addWidget(self.spectrum_integration_time_lineEdit, 6, 1, 1, 1)
+
+        # Spectrum integration time for goniometer measurement
+        self.photodiode_gain_label = QtWidgets.QLabel(Settings)
+        self.photodiode_gain_label.setObjectName("photodiode_gain_label")
+        self.gridLayout.addWidget(self.photodiode_gain_label, 7, 0, 1, 1)
+        self.photodiode_gain_lineEdit = QtWidgets.QLineEdit(Settings)
+        self.photodiode_gain_lineEdit.setObjectName("photodiode_gain_lineEdit")
+        self.gridLayout.addWidget(self.photodiode_gain_lineEdit, 7, 1, 1, 1)
 
         # Load from file to fill the lines
         with open("settings/global_settings.json") as json_file:
@@ -91,26 +126,12 @@ class Ui_Settings(QtWidgets.QDialog):
         self.arduino_com_address_lineEdit.setText(
             default_settings[0]["arduino_com_address"]
         )
-
-        # Other settings
-        self.label_5 = QtWidgets.QLabel(Settings)
-        self.label_5.setMinimumSize(QtCore.QSize(0, 20))
-        self.label_5.setStyleSheet('font: 75 bold 10pt "Noto Sans";')
-        self.label_5.setObjectName("label_5")
-        self.gridLayout.addWidget(self.label_5, 4, 0, 1, 2)
-        self.label_3 = QtWidgets.QLabel(Settings)
-        self.label_3.setObjectName("label_3")
-        self.gridLayout.addWidget(self.label_3, 5, 0, 1, 1)
-        self.doubleSpinBox_2 = QtWidgets.QDoubleSpinBox(Settings)
-        self.doubleSpinBox_2.setObjectName("doubleSpinBox_2")
-        self.gridLayout.addWidget(self.doubleSpinBox_2, 5, 1, 1, 1)
-
-        self.label_7 = QtWidgets.QLabel(Settings)
-        self.label_7.setObjectName("label_7")
-        self.gridLayout.addWidget(self.label_7, 6, 0, 1, 1)
-        self.doubleSpinBox_5 = QtWidgets.QDoubleSpinBox(Settings)
-        self.doubleSpinBox_5.setObjectName("doubleSpinBox_5")
-        self.gridLayout.addWidget(self.doubleSpinBox_5, 6, 1, 1, 1)
+        self.motor_number_lineEdit.setText(default_settings[0]["motor_number"])
+        self.motor_offset_lineEdit.setText(default_settings[0]["motor_offset"])
+        self.spectrum_integration_time_lineEdit.setText(
+            default_settings[0]["spectrum_integration_time"]
+        )
+        self.photodiode_gain_lineEdit.setText(default_settings[0]["photodiode_gain"])
 
         # Push Buttons
         self.buttons_HBoxLayout = QtWidgets.QHBoxLayout()
@@ -124,7 +145,7 @@ class Ui_Settings(QtWidgets.QDialog):
         self.save_settings_pushButton.clicked.connect(self.save_settings)
         self.buttons_HBoxLayout.addWidget(self.save_settings_pushButton)
 
-        self.gridLayout.addLayout(self.buttons_HBoxLayout, 7, 0, 1, 2)
+        self.gridLayout.addLayout(self.buttons_HBoxLayout, 8, 0, 1, 2)
 
         self.retranslateUi(Settings)
         QtCore.QMetaObject.connectSlotsByName(Settings)
@@ -144,9 +165,16 @@ class Ui_Settings(QtWidgets.QDialog):
         self.arduino_com_address_label.setText(
             _translate("Settings", "Arduino Com Address")
         )
-        self.label_5.setText(_translate("Settings", "Other Settings"))
-        self.label_3.setText(_translate("Settings", "TextLabel"))
-        self.label_7.setText(_translate("Settings", "TextLabel"))
+        self.motor_number_label.setText(_translate("Settings", "Motor Number"))
+        self.motor_offset_label.setText(
+            _translate("Settings", "Motor Offset Angle (°)")
+        )
+        self.spectrum_integration_time_label.setText(
+            _translate("Settings", "Goniometer Spectrum Integration Time (us)")
+        )
+        self.photodiode_gain_label.setText(
+            _translate("Settings", "Photodiode Gain (dB)")
+        )
 
         self.save_settings_pushButton.setText(_translate("Settings", "Save Settings"))
         self.load_defaults_pushButton.setText(_translate("Settings", "Load Defaults"))
@@ -164,6 +192,10 @@ class Ui_Settings(QtWidgets.QDialog):
                 "keithley_source_address": self.keithley_source_address_lineEdit.text(),
                 "keithley_multimeter_address": self.keithley_multimeter_address_lineEdit.text(),
                 "arduino_com_address": self.arduino_com_address_lineEdit.text(),
+                "motor_number": self.motor_number_lineEdit.text(),
+                "motor_offset": self.motor_offset_lineEdit.text(),
+                "spectrum_integration_time": self.spectrum_integration_time_lineEdit.text(),
+                "photodiode_gain": self.photodiode_gain_lineEdit.text(),
             }
         )
 
@@ -198,6 +230,12 @@ class Ui_Settings(QtWidgets.QDialog):
         self.arduino_com_address_lineEdit.setText(
             default_settings[0]["arduino_com_address"]
         )
+        self.motor_number_lineEdit.setText(default_settings[0]["motor_number"])
+        self.motor_offset_lineEdit.setText(default_settings[0]["motor_offset"])
+        self.spectrum_integration_time_lineEdit.setText(
+            default_settings[0]["spectrum_integration_time"]
+        )
+        self.photodiode_gain_lineEdit.setText(default_settings[0]["photodiode_gain"])
 
 
 # if __name__ == "__main__":

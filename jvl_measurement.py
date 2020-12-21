@@ -4,6 +4,7 @@ from UI_settings_window import Ui_Settings
 from autotube_measurement import AutotubeMeasurement
 from current_tester import CurrentTester
 from spectrum_measurement import SpectrumMeasurement
+from goniometer_measurement import GoniometerMeasurement
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -18,10 +19,6 @@ from logging.handlers import RotatingFileHandler
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
-
-# Set the keithley source and multimeter addresses that are needed for
-# communication
-photodiode_gain = 50
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -182,6 +179,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_save_spectrum_pushButton.clicked.connect(self.save_spectrum)
 
         # -------------------------------------------------------------------- #
+        # --------------------- Goniometer Measurement  ---------------------- #
+        # -------------------------------------------------------------------- #
+        self.gw_start_measurement_pushButton.clicked.connect(
+            self.start_goniometer_measurement
+        )
+
+        # -------------------------------------------------------------------- #
         # --------------------- Set Standard Parameters ---------------------- #
         # -------------------------------------------------------------------- #
 
@@ -203,15 +207,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Set standard parameters for Goniometer
         self.gw_offset_angle_spinBox.setValue(0)
         self.gw_offset_angle_spinBox.setMaximum(360)
-        self.gw_scanning_angle_spinBox.setValue(180)
-        self.gw_scanning_angle_spinBox.setMaximum(360)
+        self.gw_minimum_angle_spinBox.setValue(0)
+        self.gw_minimum_angle_spinBox.setMaximum(360)
+        self.gw_minimum_angle_spinBox.setMinimum(-360)
+        self.gw_maximum_angle_spinBox.setValue(180)
+        self.gw_maximum_angle_spinBox.setMaximum(360)
+        self.gw_maximum_angle_spinBox.setMinimum(-360)
         self.gw_step_angle_spinBox.setValue(1)
         self.gw_step_angle_spinBox.setMaximum(360)
         self.gw_integration_time_spinBox.setValue(300)
         self.gw_homing_time_spinBox.setValue(30)
         self.gw_moving_time_spinBox.setValue(1)
         self.gw_pulse_duration_spinBox.setValue(2)
-        self.gw_voltage_or_current_spinBox.setValue(5)
+        self.gw_vc_value_spinBox.setValue(5)
+        self.gw_vc_compliance_spinBox.setValue(1.05)
 
         # Set standard parameters for Spectral Measurement
         self.specw_voltage_spinBox.setValue(0)
@@ -909,6 +918,141 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         )
 
         self.specw_fig.draw()
+
+    # -------------------------------------------------------------------- #
+    # --------------------- Goniometer Measurement  ---------------------- #
+    # -------------------------------------------------------------------- #
+    def read_goniometer_parameters(self):
+        """
+        Function to read out the current fields entered in the goniometer tab
+        """
+        pixels = [
+            self.gw_pixel1_pushButton.isChecked(),
+            self.gw_pixel2_pushButton.isChecked(),
+            self.gw_pixel3_pushButton.isChecked(),
+            self.gw_pixel4_pushButton.isChecked(),
+            self.gw_pixel5_pushButton.isChecked(),
+            self.gw_pixel6_pushButton.isChecked(),
+            self.gw_pixel7_pushButton.isChecked(),
+            self.gw_pixel8_pushButton.isChecked(),
+        ]
+
+        goniometer_parameters = {
+            "minimum_angle": self.gw_minimum_angle_spinBox.value(),
+            "maximum_angle": self.gw_maximum_angle_spinBox.value(),
+            "step_angle": self.gw_step_angle_spinBox.value(),
+            "integration_time": self.gw_integration_time_spinBox.value(),
+            "homing_time": self.gw_homing_time_spinBox.value(),
+            "moving_time": self.gw_moving_time_spinBox.value(),
+            "pulse_duration": self.gw_pulse_duration_spinBox.value(),
+            "voltage_or_current": self.gw_voltage_or_current_toggleSwitch.isChecked(),
+            "el_or_pl": self.gw_el_or_pl_toggleSwitch.isChecked(),
+            "vc_value": self.gw_vc_value_spinBox.value(),
+            "vc_compliance": self.gw_vc_compliance_spinBox.value(),
+            "selected_pixels": [i + 1 for i, x in enumerate(pixels) if x],
+        }
+
+        # Update statusbar
+        self.statusbar.showMessage("Goniometer Parameters Read", 10000000)
+
+        return goniometer_parameters
+
+    def start_goniometer_measurement(self):
+        """
+        Function that starts the goniometer measurement. On the long run
+        there should also be the option to interrupt the goniometer
+        measurement when it is already running
+        """
+
+        # Read all relevant parameters
+        setup_parameters = self.save_read_setup_parameters()
+        (
+            autotube_measurement_parameters,
+            selected_pixels,
+        ) = self.read_autotube_parameters()
+        goniometer_measurement_parameters = self.read_goniometer_parameters()
+        global_settings = self.read_global_settings()
+
+        # Update statusbar
+        self.statusbar.showMessage("Autotube Measurement Started", 10000000)
+
+        # Set progress bar to zero
+        self.progressBar.setProperty("value", 0)
+
+        # Update statusbar message
+        self.statusbar.showMessage("Running", 10000000)
+
+        # This creates an instance of the goniometer measurement class
+        progress = 0
+
+        # Instantiate our class
+        measurement = GoniometerMeasurement(
+            global_settings["keithley_source_address"],
+            global_settings["keithley_multimeter_address"],
+            global_settings["arduino_com_address"],
+            global_settings["motor_number"],
+            global_settings["motor_offset"],
+            global_settings["spectrum_integration_time"],
+            global_settings["photodiode_gain"],
+            goniometer_measurement_parameters["selected_pixels"],
+            setup_parameters["folder_path"],
+            goniometer_measurement_parameters,
+            autotube_measurement_parameters,
+            self,
+        )
+
+        # Call measurement.measure() to measure and save all the measured data into the class itself
+        # measurement.run()
+        measurement.start()
+
+        # Call measurement.save_data() to directly save the data to a file
+        measurement.save_iv_data()
+        measurement.save_spectrum_data()
+
+        # Update GUI while being in a loop. It would be better to use
+        # separate threads but for now this is the easiest way
+        app.processEvents()
+
+        # Untoggle the pushbutton
+        self.aw_start_measurement_pushButton.setChecked(False)
+
+        # Update statusbar
+        self.statusbar.showMessage("Goniometer Measurement Finished", 10000000)
+
+    @QtCore.Slot(list)
+    def update_goniometer_spectrum(self, spectrum):
+        """
+        Function that updates the goniometer measured spectrum as well as the status and progress bar
+        """
+        # Update progress bar
+        # progress += 1
+        # self.progressBar.setProperty(
+        # "value", int(progress / len(selected_pixels) * 100)
+        # )
+        # Clear axis
+        self.gw_ax.cla()
+        temp = (
+            spectrum.transpose()
+            .sub(spectrum["background"])
+            .transpose()
+            .set_index("wavelength")
+            .drop(["background"], axis=1)
+        )
+        self.gw_animation.update(float(spectrum.columns[-1][:-1]))
+
+        # spectrum.drop(["background"], axis=1)
+        # spectrum.set_index("wavelength")
+        self.gw_ax.set_xlabel("Angle (°)")
+        self.gw_ax.set_ylabel("Wavelength (nm)")
+
+        # Plot current
+        self.gw_ax.pcolormesh(temp)
+        # self.gw_fig.figure.colorbar(im, ax=self.gw_ax)
+
+        self.gw_fig.draw()
+
+        # Update statusbar
+        self.statusbar.showMessage("Goniometer Measurement Plotted", 10000000)
 
 
 # Logging

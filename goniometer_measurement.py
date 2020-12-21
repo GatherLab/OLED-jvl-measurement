@@ -14,6 +14,7 @@ from tests.tests import (
     MockKeithleySource,
     MockKeithleyMultimeter,
     MockOceanSpectrometer,
+    MockThorlabMotor,
 )
 from autotube_measurement import AutotubeMeasurement
 
@@ -27,21 +28,21 @@ class GoniometerMeasurement(QtCore.QThread):
     Thread class to do the goniometer measurement
     """
 
-    update_goniometer_spectrum_signal = QtCore.Signal(list, list)
+    update_goniometer_spectrum_signal = QtCore.Signal(list)
 
     def __init__(
         self,
         keithley_source_address,
         keithley_multimeter_address,
         com2_address,
-        integration_time,
         motor_number,
         motor_offset,
+        integration_time,
+        photodiode_gain,
+        pixel,
+        folder_path,
         goniometer_measurement_parameters,
         autotube_measurement_parameters,
-        pixel,
-        photodiode_gain,
-        file_path,
         parent=None,
     ):
         super(GoniometerMeasurement, self).__init__()
@@ -53,7 +54,7 @@ class GoniometerMeasurement(QtCore.QThread):
         )
         self.keithley_multimeter = MockKeithleyMultimeter(keithley_multimeter_address)
         self.spectrometer = MockOceanSpectrometer(integration_time)
-        self.motor = ThorlabMotor(motor_number, motor_offset)
+        self.motor = MockThorlabMotor(motor_number, motor_offset)
 
         # Initialise member variables
         self.goniometer_measurement_parameters = goniometer_measurement_parameters
@@ -64,6 +65,7 @@ class GoniometerMeasurement(QtCore.QThread):
         self.com2_address = com2_address
         self.photodiode_gain = photodiode_gain
         self.pixel = pixel
+        self.folder_path = folder_path
 
         # Connect signal to the updater from the parent class
         self.update_goniometer_spectrum_signal.connect(
@@ -217,13 +219,13 @@ class GoniometerMeasurement(QtCore.QThread):
         # "MOVING TO INITIAL POSITION"
         # Move to initial position which is the offset position
         self.motor.move_to(0)
-        time.sleep(self.goniometer_paramters["homing_time"])
+        time.sleep(self.goniometer_measurement_parameters["homing_time"])
 
         # DEVICES.ELmotor.move_to(self.max_angle)
         # "#####################################################################"
         # "#####TAKING MEASUREMENTS FROM THE THORLABS PDA100A2 PHOTODIODE#####"
         # "#####################################################################"
-        if self.goniometer_measurement_parameters["voltage_scan"]:
+        if self.goniometer_measurement_parameters["voltage_or_current"]:
             autotube_measurement = AutotubeMeasurement(
                 self.keithley_source_address,
                 self.keithley_multimeter_address,
@@ -231,7 +233,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.photodiode_gain,
                 self.autotube_measurement_parameters,
                 self.pixel,
-                self.file_path,
+                self.folder_path,
             )
             autotube_measurement.measure()
             autotube_measurement.save_data()
@@ -350,7 +352,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # Take background voltage and measure specific current and voltage of photodiode and oled
         self.keithley_source.as_current_source(
-            self.goniometer_measurement_parameters["voltage_compliance"]
+            self.goniometer_measurement_parameters["vc_compliance"]
         )
         background_diode_voltage = self.keithley_multimeter.measure_voltage()
         self.keithley_source.activate_output()
@@ -389,13 +391,13 @@ class GoniometerMeasurement(QtCore.QThread):
         # Depending on if the user selected constant current or constant
         # voltage it is selected in the following what the Keithley source
         # should be
-        if self.goniometer_measurement_parameters["current_or_voltage"]:
+        if self.goniometer_measurement_parameters["voltage_or_current"]:
             self.keithley_source.as_voltage_source(
-                self.goniometer_measurement_parameters["compliance"]
+                self.goniometer_measurement_parameters["vc_compliance"]
             )
         else:
             self.keithley_source.as_current_source(
-                self.goniometer_measurement_parameters["compliance"]
+                self.goniometer_measurement_parameters["vc_compliance"]
             )
 
         # warning_message = False
@@ -539,8 +541,8 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # Move motor by given increment while giving current to OLED and reading spectrum
         for angle in np.arange(
-            self.goniometer_measurement_parameters["min_angle"],
-            self.goniometer_measurement_parameters["max_angle"] + 1,
+            self.goniometer_measurement_parameters["minimum_angle"],
+            self.goniometer_measurement_parameters["maximum_angle"] + 1,
             self.goniometer_measurement_parameters["step_angle"],
         ):
 
@@ -563,22 +565,18 @@ class GoniometerMeasurement(QtCore.QThread):
             # Add Keithley readings to lists
 
             # In the case of a voltage scan
-            if self.goniometer_measurement_parameters["current_or_voltage"]:
+            if self.goniometer_measurement_parameters["voltage_or_current"]:
                 data_dict = {
                     "angle": angle,
                     "voltage": temp_buffer,
-                    "current": self.goniometer_measurement_parameters[
-                        "goniometer_value"
-                    ],
+                    "current": self.goniometer_measurement_parameters["vc_value"],
                 }
                 # line13 = "Source Current:		" + str(self.goniometer_value * 1e3) + " mA"
                 # line14 = "Source Voltage:      " + str(temp_buffer) + " V"
             else:
                 data_dict = {
                     "angle": angle,
-                    "voltage": self.goniometer_measurement_parameters[
-                        "goniometer_value"
-                    ],
+                    "voltage": self.goniometer_measurement_parameters["vc_value"],
                     "current": temp_buffer,
                 }
                 # crt.append(temp_buffer)
@@ -651,28 +649,25 @@ class GoniometerMeasurement(QtCore.QThread):
             + str(self.goniometer_measurement_parameters["pulse_duration"])
             + " s    "
             + "Step time:   "
-            + str(self.goniometer_measurement_parameters["step_time"])
+            + str(self.goniometer_measurement_parameters["moving_time"])
             + " 2"
         )
-        if self.goniometer_measurement_parameters["current_or_voltage"]:
+        if self.goniometer_measurement_parameters["voltage_or_current"]:
             line02 = (
                 "Source Voltage:		"
-                + str(self.goniometer_measurement_parameters["goniometer_value"])
+                + str(self.goniometer_measurement_parameters["vc_value"])
                 + " V"
                 + "Current Compliance:	"
-                + str(
-                    self.goniometer_measurement_parameters["goniometer_compliance"]
-                    * 1e3
-                )
+                + str(self.goniometer_measurement_parameters["vc_compliance"] * 1e3)
                 + " mA"
             )
         else:
             line02 = (
                 "Source Current:		"
-                + str(self.goniometer_measurement_parameters["goniometer_value"] * 1e3)
+                + str(self.goniometer_measurement_parameters["vc_value"] * 1e3)
                 + " mA"
                 + "Voltage Compliance:	"
-                + str(self.goniometer_measurement_parameters["goniometer_compliance"])
+                + str(self.goniometer_measurement_parameters["vc_compliance"])
                 + " V"
             )
 
@@ -704,12 +699,12 @@ class GoniometerMeasurement(QtCore.QThread):
         ]
 
         # Write header lines to file
-        with open(self.file_path + "goniometer_iv_data.csv", "a") as the_file:
+        with open(self.folder_path + "goniometer_iv_data.csv", "a") as the_file:
             the_file.write("\n".join(header_lines))
 
         # Now write pandas dataframe to file
         self.iv_data.to_csv(
-            self.file_path + "goniometer_iv_data.csv",
+            self.folder_path + "goniometer_iv_data.csv",
             index=False,
             mode="a",
             header=False,
@@ -729,28 +724,25 @@ class GoniometerMeasurement(QtCore.QThread):
             + str(self.goniometer_measurement_parameters["pulse_duration"])
             + " s    "
             + "Step time:   "
-            + str(self.goniometer_measurement_parameters["step_time"])
+            + str(self.goniometer_measurement_parameters["moving_time"])
             + " 2"
         )
-        if self.goniometer_measurement_parameters["current_or_voltage"]:
+        if self.goniometer_measurement_parameters["voltage_or_current"]:
             line02 = (
                 "Source Voltage:		"
-                + str(self.goniometer_measurement_parameters["goniometer_value"])
+                + str(self.goniometer_measurement_parameters["vc_value"])
                 + " V"
                 + "Current Compliance:	"
-                + str(
-                    self.goniometer_measurement_parameters["goniometer_compliance"]
-                    * 1e3
-                )
+                + str(self.goniometer_measurement_parameters["vc_compliance"] * 1e3)
                 + " mA"
             )
         else:
             line02 = (
                 "Source Current:		"
-                + str(self.goniometer_measurement_parameters["goniometer_value"] * 1e3)
+                + str(self.goniometer_measurement_parameters["vc_value"] * 1e3)
                 + " mA"
                 + "Voltage Compliance:	"
-                + str(self.goniometer_measurement_parameters["goniometer_compliance"])
+                + str(self.goniometer_measurement_parameters["vc_compliance"])
                 + " V"
             )
 
@@ -764,12 +756,12 @@ class GoniometerMeasurement(QtCore.QThread):
         ]
 
         # Write header lines to file
-        with open(self.file_path + "goniometer_spectra.csv", "a") as the_file:
+        with open(self.folder_path + "goniometer_spectra.csv", "a") as the_file:
             the_file.write("\n".join(header_lines))
 
         # Now write pandas dataframe to file with header names
         self.spectrum_data.to_csv(
-            self.file_path + "goniometer_spectra.csv",
+            self.folder_path + "goniometer_spectra.csv",
             index=False,
             mode="a",
             header=True,

@@ -82,3 +82,15 @@ class MockOceanSpectrometer:
 
     def measure(self):
         return np.arange(350, 830, 1), np.random.rand(480) * 100
+
+
+class MockThorlabMotor:
+    """
+    Mock class for testing
+    """
+
+    def __init__(self, motor_number, offset_angle):
+        print("Motor initiated")
+
+    def move_to(self, angle):
+        print("Moved to angle " + str(angle))

@@ -49,15 +49,15 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
         #         bar_height,
         #     )
         #     painter.fillRect(rect, brush)
-        position = 25
+        position = 360
         painter.setPen(QtGui.QPen(QtGui.QColor("#E0E0E0"), 4, QtCore.Qt.SolidLine))
-        painter.drawEllipse(35, 3, 100, 100)
-        painter.drawText(142, 58, "0°")
-        painter.drawText(75, 120, "90°")
-        painter.drawText(8, 58, "180°")
+        painter.drawEllipse(35, 17, 100, 100)
+        painter.drawText(142, 72, "0°")
+        painter.drawText(75, 10, "90°")
+        painter.drawText(8, 72, "180°")
         painter.setPen(QtGui.QPen(QtGui.QColor("#55AAFF"), 14, QtCore.Qt.SolidLine))
-        painter.drawArc(45, 13, 80, 80, 0 * 16, -16 * position)
-        painter.drawText(75, 58, str(position) + "°")
+        painter.drawArc(45, 27, 80, 80, 0 * 16, -16 * position)
+        painter.drawText(75, 72, str(position) + "°")
         painter.end()
 
     def _trigger_refresh(self):
