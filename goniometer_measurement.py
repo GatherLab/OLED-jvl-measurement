@@ -27,6 +27,8 @@ class GoniometerMeasurement(QtCore.QThread):
     Thread class to do the goniometer measurement
     """
 
+    update_goniometer_spectrum_signal = QtCore.Signal(list, list)
+
     def __init__(
         self,
         keithley_source_address,
@@ -34,10 +36,12 @@ class GoniometerMeasurement(QtCore.QThread):
         com2_address,
         integration_time,
         motor_number,
+        motor_offset,
         goniometer_measurement_parameters,
         autotube_measurement_parameters,
         pixel,
         photodiode_gain,
+        file_path,
         parent=None,
     ):
         super(GoniometerMeasurement, self).__init__()
@@ -49,7 +53,7 @@ class GoniometerMeasurement(QtCore.QThread):
         )
         self.keithley_multimeter = MockKeithleyMultimeter(keithley_multimeter_address)
         self.spectrometer = MockOceanSpectrometer(integration_time)
-        self.motor = ThorlabMotor(motor_number)
+        self.motor = ThorlabMotor(motor_number, motor_offset)
 
         # Initialise member variables
         self.goniometer_measurement_parameters = goniometer_measurement_parameters
@@ -61,56 +65,67 @@ class GoniometerMeasurement(QtCore.QThread):
         self.photodiode_gain = photodiode_gain
         self.pixel = pixel
 
+        # Connect signal to the updater from the parent class
+        self.update_goniometer_spectrum_signal.connect(
+            parent.update_goniometer_spectrum
+        )
+
+        # Declare the data structures that are used in the goniometer measurement
+        self.iv_data = pd.DataFrame()
+        self.spectrum_data = pd.DataFrame()
+        self.specific_oled_voltage = 0
+        self.specific_oled_current = 0
+        self.specific_pd_voltage = 0
+
     def run(self):
         """
         Function that runs when the thread is started. It contains the
         measurement routine that is triggered when the measure button is
         pressed
         """
-        # while True:
 
         # "INITIALIZING SETTINGS"
         # defaults = {}
         # settings = {}
         # parameters = []
         # "SETTING DEFAULT PARAMETERS"
-        # defaults[0] = "test"  # sample
-        # defaults[1] = 318  # offset_angle
+        # defaults[0] = 'test' # sample
+        # defaults[1] = 318 # offset_angle
         # defaults[2] = 1  # step_angle
-        # defaults[3] = 300000  # integrationtime in microseconds
-        # defaults[4] = 20.0  # homing_time
-        # defaults[5] = 0.2  # moving_time
+        # defaults[3] = 300000 # integrationtime in microseconds
+        # defaults[4] = 20.0 # homing_time
+        # defaults[5] = 0.2 # moving_time
         # defaults[6] = 0.2  # pulse_duration in s
-        # defaults[7] = "F"  # ang_range
-        # defaults[8] = "N"  # scan_status
+        # defaults[7] = 'F' # ang_range
+        # defaults[8] = 'N' # scan_status
         # defaults[9] = -2.0  # min_voltage
-        # defaults[10] = 2.0  # change_voltage
+        # defaults[10] = 2.0 # change_voltage
         # defaults[11] = 4.0  # max_voltage
-        # defaults[12] = 0.1  # min_step_voltage
-        # defaults[13] = 1.0  # max_step_voltage
+        # defaults[12] = 0.1 # min_step_voltage
+        # defaults[13] = 1.0 # max_step_voltage
         # defaults[14] = 0.10  # scan_compliance
-        # defaults[15] = "Current"  # source
-        # defaults[16] = 0.001  # goniometer_value in A for current
-        # defaults[17] = 5  # goniometer_compliance in V for voltage
+        # defaults[15] = 'Current'  # source
+        # defaults[16] = 0.001 # goniometer_value in A for current
+        # defaults[17] = 5 # goniometer_compliance in V for voltage
 
         # "GETTING PARAMETERS FROM GUI, IF BLANK SETTING AS DEFAULT"
-        # for x in range(0, 18, 1):
+        # for x in range(0,18,1):
         # if not param[x]:
         # parameters.append(defaults[x])
         # else:
         # settings[x] = param[x]
         # parameters.append(settings[x])
-        # if parameters[7] == "F":
+        # if parameters[7] == 'F':
         # self.min_angle = float(parameters[1]) - 90
         # self.max_angle = float(parameters[1]) + 90
-        # elif parameters[7] == "HL":
+        # elif parameters[7] == 'HL':
         # self.min_angle = float(parameters[1])
         # self.max_angle = float(parameters[1]) + 90
-        # elif parameters[7] == "HR":
+        # elif parameters[7] == 'HR':
         # self.min_angle = float(parameters[1]) - 90
         # self.max_angle = float(parameters[1])
         # else:
-        # self.queue.put("Invalid input.")
+        # self.queue.put('Invalid input.')
         #
         # "SETTING PARAMTERS"
         # self.sample = parameters[0]
@@ -129,34 +144,19 @@ class GoniometerMeasurement(QtCore.QThread):
         # self.max_step_voltage = float(parameters[13])
         # self.scan_compliance = float(parameters[14])
         # self.source = parameters[15]
-        # self.goniometer_value = float(parameters[16])
+        # self.goniometer_value  = float(parameters[16])
         # self.goniometer_compliance = float(parameters[17])
 
         # "SETTING DIRECTORY DETAILS"
         # now = dt.datetime.now()
-        # datetime = str(
-        #     now.strftime("%Y-%m-%d %H:%M")
-        #     .replace(" ", "")
-        #     .replace(":", "")
-        #     .replace("-", "")
-        # )
-        # self.queue.put(
-        #     "Measurement code : "
-        #     + self.sample
-        #     + datetime
-        #     + "  (OLED device code followed by the datetime of measurement)."
-        # )
+        # datetime = str(now.strftime("%Y-%m-%d %H:%M").replace(" ","").replace(":","").replace("-",""))
+        # self.queue.put('Measurement code : ' + self.sample + datetime + '  (OLED device code followed by the datetime of measurement).')
         # # Set directories for recorded data.
-        # directory = os.path.abspath(
-        #     os.path.join(
-        #         os.path.dirname(__file__), "data", self.sample, datetime, "raw"
-        #     )
-        # )  # Folder to separate raw and processed data
+        # directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data', self.sample, datetime, 'raw')) # Folder to separate raw and processed data
         # if os.path.isdir(directory):
         #     pass
         # else:
         #     os.makedirs(directory)
-
         # "SETTING FILE DETAILS"
         # # Filename Parameters
         # keithleyfilepath = os.path.join(directory, "keithleydata")
@@ -188,13 +188,11 @@ class GoniometerMeasurement(QtCore.QThread):
         # self.queue.put("\nOceanOptics : " + str(DEVICES.MAYA_devices[0]))
         # DEVICES.spec.integration_time_micros(self.integrationtime)
 
-        # Write operational parameters to Sourcemeter (Voltage to OLED)
+        # # Write operational parameters to Sourcemeter (Voltage to OLED)
         # keith.write("*rst")  # reset instrument
         # keith.write("Source:Function Volt")  # set voltage as source
         # keith.write('Sense:Function "Current"')  # choose current for measuring
-        # keith.write(
-        #     "Source:Volt:ILimit " + str(self.scan_compliance)
-        # )  # set compliance
+        # keith.write("Source:Volt:ILimit " + str(self.scan_compliance))  # set compliance
         # keith.write("Source:Volt:READ:BACK ON")  # reads back the set voltage
         # keith.write(
         #     "Current:NPLCycles 1"
@@ -202,7 +200,7 @@ class GoniometerMeasurement(QtCore.QThread):
         # keith.write("Current:AZero OFF")  # turn off autozero
         # keith.write("Source:Volt:Delay:AUTO OFF")  # turn off autodelay
 
-        # Write operational parameters to Multimeter (Voltage from Photodiode)
+        # # Write operational parameters to Multimeter (Voltage from Photodiode)
         # keithmulti.write("*rst")  # reset instrument
         # keithmulti.write("SENSe:VOLTage:DC:RANGe 10")  # sets the voltage range
         # keithmulti.query("VOLTage:DC:RESolution?")  # sets the voltage resolution
@@ -216,22 +214,17 @@ class GoniometerMeasurement(QtCore.QThread):
         #     "TRIGer:DELay 0"
         # )  # sets the trigger to activate immediately after 'idle' -> 'wait-for-trigger'
 
-        # -------------------------------------------------------------------- #
-        # ----------------------- Autotube Measurement ----------------------- #
-        # -------------------------------------------------------------------- #
-        # Move to initial motor position
-        self.motor.move_to(self.max_angle)
-        time.sleep(self.homing_time)
+        # "MOVING TO INITIAL POSITION"
+        # Move to initial position which is the offset position
+        self.motor.move_to(0)
+        time.sleep(self.goniometer_paramters["homing_time"])
 
+        # DEVICES.ELmotor.move_to(self.max_angle)
         # "#####################################################################"
         # "#####TAKING MEASUREMENTS FROM THE THORLABS PDA100A2 PHOTODIODE#####"
         # "#####################################################################"
-        # Only do a complete JVL scan if this was selected in the GUI
-        # Use the existent class autotube_measurement class for this instead of copying code
-        if self.measurement_parameters["voltage_scan"]:
-
-            # To make this work these parameters obviously have to be set in the init section
-            jvl_measurement = AutotubeMeasurement(
+        if self.goniometer_measurement_parameters["voltage_scan"]:
+            autotube_measurement = AutotubeMeasurement(
                 self.keithley_source_address,
                 self.keithley_multimeter_address,
                 self.com2_address,
@@ -240,25 +233,17 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.pixel,
                 self.file_path,
             )
-
-            # Do the actual measurement
-            jvl_measurement.measure()
-
-            # We have to decide how the saving of this data should work, though
-            # but my current plan is to take the file path and add a folder to
-            # it and otherwise save the data as before
-            jvl_measurement.save_data()
+            autotube_measurement.measure()
+            autotube_measurement.save_data()
 
         # self.queue.put("\n\nPHOTODIODE READINGS")
         # "IMPLEMENTATION"
-        # generate empty lists for later data collection
-        # Define voltage steps
-        # Voltage points for low OLED voltage
+        # # generate empty lists for later data collection
         # low_vlt = np.arange(
-        # self.min_voltage, self.change_voltage, self.max_step_voltage
+        #     self.min_voltage, self.change_voltage, self.max_step_voltage
         # )  # Voltage points for low OLED voltage
         # high_vlt = np.arange(
-        # self.change_voltage, self.max_voltage + 0.1, self.min_step_voltage
+        #     self.change_voltage, self.max_voltage + 0.1, self.min_step_voltage
         # )  # Voltage points for high OLED voltage
         # OLEDvlt = []
         # OLEDcrt = []
@@ -266,7 +251,6 @@ class GoniometerMeasurement(QtCore.QThread):
         # "SCANNING VOLTAGES"
         # Optional scanning voltage readings, runs readings if Y, anything else and this section is skipped
         # if self.scan_status == str("Y"):
-
         #     keithmulti.write(
         #         "INITiate"
         #     )  # Initiating 'wait_for_trigger' mode for Multimeter
@@ -288,7 +272,6 @@ class GoniometerMeasurement(QtCore.QThread):
         #         keith.write(
         #             "Source:Volt " + str(voltage)
         #         )  # Set voltage to source_value
-
         #         diodevoltage = float(
         #             keithmulti.query("MEASure:VOLTage:DC?")
         #         )  # Take PD voltage reading from Multimeter
@@ -304,14 +287,12 @@ class GoniometerMeasurement(QtCore.QThread):
         #         PDvlt.append(diodevoltage - background_diodevoltage)
         #         OLEDcrt.append(oledcurrent)
         #         OLEDvlt.append(voltage)
-
         #     # High Voltage Readings
         #     for voltage in high_vlt:
         #         self.queue.put("\nOLED Voltage : " + str(voltage) + " V")
         #         keith.write(
         #             "Source:Volt " + str(voltage)
         #         )  # Set voltage to source_value
-
         #         diodevoltage = float(
         #             keithmulti.query("MEASure:VOLTage:DC?")
         #         )  # Take PD voltage reading from Multimeter
@@ -328,7 +309,6 @@ class GoniometerMeasurement(QtCore.QThread):
         #         OLEDcrt.append(oledcurrent)
         #         OLEDvlt.append(voltage)
         #         self.scan_status = "N"
-
         #     keith.write("Output OFF")
         #     OLEDvolt = np.array(OLEDvlt)  # Creates voltage array
         #     OLEDcurrent = (
@@ -361,73 +341,68 @@ class GoniometerMeasurement(QtCore.QThread):
         # )  # record preset source value instead of measuring it anew. NO CURRENT IS MEASURED!!! (Costs approx. 1.5 ms)
         # keith.write("Volt:AZero OFF")  # turn off autozero
         # keith.write("Source:Current:Delay:AUTO OFF")  # turn off autodelay
+
+        # background_diodevoltage = float(
+        #     keithmulti.query("MEASure:VOLTage:DC?")
+        # )  # Take PD voltage reading from Multimeter for background
+
         # keith.write("Output ON")  # Turn power on
 
-        # -------------------------------------------------------------------- #
-        # ------------------------ Specifics of the PD ----------------------- #
-        # -------------------------------------------------------------------- #
-
-        # Take PD voltage reading from Multimeter for background
-        background_diodevoltage = self.keithley_multimeter.measure_voltage()
-
-        # Now use the keithley as current source
-        self.keithley_source.as_current_source(self.voltage_compliance)
-        self.keithley_source.set_current(self.current)
+        # Take background voltage and measure specific current and voltage of photodiode and oled
+        self.keithley_source.as_current_source(
+            self.goniometer_measurement_parameters["voltage_compliance"]
+        )
+        background_diode_voltage = self.keithley_multimeter.measure_voltage()
         self.keithley_source.activate_output()
-
-        # Take PD voltage reading from Multimeter
-        specificPDvoltage = self.keithley_multimeter.measure_voltage()
-        # Background Subtracted
-        specificPDvoltage = specificPDvoltage - background_diodevoltage
-        # Take OLED current reading from Sourcemeter
-        specificOLEDcurrent = self.keithley_source.read_current()
-        # Take OLED voltage reading from Sourcemeter
-        specificOLEDvoltage = self.keithley_source.read_voltage()
-        # Deactivate output
+        self.specific_pd_voltage = (
+            self.keithley_multimeter.measure_voltage() - background_diode_voltage
+        )
+        self.specific_oled_current = self.keithley_source.read_current()
+        self.specific_oled_voltage = self.keithley_source.read_voltage()
         self.keithley_source.deactivate_output()
 
+        # specificPDvoltage = float(
+        #     keithmulti.query("MEASure:VOLTage:DC?")
+        # )  # Take PD voltage reading from Multimeter
+        # specificPDvoltage = (
+        #     specificPDvoltage - background_diodevoltage
+        # )  # Background Subtracted
+        # specificOLEDcurrent = float(
+        #     keith.query("MEASure:CURRent:DC?")
+        # )  # Take OLED current reading from Sourcemeter
+        # specificOLEDvoltage = float(
+        #     keith.query("MEASure:VOLTage:DC?")
+        # )  # Take OLED current reading from Sourcemeter
+        # keith.write("Output OFF")  # Turn power off
         # self.queue.put("\n\nSaving output to: " + "specifickeithleyPDvoltages.txt")
         # self.queue.put("\nPhotodiode Voltage :" + str(specificPDvoltage) + " V")
         # self.queue.put("OLED Voltage : " + str(specificOLEDvoltage) + " V")
         # self.queue.put("OLED Current : " + str(specificOLEDcurrent * 1e3) + " mA")
 
-        specificphotodiodedata = np.stack(
-            (
-                np.array(specificOLEDvoltage),
-                np.array(specificOLEDcurrent),
-                np.array(specificPDvoltage),
-            )
-        )
-        specifickeithleyfilename = (  # for filenames have foldername and filename
-            "specifickeithleyPDvoltages.txt"
-        )
-        # amended with full path
-        specifickeithleyfilename = os.path.abspath(
-            os.path.join(keithleyfilepath, specifickeithleyfilename)
-        )
-        np.savetxt(
-            specifickeithleyfilename,
-            specificphotodiodedata,
-            fmt="%.4f",
-            header="\n".join(header_lines),
-            delimiter="\t",
-            comments="",
-        )
-
-        # "#####################################################################"
-        # "####TAKING MEASUREMENTS FROM THE OCEANOPTICS MAYALSL SPECTROMETER####"
-        # "#####################################################################"
+        # Here comes the real goniometer measurement
 
         # self.queue.put("\n\nSPECTROMETER READINGS")
 
         # "SETTING PARAMETERS"
-        # # Keithley OLED Current Parameters
+        # Keithley OLED Current Parameters
+
+        # Depending on if the user selected constant current or constant
+        # voltage it is selected in the following what the Keithley source
+        # should be
+        if self.goniometer_measurement_parameters["current_or_voltage"]:
+            self.keithley_source.as_voltage_source(
+                self.goniometer_measurement_parameters["compliance"]
+            )
+        else:
+            self.keithley_source.as_current_source(
+                self.goniometer_measurement_parameters["compliance"]
+            )
+
         # warning_message = False
         # if self.source == "Current":
         #     sense = "Volt"
         # else:
         #     sense = "Current"
-
         # if warning_message is True:
         #     self.queue.put("\nWARNING:\n")
         #     if self.source == "Current":
@@ -462,14 +437,13 @@ class GoniometerMeasurement(QtCore.QThread):
         #         )
         #     while True:
         #         i = input(
-        #             "If this looks right, press Enter to continue. Else press 'q'"
-        #             " to quit."
+        #             "If this looks right, press Enter to continue. Else press 'q' to"
+        #             " quit."
         #         )
         #         if i == "q":
         #             sys.exit("User exit. Check your operational parameters.")
         #         else:
         #             break
-
         # # Printing source and compliance
         # if self.source == "Current":
         #     self.queue.put(
@@ -489,276 +463,315 @@ class GoniometerMeasurement(QtCore.QThread):
         #     "Saving output to: " + "keithleyOLEDvoltages.txt" + " and Angle_.txt"
         # ),
 
+        # # Keithley write operational parameters to SMU
+        # keith.write("*rst")  # reset instrument
+        # if self.source == "Current":
+        #     keith.write("Source:Function Current")  # set current as source
+        #     keith.write(
+        #         "Source:Current " + str(self.goniometer_value)
+        #     )  # set current to source_value
+        #     keith.write('Sense:Function "Volt"')  # choose voltage for measuring
+        #     keith.write(
+        #         "Source:Current:VLimit " + str(self.goniometer_compliance)
+        #     )  # set voltage compliance to compliance
+        #     keith.write(
+        #         "Source:Current:READ:BACK OFF"
+        #     )  # record preset source value instead of measuring it anew. NO CURRENT IS MEASURED!!! (Costs approx. 1.5 ms)
+        #     keith.write("Volt:AZero OFF")  # turn off autozero
+        #     keith.write("Source:Current:Delay:AUTO OFF")  # turn off autodelay
+        # else:
+        #     keith.write("Source:Function Volt")  # set voltage as source
+        #     keith.write(
+        #         "Source:Volt " + str(self.goniometer_value)
+        #     )  # set voltage to source_value
+        #     keith.write('Sense:Function "Current"')  # choose voltage for measuring
+        #     keith.write(
+        #         "Source:Volt:ILimit " + str(self.goniometer_compliance)
+        #     )  # set voltage
+        #     keith.write(
+        #         "Source:Volt:READ:BACK OFF"
+        #     )  # record preset source value instead of measuring it anew. NO VOLTAGE IS MEASURED!!! (Costs approx. 1.5 ms)
+        #     keith.write(
+        #         "Current:NPLCycles 1"
+        #     )  # set acquisition factor to acq_factor (effectively sets the acquisition time)
+        #     keith.write("Current:AZero OFF")  # turn off autozero
+        #     keith.write("Source:Volt:Delay:AUTO OFF")  # turn off autodelay
+
         # self.queue.put("\n\nSource: " + str(keith.query("Source:Function?")))
         # self.queue.put("Sense: " + str(keith.query("Sense:Voltage:Unit?")))
 
-        # "SETTING FILE DETAILS"
-        # # Filename Parameters
-        # keithleyfilename = "keithleyOLEDvoltages.txt"  # changing keithley filename
-        # keithleyfilename = os.path.abspath(
-        #     os.path.join(keithleyfilepath, keithleyfilename)
-        # )  # amended with full path
-        # mayafilename = "Background.txt"  # setting mayalsl filename for dark reading
-        # mayafilename = os.path.abspath(os.path.join(mayafilepath, mayafilename))
-
         # "IMPLEMENTATION"
-        # # Generate empty lists for current/voltage and wavelength/intensity data collection
+        # Generate empty lists for current/voltage and wavelength/intensity data collection
         # vlt = []  # Voltages
         # crt = []  # Currents
         # ang = []  # Angles
         # wvl = []  # Wavelengths
         # inte = []  # Intensities
         # spect = []  # Spectrums
+        # buffer_length = 1000
 
-        # -------------------------------------------------------------------- #
-        # ------------------- Measure background spectrum  ------------------- #
-        # -------------------------------------------------------------------- #
+        self.keithley_source.init_buffer("pulsebuffer", buffer_length=1000)
 
-        # Take a background calibration spectrum (without illumination?)
-        background = self.spectrometer.measure()
-        file_name = "background"
-        self.save_spectrum(background, file_name)
-        # np.savetxt(
-        # mayafilename,
-        # spectrum.T,
-        # fmt="%.4f %.0f",
-        # delimiter="\t",
-        # header="\n".join(header_lines3),
-        # comments="",
-        # )
+        # keith.write(
+        #     'Trace:Make "pulsebuffer", ' + str(max(buffer_length, 10))
+        # )  # create buffer; buffer size must be between 10 and 11000020
+        # keith.write('Trace:Clear "pulsebuffer"')  # keithley empties the buffer
 
-        # -------------------------------------------------------------------- #
-        # ----------------- Actual Goniometer Measurement  ------------------- #
-        # -------------------------------------------------------------------- #
-        self.keithley_source.init_buffer("pulsebuffer", 1000)
-
-        self.motor.move_to(self.goniometer_measurement_parameters["min_angle"])
+        self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
         time.sleep(self.goniometer_measurement_parameters["homing_time"])
 
-        # Keithley write operational parameters to SMU
-        # keith.write("*rst")  # reset instrument
-        if self.goniometer_measurement_parameters["constant_current"]:
-            self.keithley_source.as_current_source(
-                self.current, self.voltage_compliance
-            )
-            self.keithley_source.set_current(self.current)
-        else:
-            self.keithley_source.as_voltage_source(self.current_compliance)
-            self.keithley_source.set_voltage(self.voltage)
+        # DEVICES.ELmotor.move_to(self.min_angle)
+        # time.sleep(self.homing_time)
+        # Take calibration readings
+        calibration_spectrum = self.spectrometer.measure()
+        self.spectrum_data["wavelength"] = calibration_spectrum[0]
+        self.spectrum_data["background"] = calibration_spectrum[1]
+        # spectrum = (
+        #     DEVICES.spec.spectrum()
+        # )  # this gives a pre-stacked array of wavelengths and intensities
 
-        # Since the data shall be plotted after each measurement (it could also
-        # be done while measuring but I think there is not much benefit and the
-        # programming is uglier), only one pixel is scanned at a time
-        df_data = pd.DataFrame(columns=["angle", "voltage", "current"])
+        # Initial processing time in seconds
+        # I am not quite sure why this is done and if there is no better way of doing it
+        processing_time = 0.5
 
-        # I have no idea what this is
-        processing_time = 0.5  # Initial processing time in seconds
+        # Empty list, stores the data as multiple dicts to later generate a pd dataframe
+        rows_list = []
 
         # Move motor by given increment while giving current to OLED and reading spectrum
-        i = 0
-        for angle in np.arange(self.min_angle, self.max_angle + 1, self.step_angle):
-            # Move motor to desired position
+        for angle in np.arange(
+            self.goniometer_measurement_parameters["min_angle"],
+            self.goniometer_measurement_parameters["max_angle"] + 1,
+            self.goniometer_measurement_parameters["step_angle"],
+        ):
+
             self.motor.move_to(angle)
-            # Sleep to give the motor enough time to move (is there no smarter way?)
             time.sleep(self.goniometer_measurement_parameters["moving_time"])
-
-            # When the OLED is rotated to the right position activate its output
             self.keithley_source.activate_output()
-
-            # Not sure why the system shoudl sleep now
+            # DEVICES.ELmotor.move_to(angle)
+            # keith.write("Output ON")
             time.sleep(
                 self.goniometer_measurement_parameters["pulse_duration"]
                 - processing_time
             )
 
-            # Measure the time that elapses
-            start_process = time.perf_counter()
+            start_process = time.process_time()
+            temp_buffer = self.keithley_source.read_current()
+            # iv_data[]
+            # temp_buffer = float(
+            #     keith.query('Read? "pulsebuffer"')[:-1]
+            # )  # take measurement from Keithley
+            # Add Keithley readings to lists
 
-            # Append data
-            self.df_data.loc[i, "angle"] = angle
-
-            # Depending on the measurement mode set the parameters
-            # I think this should in principle be constant but could change due
-            # to degradation or something like that
+            # In the case of a voltage scan
             if self.goniometer_measurement_parameters["current_or_voltage"]:
-                self.df_data.loc[i, "current"] = self.goniometer_measurement_parameters[
-                    "current_or_voltage"
-                ]
-                self.df_data.loc[i, "voltage"] = self.keithley_source.read_voltage()
+                data_dict = {
+                    "angle": angle,
+                    "voltage": temp_buffer,
+                    "current": self.goniometer_measurement_parameters[
+                        "goniometer_value"
+                    ],
+                }
                 # line13 = "Source Current:		" + str(self.goniometer_value * 1e3) + " mA"
                 # line14 = "Source Voltage:      " + str(temp_buffer) + " V"
             else:
-                self.df_data.lov[i, "current"] = self.keithley_source.read_current()
-                self.df_data.loc[i, "voltage"] = self.goniometer_measurement_parameters[
-                    "current_or_voltage"
-                ]
+                data_dict = {
+                    "angle": angle,
+                    "voltage": self.goniometer_measurement_parameters[
+                        "goniometer_value"
+                    ],
+                    "current": temp_buffer,
+                }
+                # crt.append(temp_buffer)
+                # vlt.append(self.goniometer_value)
                 # line13 = "Source Voltage:		" + str(self.goniometer_value) + " V"
                 # line14 = "Source Current:      " + str(temp_buffer * 1e3) + " mA"
-            # header_lines3.append(line13)
-            # header_lines3.append(line14)
-            # Take spectrometer readings
+
+            rows_list.append(data_dict)
+
+            # Now measure spectrum (wavelength and intensity)
+            self.spectrum_data[str(angle) + "°"] = self.spectrometer.measure()[1]
+
+            # Emit a signal to update the plot
+            self.update_goniometer_spectrum_signal.emit(self.spectrum_data)
+
             # wavelength = DEVICES.spec.wavelengths()  # creates a list of wavelengths
             # intensity = DEVICES.spec.intensities()  # creates a list of intensities
-
-            # Measure the spectrum
-            df_data_spectrum = pd.DataFrame(columns=["wavelength", "intensity"])
-            (
-                df_data_spectrum.wavelength,
-                df_data_spectrum.intensity,
-            )
-
-            # Save the spectrum
-            file_name = "spectrum"
-            self.save_spectrum(df_data_spectrum, file_name)
-            # = (
+            # spectrum = (
             # DEVICES.spec.spectrum()
             # )  # this gives a pre-stacked array of wavelengths and intensities
             # wvl.append(
-            #     wavelength
+            # wavelength
             # )  # adding to a master list (may not be necessary with txt file outputs)
             # inte.append(
-            #     intensity
+            # intensity
             # )  # adding to a master list (may not be necessary with txt file outputs)
             # spect.append(
-            #     spectrum
+            # spectrum
             # )  # adding to a master list (may not be necessary with txt file outputs)
-
             # "DISPLAYING SPECTRUM AS A PLOT"
             # self.queue.put([wavelength, intensity])
-
-            # --------------- To Do ---------------------
-            # Do some plotting by calling the main program
-            # --------------- To Do ---------------------
-
-            # Turn output off
+            # "SPECTRUM OUTPUT FILE"
+            # Angle is written as 0 -> 180 rather than -90 -> 90
             self.keithley_source.deactivate_output()
-
             # keith.write("Output OFF")  # Turn current off
 
-            # Calculate the processing time (time it took to take the measurement)
-            # I really don't know why we need this
-            end_process = time.perf_counter()
+            # Calculate the processing time it took
+            end_process = time.process_time()
             processing_time = end_process - start_process
+
             # self.queue.put("\nProcessing time :  " + str(processing_time))
-
             # if self.ang_range == "F":
-            # self.queue.put("\nAngle : " + str(angle + 90 - self.offset_angle))
-            # ang.append(angle + 90 - self.offset_angle)
+            #     self.queue.put("\nAngle : " + str(angle + 90 - self.offset_angle))
+            #     ang.append(angle + 90 - self.offset_angle)
             # elif self.ang_range == "HL":
-            # self.queue.put("\nAngle : " + str(angle - self.offset_angle))
-            # ang.append(angle - self.offset_angle)
+            #     self.queue.put("\nAngle : " + str(angle - self.offset_angle))
+            #     ang.append(angle - self.offset_angle)
             # elif self.ang_range == "HR":
-            # self.queue.put("\nAngle : " + str(self.offset_angle - angle))
-            # ang.append(self.offset_angle - angle)
+            #     self.queue.put("\nAngle : " + str(self.offset_angle - angle))
+            #     ang.append(self.offset_angle - angle)
 
-            i += 1
+        self.iv_data = pd.DataFrame(rows_list)
 
         # pulse_data = np.stack((ang, vlt, crt))
-
-        self.save_data(df_data)
-
+        # "PULSE OUTPUT FILE"
+        # Writing the file for Keithley
         # self.queue.put("\n\nMEASUREMENT COMPLETE")
 
-    def save_data(self, data):
+    def save_iv_data(self):
         """
-        Function that saves the angle, voltage and current for the measurement
+        Function to save the iv data that contains the data of current and
+        voltage at each angle.
         """
         # Header Parameters
-        line01 = "Measurement code : " + self.sample + datetime
-        line02 = 'Measurement programme :	"GatherLab Goniometer Measurement System".py'
-        linex = "Credits :	Gather Lab, University of St Andrews, 2018"
-        linexx = "Integration Time:  " + str(self.integrationtime) + "micro s"
-        line03 = "Pulse duration :		" + str(self.pulse_duration) + " s"
-        line04 = "Step time between voltages :		" + str(self.moving_time) + " s"
-        if self.source == "Current":
-            line05 = "Source Current:		" + str(self.goniometer_value * 1e3) + " mA"
-            line06 = "Voltage Compliance:	" + str(self.goniometer_compliance) + " V"
-        else:
-            line05 = "Source Voltage:		" + str(self.goniometer_value) + " V"
-            line06 = (
-                "Current Compliance:	" + str(self.goniometer_compliance * 1e3) + " mA"
+        line01 = (
+            "Integration time:   "
+            + str(self.goniometer_measurement_parameters["integration_time"])
+            + " micro s    "
+            + "Pulse duration:   "
+            + str(self.goniometer_measurement_parameters["pulse_duration"])
+            + " s    "
+            + "Step time:   "
+            + str(self.goniometer_measurement_parameters["step_time"])
+            + " 2"
+        )
+        if self.goniometer_measurement_parameters["current_or_voltage"]:
+            line02 = (
+                "Source Voltage:		"
+                + str(self.goniometer_measurement_parameters["goniometer_value"])
+                + " V"
+                + "Current Compliance:	"
+                + str(
+                    self.goniometer_measurement_parameters["goniometer_compliance"]
+                    * 1e3
+                )
+                + " mA"
             )
-        line07 = "### Measurement data ###"
-        line08 = "OLEDVoltage	OLEDCurrent Photodiode Voltage"
-        line09 = "V	              mA               V"
-        line10 = "Angle    OLEDVoltage   	OLEDCurrent"
-        line11 = "Degrees 	  V       	 A"
-        line12 = "Wavelength   Intensity"
-        line13 = "nm             -"
+        else:
+            line02 = (
+                "Source Current:		"
+                + str(self.goniometer_measurement_parameters["goniometer_value"] * 1e3)
+                + " mA"
+                + "Voltage Compliance:	"
+                + str(self.goniometer_measurement_parameters["goniometer_compliance"])
+                + " V"
+            )
+
+        # Save the specific oled and photodiode data
+        line03 = "Specific oled and photodiode data"
+        line04 = (
+            "OLED voltage:     "
+            + str(self.specific_oled_voltage)
+            + " V"
+            + "OLED current:        "
+            + str(self.specific_oled_current)
+            + " mA"
+            + "PD voltage:      "
+            + str(self.specific_pd_voltage)
+            + " V"
+        )
+        line05 = "### Measurement data ###"
+        line06 = "Angle\t OLED Voltage\t OLED Current"
+        line07 = "°\t V\t mA\n"
 
         header_lines = [
             line01,
             line02,
-            linex,
-            linexx,
             line03,
             line04,
             line05,
             line06,
             line07,
-            line08,
-            line09,
-        ]  # PD Voltages
-        header_lines2 = [
-            line01,
-            line02,
-            linex,
-            linexx,
-            line03,
-            line04,
-            line05,
-            line06,
-            line07,
-            line10,
-            line11,
-        ]  # OLED Voltages
-        header_lines3 = [
-            line01,
-            line02,
-            linex,
-            linexx,
-            line03,
-            line04,
-            line05,
-            line06,
-            line07,
-            line12,
-            line13,
-        ]  # Spectrum Data
+        ]
 
-        # "PULSE OUTPUT FILE"
-        # Writing the file for Keithley
-        if self.source == "Current":
-            np.savetxt(
-                keithleyfilename,
-                pulse_data.T,
-                fmt="%.0f %.4f %.3e",
-                delimiter="\t",
-                header="\n".join(header_lines2),
-                comments="",
+        # Write header lines to file
+        with open(self.file_path + "goniometer_iv_data.csv", "a") as the_file:
+            the_file.write("\n".join(header_lines))
+
+        # Now write pandas dataframe to file
+        self.iv_data.to_csv(
+            self.file_path + "goniometer_iv_data.csv",
+            index=False,
+            mode="a",
+            header=False,
+            sep="\t",
+        )
+
+    def save_spectrum_data(self):
+        """
+        Function to save the spectrum data to a separate file
+        """
+        # Header Parameters
+        line01 = (
+            "Integration time:   "
+            + str(self.goniometer_measurement_parameters["integration_time"])
+            + " micro s    "
+            + "Pulse duration:   "
+            + str(self.goniometer_measurement_parameters["pulse_duration"])
+            + " s    "
+            + "Step time:   "
+            + str(self.goniometer_measurement_parameters["step_time"])
+            + " 2"
+        )
+        if self.goniometer_measurement_parameters["current_or_voltage"]:
+            line02 = (
+                "Source Voltage:		"
+                + str(self.goniometer_measurement_parameters["goniometer_value"])
+                + " V"
+                + "Current Compliance:	"
+                + str(
+                    self.goniometer_measurement_parameters["goniometer_compliance"]
+                    * 1e3
+                )
+                + " mA"
             )
         else:
-            np.savetxt(
-                keithleyfilename,
-                pulse_data.T,
-                fmt="%.0f %.4f %.3e",
-                delimiter="\t",
-                header="\n".join(header_lines2),
-                comments="",
+            line02 = (
+                "Source Current:		"
+                + str(self.goniometer_measurement_parameters["goniometer_value"] * 1e3)
+                + " mA"
+                + "Voltage Compliance:	"
+                + str(self.goniometer_measurement_parameters["goniometer_compliance"])
+                + " V"
             )
 
-    def save_spectrum(self, data, file_name):
-        """
-        Function that shall the save the measured spectrum
-        """
-        "SPECTRUM OUTPUT FILE"
+        # Save the specific oled and photodiode data
+        line03 = "### Measurement data ###"
 
-        mayafilename = os.path.abspath(os.path.join(mayafilepath, mayafilename))
-        np.savetxt(
-            mayafilename,
-            spectrum.T,
-            fmt="%.3f %.0f",
-            delimiter="\t",
-            header="\n".join(header_lines3),
-            comments="",
+        header_lines = [
+            line01,
+            line02,
+            line03,
+        ]
+
+        # Write header lines to file
+        with open(self.file_path + "goniometer_spectra.csv", "a") as the_file:
+            the_file.write("\n".join(header_lines))
+
+        # Now write pandas dataframe to file with header names
+        self.spectrum_data.to_csv(
+            self.file_path + "goniometer_spectra.csv",
+            index=False,
+            mode="a",
+            header=True,
+            sep="\t",
         )

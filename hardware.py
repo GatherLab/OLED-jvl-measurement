@@ -2,7 +2,7 @@ import pyvisa  # Keithley Module
 import serial  # Arduino Module
 import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
-# import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
+import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
 
 
 import sys
@@ -152,7 +152,9 @@ class KeithleySource:
 
         # As a standard initialise the Keithley as a voltage source
         self.keith.as_voltage_source(current_compliance)
-        self.buffer_name = None
+
+        # Set voltage mode indicator
+        self.mode = "voltage"
 
     def as_voltage_source(self, current_compliance):
         """
@@ -173,6 +175,9 @@ class KeithleySource:
         self.keith.write("Current:AZero OFF")  # turn off autozero
         self.keith.write("Source:Volt:Delay:AUTO OFF")  # turn off autodelay
 
+        # Set voltage mode indicator
+        self.mode = "voltage"
+
     def as_current_source(self, voltage_compliance):
         """
         Initialise (or reinitialise) class as current source
@@ -192,6 +197,9 @@ class KeithleySource:
         self.keith.write("Volt:AZero OFF")  # turn off autozero
         self.keith.write("Source:Current:Delay:AUTO OFF")  # turn off autodelay
 
+        # Set current mode indicator
+        self.mode = "current"
+
     def reset(self):
         """
         reset instrument
@@ -203,7 +211,7 @@ class KeithleySource:
         Initialise buffer of source meter
         """
         self.keith.write(
-            'Trace:Make "' + buffer_name + '", ' + +str(max(buffer_length, 10))
+            'Trace:Make "' + buffer_name + '", ' + str(max(buffer_length, 10))
         )
 
         # Keithley empties the buffer
@@ -226,30 +234,40 @@ class KeithleySource:
         """
         Read current on Keithley source meter
         """
-        # Check if a buffer was initialised
-        if self.buffer_name == None:
-            return float(self.keith.query("MEASure:CURRent:DC?"))
-        else:
-            return float(self.keith.query('Read? "' + self.buffer_name + '"')[:-1])
+        return float(self.keith.query("MEASure:CURRent:DC?"))
 
     def read_voltage(self):
         """
-        Read voltage on Keithley source meter (in current mode)
+        Read voltage on Keithley source meter
         """
         return float(self.keith.query("MEASure:VOLTage:DC?"))
+
+    def read_buffer(self, buffer_name):
+        return float(self.keith.query('Read? "' + buffer_name + '"')[:-1])
 
     def set_voltage(self, voltage):
         """
         Set the voltage on the source meter (only in voltage mode)
         """
-        self.keith.write("Source:Volt " + str(voltage))
+
+        if self.mode == "voltage":
+            self.keith.write("Source:Volt " + str(voltage))
+        else:
+            logging.warning(
+                "You can not set the voltage of the Keithley source in current mode"
+            )
 
     def set_current(self, current):
         """
         Set the current on the source meter (only in current mode)
         """
         # set current to source_value
-        self.keith.write("Source:Current " + str(current))
+        if self.mode == "current":
+            self.keith.write("Source:Current " + str(current))
+        else:
+            logging.warning(
+                "You can not set the current of the Keithley source in voltage mode"
+            )
 
 
 class KeithleyMultimeter:
@@ -331,7 +349,7 @@ class ThorlabMotor:
     Class to control the thorlab motors
     """
 
-    def __init__(self, motor_number):
+    def __init__(self, motor_number, offset_angle):
 
         # Set the motor to the number
         self.motor = apt.Motor(motor_number)
@@ -341,8 +359,10 @@ class ThorlabMotor:
         self.motor.set_hardware_limit_switches(5, 5)
         self.motor.set_move_home_parameters(2, 1, 9, 3)
 
+        self.offset_angle = offset_angle
+
     def move_to(self, angle):
         """
         Call the move_to function of the apt package
         """
-        self.motor.move_to(angle)
+        self.motor.move_to(angle + self.offset_angle)

@@ -28,13 +28,13 @@ class MockKeithleySource:
     def as_voltage_source(self, current_compliance):
         print("Keithley initialised as voltage source")
 
-    def as_current_source(self, current, voltage_compliance):
+    def as_current_source(self, voltage_compliance):
         print("Keithley initialised as current source")
 
     def reset(self):
         print("Keithley source resetted")
 
-    def init_buffer(self, low_vlt, high_vlt):
+    def init_buffer(self, buffer_name, buffer_length):
         print("Buffer written")
 
     def activate_output(self):
