@@ -57,15 +57,15 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
             rect.center().toTuple()[1] + letter_height / 2,
             "0°",
         )
-        painter.drawText(
-            rect.center().toTuple()[0]
-            - circle_radius
-            - circle_thickness
-            - margin
-            - letter_width * len(str("180°")),
-            rect.center().toTuple()[1] + letter_height / 2,
-            "180°",
-        )
+        # painter.drawText(
+        # rect.center().toTuple()[0]
+        # - circle_radius
+        # - circle_thickness
+        # - margin
+        # - letter_width * len(str("180°")),
+        # rect.center().toTuple()[1] + letter_height / 2,
+        # "180°",
+        # )
 
         painter.drawText(
             rect.center().toTuple()[0] - letter_width * len(str("90°")) / 2,

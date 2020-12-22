@@ -648,7 +648,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "high_voltage_step": self.aw_high_voltage_step_spinBox.value(),
             "scan_compliance": self.aw_scan_compliance_spinBox.value(),
             "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
-            "pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
+            "check_pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
         }
 
         # Boolean list for selected pixels
@@ -679,6 +679,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Clear axis
         self.aw_ax.cla()
+        self.aw_ax2.cla()
 
         # Plot current
         self.aw_ax.plot(
@@ -694,6 +695,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             jvl_data.pd_voltage.to_list(),
             color=(85 / 255, 170 / 255, 255 / 255),
             marker="o",
+        )
+
+        self.aw_ax.grid(True)
+        self.aw_ax.set_xlabel("Voltage (V)", fontsize=14)
+        self.aw_ax.set_ylabel(
+            "Current (mA)", color=(68 / 255, 188 / 255, 65 / 255), fontsize=14
+        )
+        self.aw_ax2.set_ylabel(
+            "Photodiode Voltage (V)",
+            color=(85 / 255, 170 / 255, 255 / 255),
+            fontsize=14,
         )
 
         self.aw_fig.draw()
@@ -746,14 +758,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 global_settings["keithley_source_address"],
                 global_settings["keithley_multimeter_address"],
                 global_settings["arduino_com_address"],
-                photodiode_gain,
                 measurement_parameters,
                 pixel,
                 file_path,
             )
 
-            # Call measurement.measure() to measure and save all the measured data into the class itself
-            measurement.dummy_measure()
+            # Call measurement.run() to measure and save all the measured data into the class itself
+            measurement.run()
 
             # Call measurement.save_data() to directly save the data to a file
             measurement.save_data()
@@ -1038,7 +1049,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             .set_index("wavelength")
             .drop(["background"], axis=1)
         )
-        self.gw_animation.move(float(spectrum.columns[-1][:-1]))
+        # self.gw_animation.move(float(spectrum.columns[-1][:-1]))
 
         # spectrum.drop(["background"], axis=1)
         # spectrum.set_index("wavelength")

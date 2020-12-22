@@ -66,6 +66,7 @@ class GoniometerMeasurement(QtCore.QThread):
         self.photodiode_gain = photodiode_gain
         self.pixel = pixel
         self.folder_path = folder_path
+        self.parent = parent
 
         # Connect signal to the updater from the parent class
         self.update_goniometer_spectrum_signal.connect(
@@ -219,6 +220,7 @@ class GoniometerMeasurement(QtCore.QThread):
         # "MOVING TO INITIAL POSITION"
         # Move to initial position which is the offset position
         self.motor.move_to(0)
+        self.parent.gw_animation.move(0)
         time.sleep(self.goniometer_measurement_parameters["homing_time"])
 
         # DEVICES.ELmotor.move_to(self.max_angle)
@@ -520,6 +522,9 @@ class GoniometerMeasurement(QtCore.QThread):
         # keith.write('Trace:Clear "pulsebuffer"')  # keithley empties the buffer
 
         self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
+        self.parent.gw_animation.move(
+            self.goniometer_measurement_parameters["minimum_angle"]
+        )
         time.sleep(self.goniometer_measurement_parameters["homing_time"])
 
         # DEVICES.ELmotor.move_to(self.min_angle)
@@ -547,6 +552,7 @@ class GoniometerMeasurement(QtCore.QThread):
         ):
 
             self.motor.move_to(angle)
+            self.parent.gw_animation.move(angle)
             time.sleep(self.goniometer_measurement_parameters["moving_time"])
             self.keithley_source.activate_output()
             # DEVICES.ELmotor.move_to(angle)
