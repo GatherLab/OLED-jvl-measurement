@@ -1038,7 +1038,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             .set_index("wavelength")
             .drop(["background"], axis=1)
         )
-        self.gw_animation.update(float(spectrum.columns[-1][:-1]))
+        self.gw_animation.move(float(spectrum.columns[-1][:-1]))
 
         # spectrum.drop(["background"], axis=1)
         # spectrum.set_index("wavelength")
