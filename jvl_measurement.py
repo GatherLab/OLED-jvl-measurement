@@ -6,6 +6,9 @@ from current_tester import CurrentTester
 from spectrum_measurement import SpectrumMeasurement
 from goniometer_measurement import GoniometerMeasurement
 
+from tests.tests import MockThorlabMotor
+from hardware import ThorlabMotor
+
 from PySide2 import QtCore, QtGui, QtWidgets
 
 import time
@@ -185,6 +188,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.start_goniometer_measurement
         )
 
+        self.gw_move_pushButton.clicked.connect(self.move_motor)
+
         # -------------------------------------------------------------------- #
         # --------------------- Set Standard Parameters ---------------------- #
         # -------------------------------------------------------------------- #
@@ -206,7 +211,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Set standard parameters for Goniometer
         self.gw_offset_angle_spinBox.setValue(0)
-        self.gw_offset_angle_spinBox.setMaximum(360)
+        self.gw_offset_angle_spinBox.setMaximum(180)
+        self.gw_offset_angle_spinBox.setMinimum(-180)
         self.gw_minimum_angle_spinBox.setValue(0)
         self.gw_minimum_angle_spinBox.setMaximum(360)
         self.gw_minimum_angle_spinBox.setMinimum(-360)
@@ -274,7 +280,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return settings[0]
 
-    def save_read_setup_parameters(self):
+    def safe_read_setup_parameters(self):
         """
         Read setup parameters and if any important field is missing, return a qmessagebox
         """
@@ -721,7 +727,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Save read setup parameters
-        setup_parameters = self.save_read_setup_parameters()
+        setup_parameters = self.safe_read_setup_parameters()
 
         # Update statusbar
         self.statusbar.showMessage("Autotube Measurement Started", 10000000)
@@ -826,7 +832,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Load in setup parameters and make sure that the parameters make sense
-        setup_parameters = self.save_read_setup_parameters()
+        setup_parameters = self.safe_read_setup_parameters()
         spectrum_parameters = self.read_spectrum_parameters()
 
         # Return only the pixel numbers of the selected pixels
@@ -976,7 +982,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Read all relevant parameters
-        setup_parameters = self.save_read_setup_parameters()
+        setup_parameters = self.safe_read_setup_parameters()
         (
             autotube_measurement_parameters,
             selected_pixels,
@@ -1012,7 +1018,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self,
         )
 
-        # Call measurement.measure() to measure and save all the measured data into the class itself
+        # Call measurement.start() to measure and save all the measured data into the class itself
         # measurement.run()
         measurement.start()
 
@@ -1022,10 +1028,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update GUI while being in a loop. It would be better to use
         # separate threads but for now this is the easiest way
-        app.processEvents()
+        # app.processEvents()
 
         # Untoggle the pushbutton
-        self.aw_start_measurement_pushButton.setChecked(False)
+        self.gw_start_measurement_pushButton.setChecked(False)
 
         # Update statusbar
         self.statusbar.showMessage("Goniometer Measurement Finished", 10000000)
@@ -1064,6 +1070,36 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update statusbar
         self.statusbar.showMessage("Goniometer Measurement Plotted", 10000000)
+
+    def move_motor(self):
+        """
+        Function to do a bare movement of the motor without any measurement.
+        """
+        # Read the global settings to initialise the motor
+        global_settings = self.read_global_settings()
+
+        # Initialise motor (it might be better to do this less often)
+        motor = MockThorlabMotor(
+            global_settings["motor_number"], global_settings["motor_offset"]
+        )
+
+        # Read the angle from the spinBox
+        angle = self.gw_offset_angle_spinBox.value()
+
+        self.statusbar.showMessage("Motor is moving", 10000000)
+
+        # Move the motor and change the animation
+        motor.move_to(angle)
+
+        # I decided to read the motor position instead of doing a virtual animation. The animation shall always show the true motor position (if the hardware allows that). The
+        motor_position = motor.read_position()
+        while angle <= motor_position:
+            motor_position = motor.read_position()
+            self.gw_animation.move(motor_position)
+            app.processEvents()
+            time.sleep(0.05)
+
+        self.statusbar.showMessage("Motor move finished", 10000000)
 
 
 # Logging

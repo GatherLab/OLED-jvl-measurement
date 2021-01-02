@@ -366,3 +366,9 @@ class ThorlabMotor:
         Call the move_to function of the apt package
         """
         self.motor.move_to(angle + self.offset_angle)
+
+    def read_position(self):
+        """
+        Function that reads out the current motor position
+        """
+        return self.motor.position() + self.offset_angle

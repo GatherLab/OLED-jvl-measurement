@@ -91,6 +91,11 @@ class MockThorlabMotor:
 
     def __init__(self, motor_number, offset_angle):
         print("Motor initiated")
+        self.position = 0
 
     def move_to(self, angle):
+        self.position = angle
         print("Moved to angle " + str(angle))
+
+    def read_position(self):
+        return self.position
