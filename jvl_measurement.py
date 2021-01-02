@@ -38,7 +38,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         # Update statusbar
-        self.statusbar.showMessage("Initialising Program", 10000000)
+        self.log_message("Initialising Program")
         self.tabWidget.currentChanged.connect(self.changed_tab_widget)
 
         # -------------------------------------------------------------------- #
@@ -241,11 +241,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sw_ct_voltage_spinBox.setSingleStep(0.1)
 
         # Update statusbar
-        self.statusbar.showMessage("Ready", 10000000)
+        self.log_message("Program ready")
 
     # -------------------------------------------------------------------- #
     # ------------------------- Global Functions ------------------------- #
     # -------------------------------------------------------------------- #
+    @QtCore.Slot(str)
+    def log_message(self, message):
+        """
+        Function that manages the logging, in the sense that everything is
+        directly logged into statusbar and the log file at once instead of
+        having to call multiple functions.
+        """
+        self.statusbar.showMessage(message, 10000000)
+        logging.info(message)
 
     def changed_tab_widget(self):
         """
@@ -256,7 +265,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         to just kill all unused threads when we change the tab.
         """
 
-        print(self.tabWidget.currentIndex())
+        self.log_message(
+            "Switched to tab widget no. " + str(self.tabWidget.currentIndex())
+        )
         return
 
     def read_global_settings(self):
@@ -271,12 +282,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             settings = data["overwrite"]
 
             # Update statusbar
-            self.statusbar.showMessage("Global Settings Read from File", 10000000)
+            self.log_message("Global Settings Read from File")
         except:
             settings = data["default"]
 
             # Update statusbar
-            self.statusbar.showMessage("Default Device Parameters Taken", 10000000)
+            self.log_message("Default device parameters taken")
 
         return settings[0]
 
@@ -305,8 +316,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             msgBox.exec()
 
             self.aw_start_measurement_pushButton.setChecked(False)
+            self.gw_start_measurement_pushButton.setChecked(False)
 
-            logging.info("Folder path or batchname not defined.")
+            self.log_message("Folder path or batchname not defined")
             raise UserWarning("Please set folder path and batchname first!")
 
         # Now check if the folder path ends on a / otherwise try to add it
@@ -329,7 +341,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             self.aw_start_measurement_pushButton.setChecked(False)
 
-            logging.info("Folder path not valid.")
+            self.log_message("Folder path not valid")
             raise UserWarning("Please enter a valid folder path!")
 
         return setup_parameters
@@ -360,7 +372,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
         # Update statusbar
-        self.statusbar.showMessage("Setup Parameters Read", 10000000)
+        self.log_message("Setup parameters read")
 
         return setup_parameters
 
@@ -388,7 +400,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.current_tester.start()
 
         # Update statusbar
-        self.statusbar.showMessage("Current tester successfully reinstanciated")
+        self.log_message("Current tester successfully reinstanciated")
 
     def toggle_pixel(self, pixel_number, tab):
         """
@@ -405,7 +417,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.current_tester.uno.open_relay(pixel_number, True)
 
             # Update statusbar
-            self.statusbar.showMessage("Activated Pixel " + str(pixel_number), 10000000)
+            self.log_message("Activated Pixel " + str(pixel_number))
 
             self.specw_pushbutton_array[pixel_number - 1].setChecked(True)
             self.sw_pushbutton_array[pixel_number - 1].setChecked(True)
@@ -420,9 +432,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.current_tester.uno.open_relay(pixel, True)
 
             # Update statusbar
-            self.statusbar.showMessage(
-                "Deactivated Pixel " + str(pixel_number), 10000000
-            )
+            self.log_message("Deactivated Pixel " + str(pixel_number))
 
             self.specw_pushbutton_array[pixel_number - 1].setChecked(False)
             self.sw_pushbutton_array[pixel_number - 1].setChecked(False)
@@ -464,9 +474,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.current_tester.keithley_source.set_voltage(voltage)
 
         # Update statusbar
-        self.statusbar.showMessage(
-            "Voltage Changed to " + str(round(voltage, 2)) + " V", 10000000
-        )
+        self.log_message("Voltage Changed to " + str(round(voltage, 2)) + " V")
 
     def select_all_pixels(self):
         """
@@ -481,7 +489,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             pixel += 1
 
         # Update statusbar
-        self.statusbar.showMessage("All Pixels Selected", 10000000)
+        self.log_message("All pixels selected")
 
     def unselect_all_pixels(self):
         """
@@ -497,7 +505,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.specw_pushbutton_array[i].setChecked(False)
 
         # Update statusbar
-        self.statusbar.showMessage("All Pixels Unselected", 10000000)
+        self.log_message("All pixels unselected")
 
     def prebias_pixels(self):
         """
@@ -505,7 +513,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Update statusbar
-        self.statusbar.showMessage("Prebiasing Pixels", 10000000)
+        self.log_message("Prebiasing pixels started")
 
         # This should be in the global settings later on (probably not
         # necessary to change every time but sometimes)
@@ -554,7 +562,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sw_ct_voltage_spinBox.setValue(set_voltage)
 
         # Update statusbar
-        self.statusbar.showMessage("Finished Prebiasing", 10000000)
+        self.log_message("Finished prebiasing")
 
     def autotest_pixels(self):
         """
@@ -569,7 +577,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Update statusbar
-        self.statusbar.showMessage("Autotesting Pixels", 10000000)
+        self.log_message("Auto testing pixels started")
 
         # Define voltage steps (in the future this could be settings in the
         # global settings as well)
@@ -635,7 +643,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.current_tester.keithley_source.activate_output()
 
         # Update statusbar
-        self.statusbar.showMessage("Finished Autotesting Pixels", 10000000)
+        self.log_message("Finished auto testing pixels")
 
     # -------------------------------------------------------------------- #
     # ---------------------- Autotube Measurement  ----------------------- #
@@ -673,7 +681,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         selected_pixels_numbers = [i + 1 for i, x in enumerate(selected_pixels) if x]
 
         # Update statusbar
-        self.statusbar.showMessage("Autotube Parameters Read", 10000000)
+        self.log_message("Autotube paremeters read")
 
         return measurement_parameters, selected_pixels_numbers
 
@@ -717,7 +725,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_fig.draw()
 
         # Update statusbar
-        self.statusbar.showMessage("Autotube Measurement Plotted", 10000000)
+        self.log_message("Autotube measurement plotted")
 
     def start_autotube_measurement(self):
         """
@@ -730,15 +738,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         setup_parameters = self.safe_read_setup_parameters()
 
         # Update statusbar
-        self.statusbar.showMessage("Autotube Measurement Started", 10000000)
+        self.log_message("Autotube measurement started")
 
         measurement_parameters, selected_pixels = self.read_autotube_parameters()
 
         # Set progress bar to zero
         self.progressBar.setProperty("value", 0)
-
-        # Update statusbar message
-        self.statusbar.showMessage("Running", 10000000)
 
         # Now read in the global settings from file
         global_settings = self.read_global_settings()
@@ -757,7 +762,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 + ".csv"
             )
 
-            self.statusbar.showMessage("Running on Pixel " + str(pixel), 10000000)
+            self.log_message("Running on Pixel " + str(pixel))
 
             # Instantiate our class
             measurement = AutotubeMeasurement(
@@ -796,7 +801,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_start_measurement_pushButton.setChecked(False)
 
         # Update statusbar
-        self.statusbar.showMessage("Autotube Measurement Finished", 10000000)
+        self.log_message("Autotube measurement finished")
 
     # -------------------------------------------------------------------- #
     # ---------------------- Spectrum Measurement  ----------------------- #
@@ -820,7 +825,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
         # Update statusbar
-        self.statusbar.showMessage("Spectrum Parameters Read", 10000000)
+        self.log_message("Spectrum parameters read")
 
         return spectrum_parameters
 
@@ -854,7 +859,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             )
             msgBox.exec()
 
-            logging.info("More or less than one pixel defined.")
+            self.log_message("More or less than one pixel selected")
             raise UserWarning("Please select exactly one pixel!")
 
         # Store data in pd dataframe
@@ -970,7 +975,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
         # Update statusbar
-        self.statusbar.showMessage("Goniometer Parameters Read", 10000000)
+        self.log_message("Goniometer parameters read")
 
         return goniometer_parameters
 
@@ -990,14 +995,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         goniometer_measurement_parameters = self.read_goniometer_parameters()
         global_settings = self.read_global_settings()
 
+        # Check that only exactly one pixel is selected before measurement can
+        # be started (this could be also done with the gui directly)
+        if len(goniometer_measurement_parameters["selected_pixels"]) != 1:
+            msgBox = QtWidgets.QMessageBox()
+            msgBox.setText("Please select exactly one pixel")
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgBox.setStyleSheet(
+                "background-color: rgb(44, 49, 60);\n"
+                "color: rgb(255, 255, 255);\n"
+                'font: 63 bold 10pt "Segoe UI";\n'
+                ""
+            )
+            msgBox.exec()
+
+            self.log_message("More or less than one pixel selected")
+            raise UserWarning("Please select exactly one pixel")
+
+            self.gw_start_measurement_pushButton.setChecked(False)
+            return
+
         # Update statusbar
-        self.statusbar.showMessage("Autotube Measurement Started", 10000000)
+        self.log_message("Goniometer measurement started")
 
         # Set progress bar to zero
         self.progressBar.setProperty("value", 0)
-
-        # Update statusbar message
-        self.statusbar.showMessage("Running", 10000000)
 
         # This creates an instance of the goniometer measurement class
         progress = 0
@@ -1033,9 +1055,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Untoggle the pushbutton
         self.gw_start_measurement_pushButton.setChecked(False)
 
-        # Update statusbar
-        self.statusbar.showMessage("Goniometer Measurement Finished", 10000000)
-
     @QtCore.Slot(list)
     def update_goniometer_spectrum(self, spectrum):
         """
@@ -1069,7 +1088,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_fig.draw()
 
         # Update statusbar
-        self.statusbar.showMessage("Goniometer Measurement Plotted", 10000000)
+        self.log_message("Goniometer Measurement Plotted")
 
     def move_motor(self):
         """
@@ -1086,7 +1105,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Read the angle from the spinBox
         angle = self.gw_offset_angle_spinBox.value()
 
-        self.statusbar.showMessage("Motor is moving", 10000000)
+        self.log_message("Motor is moving")
 
         # Move the motor and change the animation
         motor.move_to(angle)
@@ -1099,7 +1118,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             app.processEvents()
             time.sleep(0.05)
 
-        self.statusbar.showMessage("Motor move finished", 10000000)
+        self.log_message("Motor moved to " + str(angle) + " °")
 
 
 # Logging
@@ -1118,6 +1137,7 @@ logging.basicConfig(
 # Activate log_rotate to rotate log files after it reached 1 MB size ()
 handler = RotatingFileHandler(LOG_FILENAME, maxBytes=1000000)
 logging.getLogger("Rotating Log").addHandler(handler)
+
 
 # ---------------------------------------------------------------------------- #
 # -------------------- This is to execute the program ------------------------ #

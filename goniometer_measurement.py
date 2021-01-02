@@ -29,6 +29,7 @@ class GoniometerMeasurement(QtCore.QThread):
     """
 
     update_goniometer_spectrum_signal = QtCore.Signal(list)
+    update_log_message = QtCore.Signal(str)
 
     def __init__(
         self,
@@ -221,6 +222,7 @@ class GoniometerMeasurement(QtCore.QThread):
         # Move to initial position which is the offset position
         self.motor.move_to(0)
         self.parent.gw_animation.move(0)
+        self.update_log_message.emit("Moved to home position")
         time.sleep(self.goniometer_measurement_parameters["homing_time"])
 
         # DEVICES.ELmotor.move_to(self.max_angle)
@@ -232,7 +234,6 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.keithley_source_address,
                 self.keithley_multimeter_address,
                 self.com2_address,
-                self.photodiode_gain,
                 self.autotube_measurement_parameters,
                 self.pixel,
                 self.folder_path,
@@ -364,6 +365,7 @@ class GoniometerMeasurement(QtCore.QThread):
         self.specific_oled_current = self.keithley_source.read_current()
         self.specific_oled_voltage = self.keithley_source.read_voltage()
         self.keithley_source.deactivate_output()
+        self.update_log_message.emit("Specific voltages measured")
 
         # specificPDvoltage = float(
         #     keithmulti.query("MEASure:VOLTage:DC?")
@@ -397,9 +399,15 @@ class GoniometerMeasurement(QtCore.QThread):
             self.keithley_source.as_voltage_source(
                 self.goniometer_measurement_parameters["vc_compliance"]
             )
+            self.update_log_message.emit(
+                "Keithley source initialised as voltage source"
+            )
         else:
             self.keithley_source.as_current_source(
                 self.goniometer_measurement_parameters["vc_compliance"]
+            )
+            self.update_log_message.emit(
+                "Keithley source initialised as current source"
             )
 
         # warning_message = False
@@ -525,6 +533,11 @@ class GoniometerMeasurement(QtCore.QThread):
         self.parent.gw_animation.move(
             self.goniometer_measurement_parameters["minimum_angle"]
         )
+        self.update_log_message.emit(
+            "Motor moved to minimum angle: "
+            + str(self.goniometer_measurement_parameters["minimum_angle"])
+            + " °"
+        )
         time.sleep(self.goniometer_measurement_parameters["homing_time"])
 
         # DEVICES.ELmotor.move_to(self.min_angle)
@@ -533,6 +546,7 @@ class GoniometerMeasurement(QtCore.QThread):
         calibration_spectrum = self.spectrometer.measure()
         self.spectrum_data["wavelength"] = calibration_spectrum[0]
         self.spectrum_data["background"] = calibration_spectrum[1]
+        self.update_log_message.emit("Calibration spectrum measured")
         # spectrum = (
         #     DEVICES.spec.spectrum()
         # )  # this gives a pre-stacked array of wavelengths and intensities
@@ -553,6 +567,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
             self.motor.move_to(angle)
             self.parent.gw_animation.move(angle)
+            self.update_log_message.emit("Moved to angle " + str(angle) " °")
             time.sleep(self.goniometer_measurement_parameters["moving_time"])
             self.keithley_source.activate_output()
             # DEVICES.ELmotor.move_to(angle)
@@ -635,6 +650,7 @@ class GoniometerMeasurement(QtCore.QThread):
             #     ang.append(self.offset_angle - angle)
 
         self.iv_data = pd.DataFrame(rows_list)
+        self.update_log_message.emit("Measurement finished")
 
         # pulse_data = np.stack((ang, vlt, crt))
         # "PULSE OUTPUT FILE"
@@ -716,6 +732,7 @@ class GoniometerMeasurement(QtCore.QThread):
             header=False,
             sep="\t",
         )
+        self.update_log_message.emit("IV data saved")
 
     def save_spectrum_data(self):
         """
@@ -773,3 +790,5 @@ class GoniometerMeasurement(QtCore.QThread):
             header=True,
             sep="\t",
         )
+
+        self.update_log_message.emit("Spectral data saved")
