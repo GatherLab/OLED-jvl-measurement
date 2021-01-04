@@ -28,8 +28,11 @@ class GoniometerMeasurement(QtCore.QThread):
     Thread class to do the goniometer measurement
     """
 
-    update_goniometer_spectrum_signal = QtCore.Signal(list)
+    update_goniometer_spectrum_signal = QtCore.Signal(list, list)
     update_log_message = QtCore.Signal(str)
+    update_animation = QtCore.Signal(float)
+    update_progress_bar = QtCore.Signal(str, float)
+    hide_progress_bar = QtCore.Signal()
 
     def __init__(
         self,
@@ -67,12 +70,15 @@ class GoniometerMeasurement(QtCore.QThread):
         self.photodiode_gain = photodiode_gain
         self.pixel = pixel
         self.folder_path = folder_path
-        self.parent = parent
 
         # Connect signal to the updater from the parent class
         self.update_goniometer_spectrum_signal.connect(
             parent.update_goniometer_spectrum
         )
+        self.update_log_message.connect(parent.log_message)
+        self.update_animation.connect(parent.gw_animation.move)
+        self.update_progress_bar.connect(parent.progressBar.setProperty)
+        self.hide_progress_bar.connect(parent.progressBar.hide)
 
         # Declare the data structures that are used in the goniometer measurement
         self.iv_data = pd.DataFrame()
@@ -88,6 +94,7 @@ class GoniometerMeasurement(QtCore.QThread):
         pressed
         """
 
+        print("2")
         # "INITIALIZING SETTINGS"
         # defaults = {}
         # settings = {}
@@ -221,24 +228,27 @@ class GoniometerMeasurement(QtCore.QThread):
         # "MOVING TO INITIAL POSITION"
         # Move to initial position which is the offset position
         self.motor.move_to(0)
-        self.parent.gw_animation.move(0)
+        # self.parent.gw_animation.move(0)
+        self.update_animation.emit(0)
         self.update_log_message.emit("Moved to home position")
         time.sleep(self.goniometer_measurement_parameters["homing_time"])
+
+        print("1")
 
         # DEVICES.ELmotor.move_to(self.max_angle)
         # "#####################################################################"
         # "#####TAKING MEASUREMENTS FROM THE THORLABS PDA100A2 PHOTODIODE#####"
         # "#####################################################################"
-        if self.goniometer_measurement_parameters["voltage_or_current"]:
+        if self.goniometer_measurement_parameters["voltage_scan"]:
             autotube_measurement = AutotubeMeasurement(
                 self.keithley_source_address,
                 self.keithley_multimeter_address,
                 self.com2_address,
                 self.autotube_measurement_parameters,
                 self.pixel,
-                self.folder_path,
+                self.folder_path + "voltage_scan.csv",
             )
-            autotube_measurement.measure()
+            autotube_measurement.run()
             autotube_measurement.save_data()
 
         # self.queue.put("\n\nPHOTODIODE READINGS")
@@ -366,6 +376,7 @@ class GoniometerMeasurement(QtCore.QThread):
         self.specific_oled_voltage = self.keithley_source.read_voltage()
         self.keithley_source.deactivate_output()
         self.update_log_message.emit("Specific voltages measured")
+        print("2")
 
         # specificPDvoltage = float(
         #     keithmulti.query("MEASure:VOLTage:DC?")
@@ -409,6 +420,7 @@ class GoniometerMeasurement(QtCore.QThread):
             self.update_log_message.emit(
                 "Keithley source initialised as current source"
             )
+        print("3")
 
         # warning_message = False
         # if self.source == "Current":
@@ -530,9 +542,13 @@ class GoniometerMeasurement(QtCore.QThread):
         # keith.write('Trace:Clear "pulsebuffer"')  # keithley empties the buffer
 
         self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
-        self.parent.gw_animation.move(
+        self.update_animation.emit(
             self.goniometer_measurement_parameters["minimum_angle"]
         )
+        # self.parent.gw_animation.move(
+        #     self.goniometer_measurement_parameters["minimum_angle"]
+        # )
+
         self.update_log_message.emit(
             "Motor moved to minimum angle: "
             + str(self.goniometer_measurement_parameters["minimum_angle"])
@@ -558,6 +574,15 @@ class GoniometerMeasurement(QtCore.QThread):
         # Empty list, stores the data as multiple dicts to later generate a pd dataframe
         rows_list = []
 
+        progress = 0
+        print(
+            np.arange(
+                self.goniometer_measurement_parameters["minimum_angle"],
+                self.goniometer_measurement_parameters["maximum_angle"] + 1,
+                self.goniometer_measurement_parameters["step_angle"],
+            )
+        )
+
         # Move motor by given increment while giving current to OLED and reading spectrum
         for angle in np.arange(
             self.goniometer_measurement_parameters["minimum_angle"],
@@ -565,9 +590,11 @@ class GoniometerMeasurement(QtCore.QThread):
             self.goniometer_measurement_parameters["step_angle"],
         ):
 
+            print("4")
             self.motor.move_to(angle)
-            self.parent.gw_animation.move(angle)
-            self.update_log_message.emit("Moved to angle " + str(angle) " °")
+            # self.parent.gw_animation.move(angle)
+            self.update_animation.emit(angle)
+            self.update_log_message.emit("Moved to angle " + str(angle) + " °")
             time.sleep(self.goniometer_measurement_parameters["moving_time"])
             self.keithley_source.activate_output()
             # DEVICES.ELmotor.move_to(angle)
@@ -608,10 +635,16 @@ class GoniometerMeasurement(QtCore.QThread):
             rows_list.append(data_dict)
 
             # Now measure spectrum (wavelength and intensity)
-            self.spectrum_data[str(angle) + "°"] = self.spectrometer.measure()[1]
+            self.spectrum_data[str(angle)] = self.spectrometer.measure()[1]
 
-            # Emit a signal to update the plot
-            self.update_goniometer_spectrum_signal.emit(self.spectrum_data)
+            # Emit a signal to update the plot (unfortunately with python 3.9
+            # or windows one can not emit pandas dataframes. Therefore, it has
+            # to be converted to a list.)
+            self.update_goniometer_spectrum_signal.emit(
+                self.spectrum_data.columns.values.tolist(),
+                self.spectrum_data.values.tolist(),
+            )
+            # self.update_goniometer_spectrum_signal.emit(np.arange(0, 10, 1))
 
             # wavelength = DEVICES.spec.wavelengths()  # creates a list of wavelengths
             # intensity = DEVICES.spec.intensities()  # creates a list of intensities
@@ -649,8 +682,26 @@ class GoniometerMeasurement(QtCore.QThread):
             #     self.queue.put("\nAngle : " + str(self.offset_angle - angle))
             #     ang.append(self.offset_angle - angle)
 
+            progress += 1
+            self.update_progress_bar.emit(
+                "value",
+                progress
+                / np.size(
+                    np.arange(
+                        self.goniometer_measurement_parameters["minimum_angle"],
+                        self.goniometer_measurement_parameters["maximum_angle"] + 1,
+                        self.goniometer_measurement_parameters["step_angle"],
+                    )
+                )
+                * 100,
+            )
+
         self.iv_data = pd.DataFrame(rows_list)
         self.update_log_message.emit("Measurement finished")
+
+        self.save_iv_data()
+        self.save_spectrum_data()
+        self.hide_progress_bar.emit()
 
         # pulse_data = np.stack((ang, vlt, crt))
         # "PULSE OUTPUT FILE"

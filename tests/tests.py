@@ -98,4 +98,4 @@ class MockThorlabMotor:
         print("Moved to angle " + str(angle))
 
     def read_position(self):
-        return self.position
+        return float(self.position)

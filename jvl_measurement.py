@@ -23,6 +23,8 @@ import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
 
+import webbrowser
+
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     """
@@ -40,6 +42,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Update statusbar
         self.log_message("Initialising Program")
         self.tabWidget.currentChanged.connect(self.changed_tab_widget)
+
+        # -------------------------------------------------------------------- #
+        # ------------------------------ General ----------------------------- #
+        # -------------------------------------------------------------------- #
+
+        # Open the documentation in the browser (maybe in the future directly
+        # open the readme file in the folder but currently this is so much
+        # easier and prettier)
+        self.actionDocumentation.triggered.connect(
+            lambda: webbrowser.open(
+                "https://github.com/GatherLab/OLED-jvl-measurement/blob/main/README.md"
+            )
+        )
+
+        # Hide by default and only show if a process is running
+        self.progressBar.hide()
 
         # -------------------------------------------------------------------- #
         # -------------------------- Current Tester -------------------------- #
@@ -268,6 +286,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.log_message(
             "Switched to tab widget no. " + str(self.tabWidget.currentIndex())
         )
+
         return
 
     def read_global_settings(self):
@@ -743,6 +762,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         measurement_parameters, selected_pixels = self.read_autotube_parameters()
 
         # Set progress bar to zero
+        self.progressBar.show()
         self.progressBar.setProperty("value", 0)
 
         # Now read in the global settings from file
@@ -802,6 +822,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update statusbar
         self.log_message("Autotube measurement finished")
+
+        self.progressBar.hide()
 
     # -------------------------------------------------------------------- #
     # ---------------------- Spectrum Measurement  ----------------------- #
@@ -936,7 +958,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Plot current
         self.specw_ax.plot(
-            wavelength, intensity, color=(68 / 255, 188 / 255, 65 / 255), marker="o",
+            wavelength,
+            intensity,
+            color=(68 / 255, 188 / 255, 65 / 255),
+            marker="o",
         )
 
         self.specw_fig.draw()
@@ -968,6 +993,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "moving_time": self.gw_moving_time_spinBox.value(),
             "pulse_duration": self.gw_pulse_duration_spinBox.value(),
             "voltage_or_current": self.gw_voltage_or_current_toggleSwitch.isChecked(),
+            "voltage_scan": self.gw_voltage_scan_toggleSwitch.isChecked(),
             "el_or_pl": self.gw_el_or_pl_toggleSwitch.isChecked(),
             "vc_value": self.gw_vc_value_spinBox.value(),
             "vc_compliance": self.gw_vc_compliance_spinBox.value(),
@@ -1019,13 +1045,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.log_message("Goniometer measurement started")
 
         # Set progress bar to zero
+        self.progressBar.show()
         self.progressBar.setProperty("value", 0)
 
-        # This creates an instance of the goniometer measurement class
-        progress = 0
-
-        # Instantiate our class
-        measurement = GoniometerMeasurement(
+        # Instantiate our class it has to be a class variable otherwise it
+        # would be destroyed as soon as this function terminates
+        self.goniometer_measurement = GoniometerMeasurement(
             global_settings["keithley_source_address"],
             global_settings["keithley_multimeter_address"],
             global_settings["arduino_com_address"],
@@ -1042,21 +1067,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Call measurement.start() to measure and save all the measured data into the class itself
         # measurement.run()
-        measurement.start()
+        self.goniometer_measurement.start()
 
         # Call measurement.save_data() to directly save the data to a file
-        measurement.save_iv_data()
-        measurement.save_spectrum_data()
+        # measurement.save_iv_data()
+        # measurement.save_spectrum_data()
 
         # Update GUI while being in a loop. It would be better to use
         # separate threads but for now this is the easiest way
         # app.processEvents()
 
         # Untoggle the pushbutton
-        self.gw_start_measurement_pushButton.setChecked(False)
+        # self.gw_start_measurement_pushButton.setChecked(False)
 
-    @QtCore.Slot(list)
-    def update_goniometer_spectrum(self, spectrum):
+    @QtCore.Slot(list, list)
+    def update_goniometer_spectrum(self, column_names, spec):
         """
         Function that updates the goniometer measured spectrum as well as the status and progress bar
         """
@@ -1065,15 +1090,34 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.progressBar.setProperty(
         # "value", int(progress / len(selected_pixels) * 100)
         # )
+
+        # Now put the dataframe together again
+        spectrum = pd.DataFrame(spec, columns=column_names)
+
         # Clear axis
         self.gw_ax.cla()
+
+        # first subtract the background from all columns but the wavelength
         temp = (
-            spectrum.transpose()
+            spectrum.drop(["wavelength"], axis=1)
+            .transpose()
             .sub(spectrum["background"])
             .transpose()
-            .set_index("wavelength")
-            .drop(["background"], axis=1)
         )
+
+        # Now add the wavelength to the dataframe again
+        temp["wavelength"] = spectrum["wavelength"]
+
+        # And set the wavelength as index of the dataframe and drop the background instead now
+        temp = temp.set_index("wavelength").drop(["background"], axis=1)
+
+        # temp = (
+        # spectrum.transpose()
+        # .sub(spectrum["background"])
+        # .transpose()
+        # .set_index("wavelength")
+        # .drop(["background"], axis=1)
+        # )
         # self.gw_animation.move(float(spectrum.columns[-1][:-1]))
 
         # spectrum.drop(["background"], axis=1)
@@ -1081,9 +1125,44 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_ax.set_xlabel("Angle (°)")
         self.gw_ax.set_ylabel("Wavelength (nm)")
 
-        # Plot current
-        self.gw_ax.pcolormesh(temp)
+        # Plot current data
+        # This is the best way I could come up with so far. There must be a better one, however.
+        x = temp.index.values.tolist()
+        y = list(map(float, temp.columns.values.tolist()))
+
+        # if (max(x) - min(x)) / len(x) == 0:
+        #     x_step = 1
+        # else:
+        #      _step = (max(x) - min(x)) / len(x)
+
+        # if (max(y) - min(y)) / len(y) == 0:
+        #      _step = 1
+        #     y_max = max(y) + 1
+        # else:
+        #     y_step = (max(y) - min(y)) / len(y)
+        #     y_max = max(y)
+
+        # X, Y = np.mgrid[
+        #     min(x) : max(x) : x_step,
+        #      in(y) : y_max : y_step,
+        # ]
+
+        X, Y = np.meshgrid(x, y)
+
+        self.gw_ax.pcolormesh(Y, X, temp.to_numpy().T, shading="auto")
         # self.gw_fig.figure.colorbar(im, ax=self.gw_ax)
+
+        # Now set the labels (not correct by default)
+        # self.gw_ax.yaxis.set_major_locator(plt.MaxNLocator(5))
+        # self.gw_ax.xaxis.set_major_locator(plt.MaxNLocator(5))
+
+        # self.gw_ax.set_yticks(np.linspace(np.min(temp.index), np.max(temp.index), 5))
+        # self.gw_ax.set_xticks(np.arange(0.5, len(temp.index), 1))
+
+        # self.gw_ax.set_yticks(np.arange(0.5, len(temp.index), 1))
+        # self.gw_ax.set_xticks(np.arange(0.5, len(temp.columns), 1))
+        # self.gw_ax.set_xticklabels(xlabels, minor=False)
+        # self.gw_ax.set_yticklabels(ylabels, minor=False)
 
         self.gw_fig.draw()
 
@@ -1112,10 +1191,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # I decided to read the motor position instead of doing a virtual animation. The animation shall always show the true motor position (if the hardware allows that). The
         motor_position = motor.read_position()
-        while angle <= motor_position:
+        self.gw_animation.move(motor_position)
+        app.processEvents()
+        time.sleep(0.05)
+
+        while int(angle) != int(motor_position):
             motor_position = motor.read_position()
             self.gw_animation.move(motor_position)
             app.processEvents()
+            print("Blub")
             time.sleep(0.05)
 
         self.log_message("Motor moved to " + str(angle) + " °")

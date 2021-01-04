@@ -108,6 +108,7 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
     def _trigger_refresh(self):
         self.update()
 
+    @QtCore.Slot(float)
     def move(self, position):
         """
         Function to trigger a move of the position animation for the goniometer
