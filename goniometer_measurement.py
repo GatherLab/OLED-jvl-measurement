@@ -162,7 +162,7 @@ class GoniometerMeasurement(QtCore.QThread):
         self.spectrum_data["wavelength"] = calibration_spectrum[0]
         self.spectrum_data["background"] = calibration_spectrum[1]
         self.update_log_message.emit("Calibration spectrum measured")
-      
+
         # Initial processing time in seconds
         # I am not quite sure why this is done and if there is no better way of doing it
         processing_time = 0.5
@@ -171,7 +171,6 @@ class GoniometerMeasurement(QtCore.QThread):
         rows_list = []
 
         progress = 0
-
 
         # Move motor by given increment while giving current to OLED and reading spectrum
         for angle in np.arange(
@@ -203,14 +202,12 @@ class GoniometerMeasurement(QtCore.QThread):
                     "voltage": temp_buffer,
                     "current": self.goniometer_measurement_parameters["vc_value"],
                 }
-"
             else:
                 data_dict = {
                     "angle": angle,
                     "voltage": self.goniometer_measurement_parameters["vc_value"],
                     "current": temp_buffer,
                 }
-
 
             rows_list.append(data_dict)
 
@@ -224,7 +221,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.spectrum_data.columns.values.tolist(),
                 self.spectrum_data.values.tolist(),
             )
-     
+
             self.keithley_source.deactivate_output()
 
             # Calculate the processing time it took
