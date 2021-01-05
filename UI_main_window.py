@@ -180,13 +180,13 @@ class Ui_MainWindow(object):
         self.gridLayout_7.addWidget(self.sw_device_number_spinBox, 3, 1, 1, 1)
 
         # Setup widget documentation
-        self.sw_documentation_textEdit = QtWidgets.QTextEdit(self.setup_widget)
-        self.sw_documentation_textEdit.setObjectName("sw_documentation_textEdit")
-        self.gridLayout_7.addWidget(self.sw_documentation_textEdit, 12, 1, 1, 1)
-        self.sw_documentation_label = QtWidgets.QLabel(self.setup_widget)
-        self.sw_documentation_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
-        self.sw_documentation_label.setObjectName("sw_documentation_label")
-        self.gridLayout_7.addWidget(self.sw_documentation_label, 12, 0, 1, 1)
+        # self.sw_documentation_textEdit = QtWidgets.QTextEdit(self.setup_widget)
+        # self.sw_documentation_textEdit.setObjectName("sw_documentation_textEdit")
+        # self.gridLayout_7.addWidget(self.sw_documentation_textEdit, 12, 1, 1, 1)
+        # self.sw_documentation_label = QtWidgets.QLabel(self.setup_widget)
+        # self.sw_documentation_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        # self.sw_documentation_label.setObjectName("sw_documentation_label")
+        # self.gridLayout_7.addWidget(self.sw_documentation_label, 12, 0, 1, 1)
 
         # Setup widget header 1
         self.sw_header1_label = QtWidgets.QLabel(self.setup_widget)
@@ -1410,17 +1410,17 @@ class Ui_MainWindow(object):
         self.sw_change_voltage_label.setText(
             _translate("MainWindow", "Change Voltage (V)")
         )
-        self.sw_documentation_label.setToolTip(
-            _translate(
-                "MainWindow",
-                "<html><head/><body><p>Please write here any comments to the"
-                " measurement of your batch. The comments will be saved as .md file"
-                " within your selected file path. If there are any issues with the"
-                " measurement setup or the software document it in a seperate line"
-                " starting with [!] to ensure easy debugging.</p></body></html>",
-            )
-        )
-        self.sw_documentation_label.setText(_translate("MainWindow", "Documentation"))
+        # self.sw_documentation_label.setToolTip(
+        # _translate(
+        # "MainWindow",
+        # "<html><head/><body><p>Please write here any comments to the"
+        # " measurement of your batch. The comments will be saved as .md file"
+        # " within your selected file path. If there are any issues with the"
+        # " measurement setup or the software document it in a seperate line"
+        # " starting with [!] to ensure easy debugging.</p></body></html>",
+        # )
+        # )
+        # self.sw_documentation_label.setText(_translate("MainWindow", "Documentation"))
         self.sw_folder_path_label.setText(_translate("MainWindow", "Folder Path"))
         self.tabWidget.setTabText(
             self.tabWidget.indexOf(self.setup_widget), _translate("MainWindow", "Setup")
