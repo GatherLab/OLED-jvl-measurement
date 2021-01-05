@@ -1006,6 +1006,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # If the measurement is already running and the button is pressed,
         # abort the measurement
         if not self.gw_start_measurement_pushButton.isChecked():
+            self.gw_start_measurement_pushButton.setChecked(True)
             self.goniometer_measurement.pause = "return"
             return
 

@@ -35,6 +35,7 @@ class GoniometerMeasurement(QtCore.QThread):
     update_progress_bar = QtCore.Signal(str, float)
     hide_progress_bar = QtCore.Signal()
     pause_thread_pl = QtCore.Signal()
+    reset_start_button = QtCore.Signal()
 
     def __init__(
         self,
@@ -85,6 +86,9 @@ class GoniometerMeasurement(QtCore.QThread):
         self.update_progress_bar.connect(parent.progressBar.setProperty)
         self.hide_progress_bar.connect(parent.progressBar.hide)
         self.pause_thread_pl.connect(parent.pause_goniometer_measurement)
+        self.reset_start_button.connect(
+            parent.gw_start_measurement_pushButton.setChecked
+        )
 
         # Declare the data structures that are used in the goniometer measurement
         self.iv_data = pd.DataFrame()
@@ -201,7 +205,16 @@ class GoniometerMeasurement(QtCore.QThread):
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             self.uno.open_relay(relay=self.pixel, state=1)
         else:
-            # In the case of PL open up a pop-up window that the UV lamp can
+            # Check first if user already aborted the measurement
+            if self.pause == "return":
+                self.update_log_message(
+                    "Goniometer measurement aborted at angle " + str(angle) + "°"
+                )
+                self.hide_progress_bar.emit()
+                self.reset_start_button.emit(False)
+                return
+
+            # If not, in the case of PL open up a pop-up window that the UV lamp can
             # now be turned on, only continue if the continue button was
             # pressed
             self.pause = "True"
@@ -229,6 +242,7 @@ class GoniometerMeasurement(QtCore.QThread):
                     "Goniometer measurement aborted at angle " + str(angle) + "°"
                 )
                 self.hide_progress_bar.emit()
+                self.reset_start_button.emit(False)
                 return
 
             self.motor.move_to(angle)
@@ -315,6 +329,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         self.save_spectrum_data()
         self.hide_progress_bar.emit()
+        self.reset_start_button.emit(False)
 
     def save_iv_data(self):
         """
