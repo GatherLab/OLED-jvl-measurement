@@ -26,6 +26,12 @@ class AutotubeMeasurement(QtCore.QThread):
     Class that contains all the relevant functions for the autotube EL measurement task
     """
 
+    update_plot = QtCore.Signal(list, list, list)
+    update_log_message = QtCore.Signal(str)
+    update_progress_bar = QtCore.Signal(str, float)
+    hide_progress_bar = QtCore.Signal()
+    reset_start_button = QtCore.Signal(bool)
+
     def __init__(
         self,
         keithley_source,
@@ -33,8 +39,9 @@ class AutotubeMeasurement(QtCore.QThread):
         uno,
         measurement_parameters,
         setup_parameters,
-        pixel,
-        devices_already_initialised,
+        selected_pixels,
+        devices_already_initialised=False,
+        parent=None,
     ):
         """
         Initialise class. Measurement parameters are handed over from the GUI
@@ -57,12 +64,21 @@ class AutotubeMeasurement(QtCore.QThread):
         self.measurement_parameters = measurement_parameters
         self.setup_parameters = setup_parameters
         # self.PDcutoff = self.set_photodiode_gain(photodiode_gain)
-        self.pixel = pixel
+        self.selected_pixels = selected_pixels
 
         # Since the data shall be plotted after each measurement (it could also
         # be done while measuring but I think there is not much benefit and the
         # programming is uglier), only one pixel is scanned at a time
         self.df_data = pd.DataFrame(columns=["voltage", "current", "pd_voltage"])
+
+        # Connect the signals
+        self.update_plot.connect(parent.plot_autotube_measurement)
+        self.update_log_message.connect(parent.log_message)
+        self.update_progress_bar.connect(parent.progressBar.setProperty)
+        self.hide_progress_bar.connect(parent.progressBar.hide)
+        self.reset_start_button.connect(
+            parent.aw_start_measurement_pushButton.setChecked
+        )
 
     def run(self):
         """
@@ -90,74 +106,118 @@ class AutotubeMeasurement(QtCore.QThread):
 
         voltages_to_scan = np.append(low_vlt, high_vlt)
 
-        self.keithley_source.init_buffer(
-            "OLEDbuffer", 10 * len(low_vlt) + len(high_vlt)
-        )
+        # To update progres bar
+        progress = 0
 
-        # Take PD voltage reading from Multimeter for background
-        background_diodevoltage = self.keithley_multimeter.measure_voltage()
+        # Iterate over all selected pixels
+        for pixel in self.selected_pixels:
 
-        # Activate the relay of the selected pixel
-        self.uno.open_relay(relay=self.pixel, state=1)
+            self.update_log_message.emit("Running on Pixel " + str(pixel))
 
-        # Turn on the voltage
-        self.keithley_source.activate_output()
+            self.keithley_source.init_buffer(
+                "OLEDbuffer", 10 * len(low_vlt) + len(high_vlt)
+            )
 
-        # Low Voltage Readings
-        i = 0
-        for voltage in voltages_to_scan:
-            # self.queue.put("\nOLED Voltage : " + str(voltage) + " V")
-            # Set voltage to source_value
-            self.keithley_source.set_voltage(str(voltage))
+            # Take PD voltage reading from Multimeter for background
+            background_diodevoltage = self.keithley_multimeter.measure_voltage()
 
-            # Take PD voltage reading from Multimeter
-            diode_voltage = self.keithley_multimeter.measure_voltage()
-            # Take OLED current reading from Sourcemeter
-            oled_current = self.keithley_source.read_current()
+            # Activate the relay of the selected pixel
+            self.uno.open_relay(relay=pixel, state=1)
 
-            # check if compliance is reached
-            if abs(oled_current) >= self.measurement_parameters["scan_compliance"]:
-                self.keithley_source.deactivate_output()
-                raise Warning("Current compliance reached")
-                break
+            # Turn on the voltage
+            self.keithley_source.activate_output()
 
-            # check for a bad contact
-            if self.measurement_parameters["check_bad_contacts"] == True and (
-                voltage != 0
-            ):
-                if abs(oled_current) <= self.measurement_parameters["bad_contact"]:
-                    self.keithley_source.deactivate_output()  # Turn power off
-                    raise Warning(
-                        "Pixel "
-                        + self.pixel
-                        + " probably has a bad contact. Measurement aborted."
-                    )
-                    break
-            # check for PD saturation
-            if self.measurement_parameters["check_pd_saturation"] == True:
-                if diode_voltage >= self.measurement_parameters["pd_saturation"]:
-                    raise Warning(
-                        "Photodiode reaches saturation. You might want to adjust the"
-                        " photodiode gain"
-                    )
+            # Low Voltage Readings
+            i = 0
+            for voltage in voltages_to_scan:
+                # self.queue.put("\nOLED Voltage : " + str(voltage) + " V")
+                # Set voltage to source_value
+                self.keithley_source.set_voltage(str(voltage))
+
+                # Take PD voltage reading from Multimeter
+                diode_voltage = self.keithley_multimeter.measure_voltage()
+                # Take OLED current reading from Sourcemeter
+                oled_current = self.keithley_source.read_current()
+
+                # check if compliance is reached
+                if abs(oled_current) >= self.measurement_parameters["scan_compliance"]:
+                    self.keithley_source.deactivate_output()
+                    raise Warning("Current compliance reached")
                     break
 
-            self.df_data.loc[i, "pd_voltage"] = diode_voltage - background_diodevoltage
-            # Current should be in mA
-            self.df_data.loc[i, "current"] = oled_current * 1e3
-            self.df_data.loc[i, "voltage"] = voltage
+                # check for a bad contact
+                if self.measurement_parameters["check_bad_contacts"] == True and (
+                    voltage != 0
+                ):
+                    if abs(oled_current) <= self.measurement_parameters["bad_contact"]:
+                        self.keithley_source.deactivate_output()  # Turn power off
+                        raise Warning(
+                            "Pixel "
+                            + pixel
+                            + " probably has a bad contact. Measurement aborted."
+                        )
+                        break
+                # check for PD saturation
+                if self.measurement_parameters["check_pd_saturation"] == True:
+                    if diode_voltage >= self.measurement_parameters["pd_saturation"]:
+                        raise Warning(
+                            "Photodiode reaches saturation. You might want to adjust the"
+                            " photodiode gain"
+                        )
+                        break
 
-            i += 1
+                self.df_data.loc[i, "pd_voltage"] = (
+                    diode_voltage - background_diodevoltage
+                )
+                # Current should be in mA
+                self.df_data.loc[i, "current"] = oled_current * 1e3
+                self.df_data.loc[i, "voltage"] = voltage
 
-        # Turn keithley off
-        self.keithley_source.deactivate_output()
+                i += 1
 
-        # Turn off all relays
-        self.uno.open_relay(relay=self.pixel, state=0)
+            # Turn keithley off
+            self.keithley_source.deactivate_output()
 
-        self.uno.close_serial_connection()  # close COM port
+            # Turn off all relays
+            self.uno.open_relay(relay=pixel, state=0)
 
-    def save_data(self):
+            # Save data
+            self.save_data(pixel)
+
+            # Update the plot
+            self.update_plot.emit(
+                self.df_data["voltage"],
+                self.df_data["current"],
+                self.df_data["pd_voltage"],
+            )
+
+            # Update progress bar
+            progress += 1
+
+            self.update_progress_bar.emit(
+                "value", int(progress / len(self.selected_pixels) * 100)
+            )
+
+            # Update GUI while being in a loop. It would be better to use
+            # separate threads but for now this is the easiest way
+            # app.processEvents()
+
+            # Wait a few seconds so that the user can have a look at the graph
+            time.sleep(2)
+
+        # Untoggle the pushbutton
+        self.reset_start_button.emit(False)
+
+        # Update statusbar
+        self.update_log_message.emit("Autotube measurement finished")
+
+        # Hise progress bar
+        self.hide_progress_bar.emit()
+
+        # close COM port
+        self.uno.close_serial_connection()
+
+    def save_data(self, pixel):
         """
         Function to save the measured data to file. This should probably be
         integrated into the AutotubeMeasurement class
@@ -211,7 +271,7 @@ class AutotubeMeasurement(QtCore.QThread):
             + "_d"
             + str(self.setup_parameters["device_number"])
             + "_p"
-            + str(self.pixel)
+            + str(pixel)
             + "_jvl"
             + ".csv"
         )

@@ -35,7 +35,7 @@ class GoniometerMeasurement(QtCore.QThread):
     update_progress_bar = QtCore.Signal(str, float)
     hide_progress_bar = QtCore.Signal()
     pause_thread_pl = QtCore.Signal()
-    reset_start_button = QtCore.Signal()
+    reset_start_button = QtCore.Signal(bool)
 
     def __init__(
         self,
@@ -60,7 +60,9 @@ class GoniometerMeasurement(QtCore.QThread):
         self.setup_parameters = setup_parameters
 
         self.photodiode_gain = photodiode_gain
-        self.pixel = pixel[0]
+        self.pixel = pixel
+
+        self.parent = parent
 
         # Initialise hardware
         self.spectrometer = MockOceanSpectrometer(integration_time)
@@ -124,9 +126,13 @@ class GoniometerMeasurement(QtCore.QThread):
                     self.setup_parameters,
                     self.pixel,
                     devices_already_initialised=True,
+                    parent=self.parent,
                 )
+
+                # Here the thread is not started as a thread but only the class
+                # function is called, because the goniometer thread should wait
+                # for the autotube thread to be finished
                 autotube_measurement.run()
-                autotube_measurement.save_data()
 
             # Take background voltage and measure specific current and voltage of photodiode and oled
             background_diode_voltage = self.keithley_multimeter.measure_voltage()
@@ -158,7 +164,7 @@ class GoniometerMeasurement(QtCore.QThread):
             self.keithley_source.init_buffer("pulsebuffer", buffer_length=1000)
 
             # Now activate the output to measure the specific voltages/current
-            self.uno.open_relay(relay=self.pixel, state=1)
+            self.uno.open_relay(relay=self.pixel[0], state=1)
             self.keithley_source.activate_output()
 
             self.specific_pd_voltage = (
@@ -169,7 +175,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # Deactivate output
             self.keithley_source.deactivate_output()
-            self.uno.open_relay(relay=self.pixel, state=0)
+            self.uno.open_relay(relay=self.pixel[0], state=0)
 
             self.update_log_message.emit("Specific voltages measured")
 
@@ -203,13 +209,11 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # If el measurement was selected, activate the selected pixel already
         if not self.goniometer_measurement_parameters["el_or_pl"]:
-            self.uno.open_relay(relay=self.pixel, state=1)
+            self.uno.open_relay(relay=self.pixel[0], state=1)
         else:
             # Check first if user already aborted the measurement
             if self.pause == "return":
-                self.update_log_message(
-                    "Goniometer measurement aborted at angle " + str(angle) + "°"
-                )
+                self.update_log_message.emit("Goniometer measurement aborted")
                 self.hide_progress_bar.emit()
                 self.reset_start_button.emit(False)
                 return
@@ -320,7 +324,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             # Close relay and serial connection as well
-            self.uno.open_relay(relay=self.pixel, state=0)
+            self.uno.open_relay(relay=self.pixel[0], state=0)
             self.uno.close_serial_connection()  # close COM port
 
             # Only save iv data for el measurement, because it otherwise does not exist
@@ -401,7 +405,7 @@ class GoniometerMeasurement(QtCore.QThread):
             + "_d"
             + str(self.setup_parameters["device_number"])
             + "_p"
-            + str(self.pixel)
+            + str(self.pixel[0])
             + "_gon-jvl"
             + ".csv"
         )
@@ -470,7 +474,7 @@ class GoniometerMeasurement(QtCore.QThread):
             + "_d"
             + str(self.setup_parameters["device_number"])
             + "_p"
-            + str(self.pixel)
+            + str(self.pixel[0])
             + "_gon-spec"
             + ".csv"
         )

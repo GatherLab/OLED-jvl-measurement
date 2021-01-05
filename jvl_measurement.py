@@ -406,6 +406,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Kill process and delete old current tester object
         self.current_tester.kill()
+        time.sleep(1)
         del self.current_tester
 
         # Read in global settings and instanciate CurrentTester again
@@ -706,7 +707,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return measurement_parameters, selected_pixels_numbers
 
-    def plot_autotube_measurement(self, jvl_data):
+    @QtCore.Slot(list, list, list)
+    def plot_autotube_measurement(self, voltage, current, pd_voltage):
         """
         Function to plot the results from the autotube measurement to the central graph.
         """
@@ -718,16 +720,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Plot current
         self.aw_ax.plot(
-            jvl_data.voltage.to_list(),
-            jvl_data.current.to_list(),
+            voltage,
+            current,
             color=(68 / 255, 188 / 255, 65 / 255),
             marker="o",
         )
         # twin object for two different y-axis on the sample plot
         # make a plot with different y-axis using second axis object
         self.aw_ax2.plot(
-            jvl_data.voltage.to_list(),
-            jvl_data.pd_voltage.to_list(),
+            voltage,
+            pd_voltage,
             color=(85 / 255, 170 / 255, 255 / 255),
             marker="o",
         )
@@ -770,52 +772,63 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Now read in the global settings from file
         global_settings = self.read_global_settings()
 
-        # This shall create an instance of the AutotubeMeasurement class
-        progress = 0
-        for pixel in selected_pixels:
+        # Instantiate our class
+        self.autotube_measurement = AutotubeMeasurement(
+            global_settings["keithley_source_address"],
+            global_settings["keithley_multimeter_address"],
+            global_settings["arduino_com_address"],
+            measurement_parameters,
+            setup_parameters,
+            selected_pixels,
+            False,
+            self,
+        )
 
-            self.log_message("Running on Pixel " + str(pixel))
+        # Start thread to run measurement
+        self.autotube_measurement.start()
+        # for pixel in selected_pixels:
+        #     # This shall create an instance of the AutotubeMeasurement class
+        #     progress = 0
 
-            # Instantiate our class
-            measurement = AutotubeMeasurement(
-                global_settings["keithley_source_address"],
-                global_settings["keithley_multimeter_address"],
-                global_settings["arduino_com_address"],
-                measurement_parameters,
-                setup_parameters,
-                pixel,
-            )
+        #     self.log_message("Running on Pixel " + str(pixel))
 
-            # Call measurement.run() to measure and save all the measured data into the class itself
-            measurement.run()
+        #     # Instantiate our class
+        #     measurement = AutotubeMeasurement(
+        #         global_settings["keithley_source_address"],
+        #         global_settings["keithley_multimeter_address"],
+        #         global_settings["arduino_com_address"],
+        #         measurement_parameters,
+        #         setup_parameters,
+        #         pixel,
+        #     )
 
-            # Call measurement.save_data() to directly save the data to a file
-            measurement.save_data()
+        #     # Call measurement.save_data() to directly save the data to a file
+        #     measurement.save_data()
 
-            # Call measurement.get_data() that returns the actual data
-            # so that we can feed it into plot_autotube_measurement
-            self.plot_autotube_measurement(measurement.df_data)
+        #     # Call measurement.get_data() that returns the actual data
+        #     # so that we can feed it into plot_autotube_measurement
+        #     self.plot_autotube_measurement(measurement.df_data)
 
-            # Update progress bar
-            progress += 1
-            self.progressBar.setProperty(
-                "value", int(progress / len(selected_pixels) * 100)
-            )
+        #     # Update progress bar
+        #     progress += 1
+        #     self.progressBar.setProperty(
+        #         "value", int(progress / len(selected_pixels) * 100)
+        #     )
 
-            # Update GUI while being in a loop. It would be better to use
-            # separate threads but for now this is the easiest way
-            app.processEvents()
+        #     # Update GUI while being in a loop. It would be better to use
+        #     # separate threads but for now this is the easiest way
+        #     app.processEvents()
 
-            # Wait a few seconds so that the user can have a look at the graph
-            time.sleep(1)
+        #     # Wait a few seconds so that the user can have a look at the graph
+        #     time.sleep(1)
 
-        # Untoggle the pushbutton
-        self.aw_start_measurement_pushButton.setChecked(False)
+        # # Untoggle the pushbutton
+        # self.aw_start_measurement_pushButton.setChecked(False)
 
-        # Update statusbar
-        self.log_message("Autotube measurement finished")
+        # # Update statusbar
+        # self.log_message("Autotube measurement finished")
 
-        self.progressBar.hide()
+        # self.progressBar.hide()
 
     # -------------------------------------------------------------------- #
     # ---------------------- Spectrum Measurement  ----------------------- #
@@ -1006,7 +1019,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # If the measurement is already running and the button is pressed,
         # abort the measurement
         if not self.gw_start_measurement_pushButton.isChecked():
-            self.gw_start_measurement_pushButton.setChecked(True)
             self.goniometer_measurement.pause = "return"
             return
 
