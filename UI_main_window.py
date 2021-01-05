@@ -1277,10 +1277,10 @@ class Ui_MainWindow(object):
         # Define actions for menubar
         self.actionOpen_Logs = QtWidgets.QAction(MainWindow)
         self.actionOpen_Logs.setObjectName("actionOpen_Logs")
-        self.actionOpen_Logfile_on_Machine = QtWidgets.QAction(MainWindow)
-        self.actionOpen_Logfile_on_Machine.setObjectName(
-            "actionOpen_Logfile_on_Machine"
-        )
+        # self.actionOpen_Logfile_on_Machine = QtWidgets.QAction(MainWindow)
+        # self.actionOpen_Logfile_on_Machine.setObjectName(
+        # "actionOpen_Logfile_on_Machine"
+        # )
 
         self.actionChange_Path = QtWidgets.QAction(MainWindow)
         self.actionChange_Path.setObjectName("actionChange_Path")
@@ -1566,10 +1566,10 @@ class Ui_MainWindow(object):
         self.menudfg.setTitle(_translate("MainWindow", "File"))
         self.menuSettings.setTitle(_translate("MainWindow", "Settings"))
 
-        self.actionOpen_Logs.setText(_translate("MainWindow", "Open Logs"))
-        self.actionOpen_Logfile_on_Machine.setText(
-            _translate("MainWindow", "Open Logfile on Machine")
-        )
+        # self.actionOpen_Logs.setText(_translate("MainWindow", "Open Logs"))
+        # self.actionOpen_Logfile_on_Machine.setText(
+        # _translate("MainWindow", "Open Logfile on Machine")
+        # )
         self.actionChange_Path.setText(_translate("MainWindow", "Change Saving Path"))
         self.actionOptions.setText(_translate("MainWindow", "Options"))
         self.actionDocumentation.setText(_translate("MainWindow", "Help"))

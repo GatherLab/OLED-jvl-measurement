@@ -56,6 +56,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             )
         )
 
+        self.actionOpen_Log.triggered.connect(lambda: self.open_log("log.out"))
+
         # Hide by default and only show if a process is running
         self.progressBar.hide()
 
@@ -266,6 +268,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # -------------------------------------------------------------------- #
     # ------------------------- Global Functions ------------------------- #
     # -------------------------------------------------------------------- #
+
+    def open_file(self, path):
+        """
+        Opens a file on the machine with the standard program
+        https://stackoverflow.com/questions/6045679/open-file-with-pyqt
+        """
+        print(path)
+        if sys.platform.startswith("linux"):
+            subprocess.call(["xdg-open", path])
+        else:
+            os.startfile(path)
+
     @QtCore.Slot(str)
     def log_message(self, message):
         """
@@ -389,7 +403,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.sw_pixel7_pushButton.isChecked(),
                 self.sw_pixel8_pushButton.isChecked(),
             ],
-            "documentation": self.sw_documentation_textEdit.toPlainText(),
         }
 
         # Update statusbar
@@ -889,6 +902,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.log_message("More or less than one pixel selected")
             raise UserWarning("Please select exactly one pixel!")
 
+        self.progressBar.show()
+
         # Store data in pd dataframe
         df_spectrum_data = pd.DataFrame(
             columns=["wavelength", "background", "intensity"]
@@ -900,6 +915,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             df_spectrum_data["intensity"],
         ) = self.spectrum_measurement.spectrometer.measure()
 
+        self.progressBar.setProperty("value", 50)
+
         # Turn off all pixels wait two seconds to ensure that there is no light left and measure again
         self.unselect_all_pixels()
         time.sleep(2)
@@ -909,7 +926,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         ) = self.spectrum_measurement.spectrometer.measure()
 
         # Save data
-
         file_path = (
             setup_parameters["folder_path"]
             + date.today().strftime("%Y-%m-%d_")
@@ -950,6 +966,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         df_spectrum_data.to_csv(
             file_path, index=False, mode="a", header=False, sep="\t"
         )
+
+        self.progressBar.setProperty("value", 100)
+        time.sleep(0.5)
+        self.progressBar.hide()
 
     @QtCore.Slot(list, list)
     def update_spectrum(self, wavelength, intensity):

@@ -142,28 +142,40 @@ class AutotubeMeasurement(QtCore.QThread):
                 # check if compliance is reached
                 if abs(oled_current) >= self.measurement_parameters["scan_compliance"]:
                     self.keithley_source.deactivate_output()
-                    raise Warning("Current compliance reached")
+                    self.update_log_message.emit("Current compliance reached")
                     break
 
                 # check for a bad contact
                 if self.measurement_parameters["check_bad_contacts"] == True and (
                     voltage != 0
                 ):
-                    if abs(oled_current) <= self.measurement_parameters["bad_contact"]:
+                    if (
+                        abs(oled_current)
+                        <= self.measurement_parameters["check_bad_contacts"]
+                    ):
                         self.keithley_source.deactivate_output()  # Turn power off
-                        raise Warning(
+                        self.update_log_message.emit(
                             "Pixel "
-                            + pixel
+                            + str(pixel)
                             + " probably has a bad contact. Measurement aborted."
                         )
+
+                        # Wait a second so that the user can read the message
+                        time.sleep(1)
                         break
+
                 # check for PD saturation
                 if self.measurement_parameters["check_pd_saturation"] == True:
-                    if diode_voltage >= self.measurement_parameters["pd_saturation"]:
-                        raise Warning(
-                            "Photodiode reaches saturation. You might want to adjust the"
-                            " photodiode gain"
+                    if (
+                        diode_voltage
+                        >= self.measurement_parameters["check_pd_saturation"]
+                    ):
+                        self.update_log_message.emit(
+                            "Photodiode reaches saturation. You might want to adjust the photodiode gain."
                         )
+
+                        # Wait a second so that the user can read the message
+                        time.sleep(1)
                         break
 
                 self.df_data.loc[i, "pd_voltage"] = (
