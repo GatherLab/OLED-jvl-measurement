@@ -2,6 +2,11 @@ from PySide2 import QtCore, QtGui, QtWidgets
 
 
 class Ui_GoniometerAnimation(QtWidgets.QWidget):
+    """
+    This class represents the goniometer animation that shows the current
+    position of the motor stage. It is used to update and draw the animation.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -10,55 +15,103 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
             QtWidgets.QSizePolicy.MinimumExpanding,
         )
 
+        # Initial position
+        self.position = 0
+
     def sizeHint(self):
-        return QtCore.QSize(40, 120)
+        """
+        Function needed to scale the widget
+        """
+        return QtCore.QSize(40, 140)
 
     def paintEvent(self, e):
+        """
+        Paint event that is called when the update function is called on the class
+        """
         painter = QtGui.QPainter(self)
 
+        # Set a plain background in the overall design color
         brush = QtGui.QBrush()
-        # Set background color
         brush.setColor(QtGui.QColor("#2C313C"))
         brush.setStyle(QtCore.Qt.SolidPattern)
         rect = QtCore.QRect(0, 0, painter.device().width(), painter.device().height())
         painter.fillRect(rect, brush)
+        rect.center()
 
-        # # Get current state.
-        # vmin, vmax = 0, 360
-        # value = 100
+        # The following looks relatively complicated but in the end it is just
+        # some calculations to make the drawing look nice and have everything
+        # at its right position
+        circle_radius = 52
+        circle_thickness = 4
+        letter_width = 6
+        letter_height = 9
+        arc_thickness = 8
+        margin = 2
 
-        # padding = 5
+        painter.setPen(
+            QtGui.QPen(QtGui.QColor("#E0E0E0"), circle_thickness, QtCore.Qt.SolidLine)
+        )
+        painter.drawEllipse(rect.center(), circle_radius, circle_radius)
+        painter.drawText(
+            rect.center().toTuple()[0] + circle_radius + circle_thickness + margin,
+            rect.center().toTuple()[1] + letter_height / 2,
+            "0°",
+        )
+        # painter.drawText(
+        # rect.center().toTuple()[0]
+        # - circle_radius
+        # - circle_thickness
+        # - margin
+        # - letter_width * len(str("180°")),
+        # rect.center().toTuple()[1] + letter_height / 2,
+        # "180°",
+        # )
 
-        # # Define our canvas.
-        # d_height = painter.device().height() - (padding * 2)
-        # d_width = painter.device().width() - (padding * 2)
+        painter.drawText(
+            rect.center().toTuple()[0] - letter_width * len(str("90°")) / 2,
+            rect.center().toTuple()[1] - circle_radius - circle_thickness - margin,
+            "90°",
+        )
+        painter.drawText(
+            rect.center().toTuple()[0] - letter_width * len(str("-90°")) / 2,
+            rect.center().toTuple()[1]
+            + circle_radius
+            + circle_thickness
+            + margin
+            + letter_height,
+            "-90°",
+        )
 
-        # # Draw the bars.
-        # step_size = d_height / 5
-        # bar_height = step_size * 0.6
-        # bar_spacer = step_size * 0.4 / 2
-
-        # pc = (value - vmin) / (vmax - vmin)
-        # n_steps_to_draw = int(pc * 5)
-        # brush.setColor(QtGui.QColor("red"))
-        # for n in range(n_steps_to_draw):
-        #     rect = QtCore.QRect(
-        #         padding,
-        #         padding + d_height - ((n + 1) * step_size) + bar_spacer,
-        #         d_width,
-        #         bar_height,
-        #     )
-        #     painter.fillRect(rect, brush)
-        position = 25
-        painter.setPen(QtGui.QPen(QtGui.QColor("#E0E0E0"), 4, QtCore.Qt.SolidLine))
-        painter.drawEllipse(35, 3, 100, 100)
-        painter.drawText(142, 58, "0°")
-        painter.drawText(75, 120, "90°")
-        painter.drawText(8, 58, "180°")
-        painter.setPen(QtGui.QPen(QtGui.QColor("#55AAFF"), 14, QtCore.Qt.SolidLine))
-        painter.drawArc(45, 13, 80, 80, 0 * 16, -16 * position)
-        painter.drawText(75, 58, str(position) + "°")
+        painter.setPen(
+            QtGui.QPen(QtGui.QColor("#55AAFF"), arc_thickness, QtCore.Qt.SolidLine)
+        )
+        painter.drawArc(
+            rect.center().toTuple()[0]
+            - circle_radius
+            + (circle_thickness + arc_thickness + margin) / 2,
+            rect.center().toTuple()[1]
+            - circle_radius
+            + (circle_thickness + arc_thickness + margin) / 2,
+            circle_radius * 2 - margin - circle_thickness - arc_thickness,
+            circle_radius * 2 - margin - circle_thickness - arc_thickness,
+            0 * 16,
+            16 * self.position,
+        )
+        painter.drawText(
+            rect.center().toTuple()[0]
+            - letter_width * len(str(self.position) + "°") / 2,
+            rect.center().toTuple()[1] + letter_height / 2,
+            str(self.position) + "°",
+        )
         painter.end()
 
     def _trigger_refresh(self):
+        self.update()
+
+    @QtCore.Slot(float)
+    def move(self, position):
+        """
+        Function to trigger a move of the position animation for the goniometer
+        """
+        self.position = position
         self.update()

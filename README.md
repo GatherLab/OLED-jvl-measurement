@@ -89,4 +89,13 @@ The idea is that measurement parameters can be saved and loaded for later measur
 
 The settings tab is not yet clearly defined although it shall link to the documentation of the software (via Help) and allow to open the log file that logs possible errors occurring with the program. I don't know yet what the options tab contains but this might contain some global options that are only seldomly touched. If it is not necessary after all we can just delete it.
 
+#### Parameters for global settings
+
+- Keithley and arduino addresses
+- photodiode gain
+
 ## Documentation
+
+### Arduino Communication
+
+Our setup uses an arduino only to select the pixels of a device that shall be measured. Arduino-Python communication does not seem trivial. An easy way to circumvent the problem is to design the Arduino sketch in such a manner that we can communicate with it via serial communication. If the arduino is connected to the PC python can use the same channel to communicate with the Arduino. Predefined commands that we can also enter manually can now be sent using a python script and the serial package for python.
