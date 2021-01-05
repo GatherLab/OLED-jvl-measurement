@@ -965,7 +965,7 @@ class Ui_MainWindow(object):
         # self.gw_scrollAreaWidgetContents
         # )
         # self.gw_voltage_scan_checkBox.setObjectName("gw_voltage_scan_checkBox")
-        self.gridLayout_9.addLayout(self.gw_voltage_scan_HLayout, 24, 0, 1, 1)
+        self.gridLayout_9.addLayout(self.gw_voltage_scan_HLayout, 25, 0, 1, 1)
 
         # Homing time
         self.gw_homing_time_spinBox = QtWidgets.QDoubleSpinBox(
@@ -1170,7 +1170,7 @@ class Ui_MainWindow(object):
         self.gw_el_or_pl_label = QtWidgets.QLabel("PL measurement")
         self.gw_el_or_pl_HLayout.addWidget(self.gw_el_or_pl_toggleSwitch)
         self.gw_el_or_pl_HLayout.addWidget(self.gw_el_or_pl_label)
-        self.gridLayout_9.addLayout(self.gw_el_or_pl_HLayout, 25, 0, 1, 1)
+        self.gridLayout_9.addLayout(self.gw_el_or_pl_HLayout, 24, 0, 1, 1)
 
         # Move goniometer motor
         self.gw_move_pushButton = QtWidgets.QPushButton(

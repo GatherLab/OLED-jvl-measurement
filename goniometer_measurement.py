@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PySide2 import QtCore
+from PySide2 import QtCore, QtWidgets
 
 from hardware import (
     ArduinoUno,
@@ -21,6 +21,7 @@ from autotube_measurement import AutotubeMeasurement
 import time
 import numpy as np
 import pandas as pd
+import datetime as dt
 
 
 class GoniometerMeasurement(QtCore.QThread):
@@ -33,6 +34,7 @@ class GoniometerMeasurement(QtCore.QThread):
     update_animation = QtCore.Signal(float)
     update_progress_bar = QtCore.Signal(str, float)
     hide_progress_bar = QtCore.Signal()
+    pause_thread_pl = QtCore.Signal()
 
     def __init__(
         self,
@@ -44,32 +46,35 @@ class GoniometerMeasurement(QtCore.QThread):
         integration_time,
         photodiode_gain,
         pixel,
-        folder_path,
         goniometer_measurement_parameters,
         autotube_measurement_parameters,
+        setup_parameters,
         parent=None,
     ):
         super(GoniometerMeasurement, self).__init__()
 
-        # Initialise hardware
-        self.uno = MockArduinoUno(com2_address)
-        self.keithley_source = MockKeithleySource(
-            keithley_source_address, autotube_measurement_parameters["scan_compliance"]
-        )
-        self.keithley_multimeter = MockKeithleyMultimeter(keithley_multimeter_address)
-        self.spectrometer = MockOceanSpectrometer(integration_time)
-        self.motor = MockThorlabMotor(motor_number, motor_offset)
-
         # Initialise member variables
         self.goniometer_measurement_parameters = goniometer_measurement_parameters
         self.autotube_measurement_parameters = autotube_measurement_parameters
+        self.setup_parameters = setup_parameters
 
-        self.keithley_source_address = keithley_source_address
-        self.keithley_multimeter_address = keithley_multimeter_address
-        self.com2_address = com2_address
         self.photodiode_gain = photodiode_gain
-        self.pixel = pixel
-        self.folder_path = folder_path
+        self.pixel = pixel[0]
+
+        # Initialise hardware
+        self.spectrometer = MockOceanSpectrometer(integration_time)
+        self.motor = MockThorlabMotor(motor_number, motor_offset)
+
+        # Hardware only needed for EL measurement
+        if not self.goniometer_measurement_parameters["el_or_pl"]:
+            self.uno = MockArduinoUno(com2_address)
+            self.keithley_source = MockKeithleySource(
+                keithley_source_address,
+                autotube_measurement_parameters["scan_compliance"],
+            )
+            self.keithley_multimeter = MockKeithleyMultimeter(
+                keithley_multimeter_address
+            )
 
         # Connect signal to the updater from the parent class
         self.update_goniometer_spectrum_signal.connect(
@@ -79,6 +84,7 @@ class GoniometerMeasurement(QtCore.QThread):
         self.update_animation.connect(parent.gw_animation.move)
         self.update_progress_bar.connect(parent.progressBar.setProperty)
         self.hide_progress_bar.connect(parent.progressBar.hide)
+        self.pause_thread_pl.connect(parent.pause_goniometer_measurement)
 
         # Declare the data structures that are used in the goniometer measurement
         self.iv_data = pd.DataFrame()
@@ -86,6 +92,9 @@ class GoniometerMeasurement(QtCore.QThread):
         self.specific_oled_voltage = 0
         self.specific_oled_current = 0
         self.specific_pd_voltage = 0
+
+        # Introduce a pause variable
+        self.pause = "False"
 
     def run(self):
         """
@@ -97,54 +106,70 @@ class GoniometerMeasurement(QtCore.QThread):
         self.motor.move_to(0)
         # self.parent.gw_animation.move(0)
         self.update_animation.emit(0)
-        self.update_log_message.emit("Moved to home position")
         time.sleep(self.goniometer_measurement_parameters["homing_time"])
+        self.update_log_message.emit("Moved to home position")
 
-        if self.goniometer_measurement_parameters["voltage_scan"]:
-            autotube_measurement = AutotubeMeasurement(
-                self.keithley_source_address,
-                self.keithley_multimeter_address,
-                self.com2_address,
-                self.autotube_measurement_parameters,
-                self.pixel,
-                self.folder_path + "voltage_scan.csv",
-            )
-            autotube_measurement.run()
-            autotube_measurement.save_data()
+        # The following is only needed for EL measurement
+        if not self.goniometer_measurement_parameters["el_or_pl"]:
+            if self.goniometer_measurement_parameters["voltage_scan"]:
+                autotube_measurement = AutotubeMeasurement(
+                    self.keithley_source,
+                    self.keithley_multimeter,
+                    self.uno,
+                    self.autotube_measurement_parameters,
+                    self.setup_parameters,
+                    self.pixel,
+                    devices_already_initialised=True,
+                )
+                autotube_measurement.run()
+                autotube_measurement.save_data()
 
-        # Take background voltage and measure specific current and voltage of photodiode and oled
-        self.keithley_source.as_current_source(
-            self.goniometer_measurement_parameters["vc_compliance"]
-        )
-        background_diode_voltage = self.keithley_multimeter.measure_voltage()
-        self.keithley_source.activate_output()
-        self.specific_pd_voltage = (
-            self.keithley_multimeter.measure_voltage() - background_diode_voltage
-        )
-        self.specific_oled_current = self.keithley_source.read_current()
-        self.specific_oled_voltage = self.keithley_source.read_voltage()
-        self.keithley_source.deactivate_output()
-        self.update_log_message.emit("Specific voltages measured")
-        # Depending on if the user selected constant current or constant
-        # voltage it is selected in the following what the Keithley source
-        # should be
-        if self.goniometer_measurement_parameters["voltage_or_current"]:
-            self.keithley_source.as_voltage_source(
-                self.goniometer_measurement_parameters["vc_compliance"]
-            )
-            self.update_log_message.emit(
-                "Keithley source initialised as voltage source"
-            )
-        else:
-            self.keithley_source.as_current_source(
-                self.goniometer_measurement_parameters["vc_compliance"]
-            )
-            self.update_log_message.emit(
-                "Keithley source initialised as current source"
-            )
+            # Take background voltage and measure specific current and voltage of photodiode and oled
+            background_diode_voltage = self.keithley_multimeter.measure_voltage()
 
-        self.keithley_source.init_buffer("pulsebuffer", buffer_length=1000)
+            # Depending on if the user selected constant current or constant
+            # voltage it is selected in the following what the Keithley source
+            # should be
+            if not self.goniometer_measurement_parameters["voltage_or_current"]:
+                self.keithley_source.as_voltage_source(
+                    self.goniometer_measurement_parameters["vc_compliance"]
+                )
+                self.keithley_source.set_voltage(
+                    self.goniometer_measurement_parameters["vc_value"]
+                )
+                self.update_log_message.emit(
+                    "Keithley source initialised as voltage source"
+                )
+            else:
+                self.keithley_source.as_current_source(
+                    self.goniometer_measurement_parameters["vc_compliance"]
+                )
+                self.keithley_source.set_current(
+                    self.goniometer_measurement_parameters["vc_value"]
+                )
+                self.update_log_message.emit(
+                    "Keithley source initialised as current source"
+                )
 
+            self.keithley_source.init_buffer("pulsebuffer", buffer_length=1000)
+
+            # Now activate the output to measure the specific voltages/current
+            self.uno.open_relay(relay=self.pixel, state=1)
+            self.keithley_source.activate_output()
+
+            self.specific_pd_voltage = (
+                self.keithley_multimeter.measure_voltage() - background_diode_voltage
+            )
+            self.specific_oled_current = self.keithley_source.read_current()
+            self.specific_oled_voltage = self.keithley_source.read_voltage()
+
+            # Deactivate output
+            self.keithley_source.deactivate_output()
+            self.uno.open_relay(relay=self.pixel, state=0)
+
+            self.update_log_message.emit("Specific voltages measured")
+
+        # PL from here on
         self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
         self.update_animation.emit(
             self.goniometer_measurement_parameters["minimum_angle"]
@@ -172,6 +197,23 @@ class GoniometerMeasurement(QtCore.QThread):
 
         progress = 0
 
+        # If el measurement was selected, activate the selected pixel already
+        if not self.goniometer_measurement_parameters["el_or_pl"]:
+            self.uno.open_relay(relay=self.pixel, state=1)
+        else:
+            # In the case of PL open up a pop-up window that the UV lamp can
+            # now be turned on, only continue if the continue button was
+            # pressed
+            self.pause = "True"
+            self.pause_thread_pl.emit()
+
+            while self.pause == "True":
+                time.sleep(0.1)
+                if self.pause == "break":
+                    break
+                elif self.pause == "return":
+                    return
+
         # Move motor by given increment while giving current to OLED and reading spectrum
         for angle in np.arange(
             self.goniometer_measurement_parameters["minimum_angle"],
@@ -179,39 +221,54 @@ class GoniometerMeasurement(QtCore.QThread):
             self.goniometer_measurement_parameters["step_angle"],
         ):
 
+            # This is checked in each iteration so that the user can interrupt
+            # the measurement after each iterration by simply pressing the
+            # pushButton again
+            if self.pause == "return":
+                self.update_log_message(
+                    "Goniometer measurement aborted at angle " + str(angle) + "°"
+                )
+                self.hide_progress_bar.emit()
+                return
+
             self.motor.move_to(angle)
             # self.parent.gw_animation.move(angle)
             self.update_animation.emit(angle)
-            self.update_log_message.emit("Moved to angle " + str(angle) + " °")
             time.sleep(self.goniometer_measurement_parameters["moving_time"])
-            self.keithley_source.activate_output()
-            # DEVICES.ELmotor.move_to(angle)
-            # keith.write("Output ON")
+            self.update_log_message.emit("Moved to angle " + str(angle) + " °")
+
+            # Only activate output for EL measurement
+            if not self.goniometer_measurement_parameters["el_or_pl"]:
+                self.keithley_source.activate_output()
+
             time.sleep(
                 self.goniometer_measurement_parameters["pulse_duration"]
                 - processing_time
             )
 
             start_process = time.process_time()
-            temp_buffer = self.keithley_source.read_current()
 
-            # In the case of a voltage scan
-            if self.goniometer_measurement_parameters["voltage_or_current"]:
-                data_dict = {
-                    "angle": angle,
-                    "voltage": temp_buffer,
-                    "current": self.goniometer_measurement_parameters["vc_value"],
-                }
-            else:
-                data_dict = {
-                    "angle": angle,
-                    "voltage": self.goniometer_measurement_parameters["vc_value"],
-                    "current": temp_buffer,
-                }
+            # These measurements are only taken for el measurements
+            if not self.goniometer_measurement_parameters["el_or_pl"]:
+                temp_buffer = self.keithley_source.read_current()
 
-            rows_list.append(data_dict)
+                # In the case of a voltage scan
+                if self.goniometer_measurement_parameters["voltage_or_current"]:
+                    data_dict = {
+                        "angle": angle,
+                        "voltage": temp_buffer,
+                        "current": self.goniometer_measurement_parameters["vc_value"],
+                    }
+                else:
+                    data_dict = {
+                        "angle": angle,
+                        "voltage": self.goniometer_measurement_parameters["vc_value"],
+                        "current": temp_buffer,
+                    }
 
-            # Now measure spectrum (wavelength and intensity)
+                rows_list.append(data_dict)
+
+            # Now measure spectrum (wavelength and intensity) (done for EL and pl)
             self.spectrum_data[str(angle)] = self.spectrometer.measure()[1]
 
             # Emit a signal to update the plot (unfortunately with python 3.9
@@ -222,13 +279,16 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.spectrum_data.values.tolist(),
             )
 
-            self.keithley_source.deactivate_output()
+            # Only deactivate output for el (otherwise it was never activated)
+            if not self.goniometer_measurement_parameters["el_or_pl"]:
+                self.keithley_source.deactivate_output()
 
             # Calculate the processing time it took
             end_process = time.process_time()
             processing_time = end_process - start_process
 
             progress += 1
+
             self.update_progress_bar.emit(
                 "value",
                 progress
@@ -242,237 +302,19 @@ class GoniometerMeasurement(QtCore.QThread):
                 * 100,
             )
 
-        self.iv_data = pd.DataFrame(rows_list)
         self.update_log_message.emit("Measurement finished")
 
-        self.save_iv_data()
+        if not self.goniometer_measurement_parameters["el_or_pl"]:
+            # Close relay and serial connection as well
+            self.uno.open_relay(relay=self.pixel, state=0)
+            self.uno.close_serial_connection()  # close COM port
+
+            # Only save iv data for el measurement, because it otherwise does not exist
+            self.iv_data = pd.DataFrame(rows_list)
+            self.save_iv_data()
+
         self.save_spectrum_data()
         self.hide_progress_bar.emit()
-
-        # --------------------------------------------------------------------- #
-        # -------------------------- PL from here ----------------------------- #
-        # --------------------------------------------------------------------- #
-        # "INITIALIZING SETTINGS"
-        # defaults = {}
-        # settings = {}
-        # parameters = []
-        #
-        # "SETTING DEFAULT PARAMETERS"
-        # defaults[0] = "test"  # sample
-        # defaults[1] = 314  # offset_angle
-        # defaults[2] = 1  # step_angle
-        # defaults[3] = 500000  # integrationtime
-        # defaults[4] = 20.0  # homing_time
-        # defaults[5] = 0.2  # moving_time
-        # defaults[6] = 0.2  # pulse_duration
-        # defaults[7] = "HL"  # ang_range
-        #
-        # "GETTING PARAMETERS FROM GUI, IF BLANK SETTING AS DEFAULT"
-        # for x in range(0, 8, 1):
-        # if not param[x]:
-        # parameters.append(defaults[x])
-        # else:
-        # settings[x] = param[x]
-        # parameters.append(settings[x])
-        # if parameters[7] == "F":
-        # self.min_angle = float(parameters[1]) - 90
-        # self.max_angle = float(parameters[1]) + 90
-        # elif parameters[7] == "HL":
-        # self.min_angle = float(parameters[1])
-        # self.max_angle = float(parameters[1]) + 90
-        # elif parameters[7] == "HR":
-        # self.min_angle = float(parameters[1]) - 90
-        # self.max_angle = float(parameters[1])
-        # else:
-        # self.queue.put("Invalid input.")
-        #
-        # "SETTING PARAMTERS"
-        # self.sample = parameters[0]
-        # self.offset_angle = float(parameters[1])
-        # self.step_angle = float(parameters[2])
-        # self.integrationtime = float(parameters[3])
-        # self.homing_time = float(parameters[4])
-        # self.moving_time = float(parameters[5])
-        # self.pulse_duration = float(parameters[6])
-        # self.ang_range = parameters[7]
-
-        # "SETTING DIRECTORY DETAILS"
-        # # Getting date-time
-        # now = dt.datetime.now()
-        # datetime = str(
-        #     now.strftime("%Y-%m-%d %H:%M")
-        #     .replace(" ", "")
-        #     .replace(":", "")
-        #     .replace("-", "")
-        # )
-        # self.queue.put(
-        #     "Measurement code : "
-        #     + self.sample
-        #     + datetime
-        #     + "  (OLED device code followed by the datetime of measurement)."
-        # )
-        # # Set directories for recorded data.
-        # directory = os.path.abspath(
-        #     os.path.join(
-        #         os.path.dirname(__file__), "data", self.sample, datetime, "raw"
-        #     )
-        # )  # Folder to separate raw and processed data
-        # if os.path.isdir(directory):
-        #     pass
-        # else:
-        #     os.makedirs(directory)
-
-        """
-        "SETTING FILE DETAILS"
-        # Filename Parameters
-        mayafilepath = os.path.join(directory, "spectrumdata")
-        if os.path.isdir(mayafilepath):
-            pass
-        else:
-            os.makedirs(mayafilepath)
-
-        mayafilename = "Background.txt"  # Set filename for background reading
-        # Header Parameters
-        line01 = "Measurement code : " + self.sample + datetime
-        line02 = (
-            'Measurement programme :	"GatherLab Goniometer Measurement System".py'
-        )
-        linex = "Credits :	GatherLab, University of St Andrews, 2020"
-        linexx = "Integration Time:  " + str(self.integrationtime) + "micro s"
-        line03 = "Pulse duration :		" + str(self.pulse_duration) + " s"
-        line04 = "Step time between voltages :		" + str(self.moving_time) + " s"
-        line05 = "Offset angle:     " + str(self.offset_angle)
-        line06 = (
-            "Min Angle:  "
-            + str(0)
-            + "Max Angle:  "
-            + str(90)
-            + "Step Angle:  "
-            + str(self.step_angle)
-        )
-        line07 = "### Measurement data ###"
-        # line08 = 'OLEDVoltage	OLEDCurrent Photodiode Voltage'
-        # line09 = 'V	              mA               V'
-        # line10 = 'Angle    OLEDVoltage   	OLEDCurrent'
-        # line11 = 'Degrees 	  V       	 A'
-        line12 = "Wavelength   Intensity"
-        line13 = "nm             -"
-
-        # header_lines = [line01, line02, linex, linexx, line03, line04, line05, line06, line07, line08, line09] # PD Voltages
-        # header_lines2 = [line01, line02, linex, linexx, line03, line04, line05, line06, line07, line10, line11] # OLED Voltages
-        header_lines3 = [
-            line01,
-            line02,
-            linex,
-            linexx,
-            line03,
-            line04,
-            line05,
-            line06,
-            line07,
-            line12,
-            line13,
-        ]  # Spectrum Data
-
-        "MOVING TO INITIAL POSITION"
-        DEVICES.PLmotor.move_to(self.min_angle)
-        time.sleep(self.homing_time)
-
-        self.queue.put("\nOceanOptics : " + str(DEVICES.MAYA_devices[0]))
-        DEVICES.spec.integration_time_micros(self.integrationtime)
-
-        "#####################################################################"
-        "####TAKING MEASUREMENTS FROM THE OCEANOPTICS MAYALSL SPECTROMETER####"
-        "#####################################################################"
-
-        self.queue.put("\n\nSPECTROMETER READINGS")
-
-        "IMPLEMENTATION"
-        # Generate empty lists for data collection
-        ang = []  # Angles
-        wvl = []  # Wavelengths
-        inte = []  # Intensities
-        spect = []  # Spectrums
-
-        # Take calibration readings
-        spectrum = (
-            DEVICES.spec.spectrum()
-        )  # this gives a pre-stacked array of wavelengths and intensities
-        np.savetxt(
-            os.path.join(directory, mayafilename),
-            spectrum.T,
-            fmt="%.4f %.0f",
-            delimiter="\t",
-            header="\n".join(header_lines3),
-            comments="",
-        )
-        processing_time = 0.5  # Initial processing time in seconds
-
-        for angle in np.arange(self.min_angle, self.max_angle + 1, self.step_angle):
-            DEVICES.PLmotor.move_to(angle)
-            time.sleep(self.moving_time)
-
-            time.sleep(self.pulse_duration)
-            time.sleep(self.pulse_duration - processing_time)
-            start_process = time.clock()
-
-            wavelength = DEVICES.spec.wavelengths()  # creates a list of wavelengths
-            intensity = DEVICES.spec.intensities()  # creates a list of intensities
-            spectrum = (
-                DEVICES.spec.spectrum()
-            )  # this gives a pre-stacked array of wavelengths and intensities
-            wvl.append(
-                wavelength
-            )  # adding to a master list (may not be necessary with txt file outputs)
-            inte.append(
-                intensity
-            )  # adding to a master list (may not be necessary with txt file outputs)
-            spect.append(
-                spectrum
-            )  # adding to a master list (may not be necessary with txt file outputs)
-
-            "DISPLAYING SPECTRUM AS A PLOT"
-            self.queue.put([wavelength, intensity])
-
-            "SPECTRUM OUTPUT FILE"
-            # Angle is written as 0 -> 180 rather than -90 -> 90
-            if self.ang_range == "F":
-                mayafilename = (
-                    "Angle" + str(angle + 90 - self.offset_angle).zfill(3) + ".txt"
-                )  # changing mayalsl filename for actual readings
-            elif self.ang_range == "HL":
-                mayafilename = (
-                    "Angle" + str(angle - self.offset_angle).zfill(3) + ".txt"
-                )  # changing mayalsl filename for actual readings
-            elif self.ang_range == "HR":
-                mayafilename = (
-                    "Angle" + str(self.offset_angle - angle).zfill(3) + ".txt"
-                )  # changing mayalsl filename for actual readings
-            mayafilename = os.path.abspath(os.path.join(mayafilepath, mayafilename))
-            np.savetxt(
-                mayafilename,
-                spectrum.T,
-                fmt="%.3f %.0f",
-                delimiter="\t",
-                header="\n".join(header_lines3),
-                comments="",
-            )
-            end_process = time.clock()
-            processing_time = end_process - start_process
-            self.queue.put("\nProcessing time :  " + str(processing_time))
-
-            if self.ang_range == "F":
-                self.queue.put("\nAngle : " + str(angle + 90 - self.offset_angle))
-                ang.append(angle + 90 - self.offset_angle)
-            elif self.ang_range == "HL":
-                self.queue.put("\nAngle : " + str(angle - self.offset_angle))
-                ang.append(angle - self.offset_angle)
-            elif self.ang_range == "HR":
-                self.queue.put("\nAngle : " + str(self.offset_angle - angle))
-                ang.append(self.offset_angle - angle)
-
-        self.queue.put("\n\nMEASUREMENT COMPLETE")
-        """
 
     def save_iv_data(self):
         """
@@ -537,13 +379,24 @@ class GoniometerMeasurement(QtCore.QThread):
             line07,
         ]
 
+        file_path = (
+            self.setup_parameters["folder_path"]
+            + dt.date.today().strftime("%Y-%m-%d_")
+            + self.setup_parameters["batch_name"]
+            + "_d"
+            + str(self.setup_parameters["device_number"])
+            + "_p"
+            + str(self.pixel)
+            + "_gon-jvl"
+            + ".csv"
+        )
         # Write header lines to file
-        with open(self.folder_path + "goniometer_iv_data.csv", "a") as the_file:
+        with open(file_path, "a") as the_file:
             the_file.write("\n".join(header_lines))
 
         # Now write pandas dataframe to file
         self.iv_data.to_csv(
-            self.folder_path + "goniometer_iv_data.csv",
+            file_path,
             index=False,
             mode="a",
             header=False,
@@ -587,7 +440,7 @@ class GoniometerMeasurement(QtCore.QThread):
             )
 
         # Save the specific oled and photodiode data
-        line03 = "### Measurement data ###"
+        line03 = "### Measurement data ###\n"
 
         header_lines = [
             line01,
@@ -595,13 +448,24 @@ class GoniometerMeasurement(QtCore.QThread):
             line03,
         ]
 
+        file_path = (
+            self.setup_parameters["folder_path"]
+            + dt.date.today().strftime("%Y-%m-%d_")
+            + self.setup_parameters["batch_name"]
+            + "_d"
+            + str(self.setup_parameters["device_number"])
+            + "_p"
+            + str(self.pixel)
+            + "_gon-spec"
+            + ".csv"
+        )
         # Write header lines to file
-        with open(self.folder_path + "goniometer_spectra.csv", "a") as the_file:
+        with open(file_path, "a") as the_file:
             the_file.write("\n".join(header_lines))
 
         # Now write pandas dataframe to file with header names
         self.spectrum_data.to_csv(
-            self.folder_path + "goniometer_spectra.csv",
+            file_path,
             index=False,
             mode="a",
             header=True,

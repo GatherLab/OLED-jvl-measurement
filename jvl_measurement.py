@@ -208,6 +208,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.gw_move_pushButton.clicked.connect(self.move_motor)
 
+        self.gw_el_or_pl_toggleSwitch.clicked.connect(self.disable_el_options)
+
         # -------------------------------------------------------------------- #
         # --------------------- Set Standard Parameters ---------------------- #
         # -------------------------------------------------------------------- #
@@ -771,16 +773,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # This shall create an instance of the AutotubeMeasurement class
         progress = 0
         for pixel in selected_pixels:
-            file_path = (
-                setup_parameters["folder_path"]
-                + date.today().strftime("%Y-%m-%d_")
-                + setup_parameters["batch_name"]
-                + "_d"
-                + str(setup_parameters["device_number"])
-                + "_p"
-                + str(pixel)
-                + ".csv"
-            )
 
             self.log_message("Running on Pixel " + str(pixel))
 
@@ -790,8 +782,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 global_settings["keithley_multimeter_address"],
                 global_settings["arduino_com_address"],
                 measurement_parameters,
+                setup_parameters,
                 pixel,
-                file_path,
             )
 
             # Call measurement.run() to measure and save all the measured data into the class itself
@@ -909,11 +901,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             setup_parameters["folder_path"]
             + date.today().strftime("%Y-%m-%d_")
             + setup_parameters["batch_name"]
-            + "_spectrum"
             + "_d"
             + str(setup_parameters["device_number"])
             + "_p"
             + str(selected_pixels[0])
+            + "_spec"
             + ".csv"
         )
 
@@ -1011,6 +1003,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         there should also be the option to interrupt the goniometer
         measurement when it is already running
         """
+        # If the measurement is already running and the button is pressed,
+        # abort the measurement
+        if not self.gw_start_measurement_pushButton.isChecked():
+            self.goniometer_measurement.pause = "return"
+            return
 
         # Read all relevant parameters
         setup_parameters = self.safe_read_setup_parameters()
@@ -1022,7 +1019,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         global_settings = self.read_global_settings()
 
         # Check that only exactly one pixel is selected before measurement can
-        # be started (this could be also done with the gui directly)
+        # be started (this could be also done with the gui directly). Also if
+        # pl was selected the selected pixels do not matter
         if len(goniometer_measurement_parameters["selected_pixels"]) != 1:
             msgBox = QtWidgets.QMessageBox()
             msgBox.setText("Please select exactly one pixel")
@@ -1035,10 +1033,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             )
             msgBox.exec()
 
+            self.gw_start_measurement_pushButton.setChecked(False)
             self.log_message("More or less than one pixel selected")
             raise UserWarning("Please select exactly one pixel")
 
-            self.gw_start_measurement_pushButton.setChecked(False)
             return
 
         # Update statusbar
@@ -1059,9 +1057,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             global_settings["spectrum_integration_time"],
             global_settings["photodiode_gain"],
             goniometer_measurement_parameters["selected_pixels"],
-            setup_parameters["folder_path"],
             goniometer_measurement_parameters,
             autotube_measurement_parameters,
+            setup_parameters,
             self,
         )
 
@@ -1203,6 +1201,74 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             time.sleep(0.05)
 
         self.log_message("Motor moved to " + str(angle) + " °")
+
+    def disable_el_options(self):
+        """
+        Function to disable all options that are only needed for el in case
+        the pl switch was toggled.
+        """
+        # If it is checked, disable buttons. Else enable them
+        if self.gw_el_or_pl_toggleSwitch.isChecked():
+            # Set the two other toggle switches to False
+            self.gw_voltage_scan_toggleSwitch.setChecked(False)
+            self.gw_voltage_or_current_toggleSwitch.setChecked(False)
+
+            # Disable all non-relevant options
+            self.gw_voltage_scan_toggleSwitch.setEnabled(False)
+            self.gw_voltage_or_current_toggleSwitch.setEnabled(False)
+            self.gw_vc_value_spinBox.setEnabled(False)
+            self.gw_vc_compliance_spinBox.setEnabled(False)
+
+            # self.gw_pixel1_pushButton.setEnabled(False)
+            # self.gw_pixel2_pushButton.setEnabled(False)
+            # self.gw_pixel3_pushButton.setEnabled(False)
+            # self.gw_pixel4_pushButton.setEnabled(False)
+            # self.gw_pixel5_pushButton.setEnabled(False)
+            # self.gw_pixel6_pushButton.setEnabled(False)
+            # self.gw_pixel7_pushButton.setEnabled(False)
+            # self.gw_pixel8_pushButton.setEnabled(False)
+
+        else:
+            # Enable all options that are only relevant for EL measurements
+            self.gw_voltage_scan_toggleSwitch.setEnabled(True)
+            self.gw_voltage_or_current_toggleSwitch.setEnabled(True)
+            self.gw_vc_value_spinBox.setEnabled(True)
+            self.gw_vc_compliance_spinBox.setEnabled(True)
+
+            # self.gw_pixel1_pushButton.setEnabled(True)
+            # self.gw_pixel2_pushButton.setEnabled(True)
+            # self.gw_pixel3_pushButton.setEnabled(True)
+            # self.gw_pixel4_pushButton.setEnabled(True)
+            # self.gw_pixel5_pushButton.setEnabled(True)
+            # self.gw_pixel6_pushButton.setEnabled(True)
+            # self.gw_pixel7_pushButton.setEnabled(True)
+            # self.gw_pixel8_pushButton.setEnabled(True)
+
+    @QtCore.Slot()
+    def pause_goniometer_measurement(self):
+        """
+        Function to ask to turn the PL lamp on before continuing
+        """
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setText("You can now turn on the UV-lamp")
+        msgBox.setStandardButtons(
+            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
+        )
+        msgBox.setStyleSheet(
+            "background-color: rgb(44, 49, 60);\n"
+            "color: rgb(255, 255, 255);\n"
+            'font: 63 bold 10pt "Segoe UI";\n'
+            ""
+        )
+        button = msgBox.exec()
+
+        if button == QtWidgets.QMessageBox.Ok:
+            self.goniometer_measurement.pause = "break"
+            self.log_message("UV lamp was turned on")
+        elif button == QtWidgets.QMessageBox.Cancel:
+            self.goniometer_measurement.pause = "return"
+            self.log_message("PL measurement aborted before UV lamp was turned on")
+            self.gw_start_measurement_pushButton.setChecked(False)
 
 
 # Logging

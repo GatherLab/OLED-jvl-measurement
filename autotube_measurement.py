@@ -28,12 +28,13 @@ class AutotubeMeasurement(QtCore.QThread):
 
     def __init__(
         self,
-        keithley_source_address,
-        keithley_multimeter_address,
-        com2_address,
+        keithley_source,
+        keithley_multimeter,
+        uno,
         measurement_parameters,
+        setup_parameters,
         pixel,
-        file_path,
+        devices_already_initialised,
     ):
         """
         Initialise class. Measurement parameters are handed over from the GUI
@@ -41,14 +42,20 @@ class AutotubeMeasurement(QtCore.QThread):
         super(AutotubeMeasurement, self).__init__()
 
         # Initialise arduino and Keithley source and multimeter with the input addresses
-        self.uno = MockArduinoUno(com2_address)
-        self.keithley_source = MockKeithleySource(
-            keithley_source_address, measurement_parameters["scan_compliance"]
-        )
-        self.keithley_multimeter = MockKeithleyMultimeter(keithley_multimeter_address)
+        if devices_already_initialised:
+            self.uno = uno
+            self.keithley_source = keithley_source
+            self.keithley_multimeter = keithley_multimeter
+        else:
+            self.uno = MockArduinoUno(uno)
+            self.keithley_source = MockKeithleySource(
+                keithley_source, measurement_parameters["scan_compliance"]
+            )
+            self.keithley_multimeter = MockKeithleyMultimeter(keithley_multimeter)
 
         # Now set the input parameters as parameters of the datastructure
         self.measurement_parameters = measurement_parameters
+        self.setup_parameters = setup_parameters
         # self.PDcutoff = self.set_photodiode_gain(photodiode_gain)
         self.pixel = pixel
 
@@ -56,49 +63,6 @@ class AutotubeMeasurement(QtCore.QThread):
         # be done while measuring but I think there is not much benefit and the
         # programming is uglier), only one pixel is scanned at a time
         self.df_data = pd.DataFrame(columns=["voltage", "current", "pd_voltage"])
-
-        self.file_path = file_path
-
-    # For some reason this function is not used at all
-    # def set_photodiode_gain(self, photodiode_gain):
-    #     """
-    #     Set photodiode cutoff voltage according to photodiode_gain of photodiode.
-
-    #     photodiode_gain: int (0, 10, 20, 30, 40, 50, 60, 70)
-    #         photodiode_gain of photodiode which was used to measure the luminance.
-
-    #     returns:
-    #         PDcutoff: float
-    #             cutoff voltage of photodiode below which only noise is expected.
-    #     """
-
-    #     # Also this can be done more efficiently but aphotodiode_gain lets leave it like
-    #     # that, make it work for now and then come back at a later point
-    #     if photodiode_gain == 0:
-    #         PDcutoff = 1e-6  # V
-    #     elif photodiode_gain == 10:
-    #         PDcutoff = 3e-6  # V
-    #     elif photodiode_gain == 20:
-    #         PDcutoff = 5e-6  # V
-    #     elif photodiode_gain == 30:
-    #         PDcutoff = 1e-5  # V
-    #     elif photodiode_gain == 40:
-    #         PDcutoff = 3e-5  # V
-    #     elif photodiode_gain == 50:
-    #         PDcutoff = 1e-4  # V
-    #     elif photodiode_gain == 60:
-    #         PDcutoff = 3e-4  # V
-    #     elif photodiode_gain == 70:
-    #         PDcutoff = 2e-3  # V
-    #     else:
-    #         raise ValueError("Not a valid photodiode_gain entered.")
-    #         # self.queue.put(
-    #         # "Error: Not a valid photodiode_gain."
-    #         # + "\nThe Thorlabs PDA100A-EC supports the following photodiode_gains:"
-    #         # + "\n0 dB, 10 dB, 20 dB, 30 dB, 40 dB, 50 dB, 60 dB, 70 dB"
-    #         # + "\nCheck photodiode photodiode_gain in your data header."
-    #         # )
-    #     return PDcutoff
 
     def run(self):
         """
@@ -200,25 +164,25 @@ class AutotubeMeasurement(QtCore.QThread):
         """
         # Define Header
         line03 = (
-            "Max voltage:   "
+            "Min voltage:   "
+            + str(self.measurement_parameters["min_voltage"])
+            + " V   "
+            + "Max voltage:   "
             + str(self.measurement_parameters["max_voltage"])
             + " V    "
             + "Change voltage:   "
             + str(self.measurement_parameters["changeover_voltage"])
-            + " V    "
-            + "Min voltage:   "
-            + str(self.measurement_parameters["min_voltage"])
             + " V"
         )
         line04 = (
             "Step voltage at low voltages:   "
             + str(self.measurement_parameters["low_voltage_step"])
-            + "V"
+            + " V"
         )
         line05 = (
             "Step voltage at high voltages:   "
             + str(self.measurement_parameters["high_voltage_step"])
-            + "V"
+            + " V"
         )
         line06 = (
             "Current Compliance:   "
@@ -240,13 +204,22 @@ class AutotubeMeasurement(QtCore.QThread):
         ]
 
         # Write header lines to file
-        with open(self.file_path, "a") as the_file:
+        file_path = (
+            self.setup_parameters["folder_path"]
+            + dt.date.today().strftime("%Y-%m-%d_")
+            + self.setup_parameters["batch_name"]
+            + "_d"
+            + str(self.setup_parameters["device_number"])
+            + "_p"
+            + str(self.pixel)
+            + "_jvl"
+            + ".csv"
+        )
+        with open(file_path, "a") as the_file:
             the_file.write("\n".join(header_lines))
 
         # Now write pandas dataframe to file
-        self.df_data.to_csv(
-            self.file_path, index=False, mode="a", header=False, sep="\t"
-        )
+        self.df_data.to_csv(file_path, index=False, mode="a", header=False, sep="\t")
 
     # def get_data(self):
     #     """
