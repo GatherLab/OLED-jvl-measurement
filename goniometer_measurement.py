@@ -66,7 +66,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # Initialise hardware
         self.spectrometer = MockOceanSpectrometer(integration_time)
-        self.motor = MockThorlabMotor(motor_number, motor_offset)
+        self.motor = ThorlabMotor(motor_number, motor_offset)
 
         # Hardware only needed for EL measurement
         if not self.goniometer_measurement_parameters["el_or_pl"]:

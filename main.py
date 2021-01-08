@@ -211,6 +211,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_move_pushButton.clicked.connect(self.move_motor)
 
         self.gw_el_or_pl_toggleSwitch.clicked.connect(self.disable_el_options)
+        try:
+            motor = ThorlabMotor(
+                global_settings["motor_number"], global_settings["motor_offset"]
+            )
+            motor.motor.move_home(True)
+            # motor.move_to(-45)
+        except:
+            self.log_message("Motor could not be initialised!")
 
         # -------------------------------------------------------------------- #
         # --------------------- Set Standard Parameters ---------------------- #
@@ -1208,7 +1216,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         global_settings = self.read_global_settings()
 
         # Initialise motor (it might be better to do this less often)
-        motor = MockThorlabMotor(
+        motor = ThorlabMotor(
             global_settings["motor_number"], global_settings["motor_offset"]
         )
 
@@ -1230,7 +1238,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             motor_position = motor.read_position()
             self.gw_animation.move(motor_position)
             app.processEvents()
-            print("Blub")
             time.sleep(0.05)
 
         self.log_message("Motor moved to " + str(angle) + " °")
@@ -1302,6 +1309,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.goniometer_measurement.pause = "return"
             self.log_message("PL measurement aborted before UV lamp was turned on")
             self.gw_start_measurement_pushButton.setChecked(False)
+
+    def closeEvent(self, event):
+        # do stuff
+        try:
+            global_settings = self.read_global_settings()
+            motor = ThorlabMotor(
+                global_settings["motor_number"], global_settings["motor_offset"]
+            )
+            motor.motor._cleanup()
+            time.sleep(5)
+        except:
+            self.log_message("Motor could not be turned off correctly")
+
+        # if can_exit:
+        event.accept()  # let the window close
+        # else:
+        #     event.ignore()
 
 
 # Logging

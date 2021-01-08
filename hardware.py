@@ -2,7 +2,7 @@ import pyvisa  # Keithley Module
 import serial  # Arduino Module
 import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
-# import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
+import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
 
 
 import sys
@@ -352,12 +352,14 @@ class ThorlabMotor:
     def __init__(self, motor_number, offset_angle):
 
         # Set the motor to the number
-        self.motor = apt.Motor(motor_number)
+        self.motor = apt.Motor(int(motor_number))
         # velocity MUST be set to avoid the motor moving slowly
         self.motor.set_velocity_parameters(0, 9, 5)
         # ensures that the motor homes properly - home in reverse with reverse lim switches
         self.motor.set_hardware_limit_switches(5, 5)
         self.motor.set_move_home_parameters(2, 1, 9, 3)
+        # Move the motor home first, so that we can work with absolute positions
+        # self.motor.move_home(True)
 
         self.offset_angle = offset_angle
 
@@ -365,10 +367,23 @@ class ThorlabMotor:
         """
         Call the move_to function of the apt package
         """
-        self.motor.move_to(angle + self.offset_angle)
+        # The motor does not always choose the closest way. If we want that, it must be calculated first
+        if angle < self.motor.position:
+            self.motor.move_velocity(int(1))
+        elif angle > self.motor.position:
+            self.motor.move_velocity(int(2))
+        self.motor.move_to(angle - float(self.offset_angle))
 
     def read_position(self):
         """
         Function that reads out the current motor position
         """
-        return self.motor.position() + self.offset_angle
+        # Make sure that the motor position is returned as values between -180 to 180 (definition)
+        if self.motor.position + float(self.offset_angle) > 180:
+            motor_position_translated = (
+                self.motor.position + float(self.offset_angle) - 360
+            )
+        else:
+            motor_position_translated = self.motor.position + float(self.offset_angle)
+
+        return motor_position_translated

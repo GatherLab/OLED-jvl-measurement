@@ -113,5 +113,5 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
         """
         Function to trigger a move of the position animation for the goniometer
         """
-        self.position = position
+        self.position = round(position, 1)
         self.update()
