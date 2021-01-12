@@ -55,10 +55,10 @@ class AutotubeMeasurement(QtCore.QThread):
             self.keithley_multimeter = keithley_multimeter
         else:
             self.uno = MockArduinoUno(uno)
-            self.keithley_source = MockKeithleySource(
+            self.keithley_source = KeithleySource(
                 keithley_source, measurement_parameters["scan_compliance"]
             )
-            self.keithley_multimeter = MockKeithleyMultimeter(keithley_multimeter)
+            self.keithley_multimeter = KeithleyMultimeter(keithley_multimeter)
 
         # Now set the input parameters as parameters of the datastructure
         self.measurement_parameters = measurement_parameters

@@ -38,7 +38,7 @@ class CurrentTester(QtCore.QThread):
 
         # Initialise arduino and Keithley source and multimeter with the input addresses
         self.uno = MockArduinoUno(arduino_com_address)
-        self.keithley_source = MockKeithleySource(keithley_source_address, 1.05)
+        self.keithley_source = KeithleySource(keithley_source_address, 1.05)
         # self.keithley_multimeter = KeithleyMultimeter(keithley_multimeter_address)
         self.keithley_source.activate_output()
 

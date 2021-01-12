@@ -71,13 +71,11 @@ class GoniometerMeasurement(QtCore.QThread):
         # Hardware only needed for EL measurement
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             self.uno = MockArduinoUno(com2_address)
-            self.keithley_source = MockKeithleySource(
+            self.keithley_source = KeithleySource(
                 keithley_source_address,
                 autotube_measurement_parameters["scan_compliance"],
             )
-            self.keithley_multimeter = MockKeithleyMultimeter(
-                keithley_multimeter_address
-            )
+            self.keithley_multimeter = KeithleyMultimeter(keithley_multimeter_address)
 
         # Connect signal to the updater from the parent class
         self.update_goniometer_spectrum_signal.connect(

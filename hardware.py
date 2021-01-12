@@ -4,7 +4,6 @@ import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
 import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
 
-
 import sys
 import time
 import logging
@@ -151,7 +150,7 @@ class KeithleySource:
         self.keith = rm.open_resource(keithley_source_address)
 
         # As a standard initialise the Keithley as a voltage source
-        self.keith.as_voltage_source(current_compliance)
+        self.as_voltage_source(current_compliance)
 
         # Set voltage mode indicator
         self.mode = "voltage"
