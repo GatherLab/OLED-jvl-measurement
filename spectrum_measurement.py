@@ -31,8 +31,8 @@ class SpectrumMeasurement(QtCore.QThread):
 
         # Initialise hardware
         self.uno = MockArduinoUno(com2_address)
-        self.keithley_source = KeithleySource(keithley_source_address, 1.05)
-        self.spectrometer = OceanSpectrometer(integration_time)
+        self.keithley_source = MockKeithleySource(keithley_source_address, 1.05)
+        self.spectrometer = MockOceanSpectrometer(integration_time)
 
         # Connect signal to the updater from the parent class
         self.update_spectrum_signal.connect(parent.update_spectrum)

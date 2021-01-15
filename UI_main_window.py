@@ -1623,4 +1623,3 @@ class Ui_MainWindow(object):
         # self.settings_window.show()
 
         result = self.settings_window.exec()
-        print(result)

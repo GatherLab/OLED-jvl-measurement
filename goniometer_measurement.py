@@ -17,6 +17,7 @@ from tests.tests import (
     MockThorlabMotor,
 )
 from autotube_measurement import AutotubeMeasurement
+import core_function as cf
 
 import time
 import numpy as np
@@ -30,7 +31,6 @@ class GoniometerMeasurement(QtCore.QThread):
     """
 
     update_goniometer_spectrum_signal = QtCore.Signal(list, list)
-    update_log_message = QtCore.Signal(str)
     update_animation = QtCore.Signal(float)
     update_progress_bar = QtCore.Signal(str, float)
     hide_progress_bar = QtCore.Signal()
@@ -65,23 +65,24 @@ class GoniometerMeasurement(QtCore.QThread):
         self.parent = parent
 
         # Initialise hardware
-        self.spectrometer = OceanSpectrometer(integration_time)
-        self.motor = ThorlabMotor(motor_number, motor_offset)
+        self.spectrometer = MockOceanSpectrometer(integration_time)
+        self.motor = MockThorlabMotor(motor_number, motor_offset)
 
         # Hardware only needed for EL measurement
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             self.uno = MockArduinoUno(com2_address)
-            self.keithley_source = KeithleySource(
+            self.keithley_source = MockKeithleySource(
                 keithley_source_address,
                 autotube_measurement_parameters["scan_compliance"],
             )
-            self.keithley_multimeter = KeithleyMultimeter(keithley_multimeter_address)
+            self.keithley_multimeter = MockKeithleyMultimeter(
+                keithley_multimeter_address
+            )
 
         # Connect signal to the updater from the parent class
         self.update_goniometer_spectrum_signal.connect(
             parent.update_goniometer_spectrum
         )
-        self.update_log_message.connect(parent.log_message)
         self.update_animation.connect(parent.gw_animation.move)
         self.update_progress_bar.connect(parent.progressBar.setProperty)
         self.hide_progress_bar.connect(parent.progressBar.hide)
@@ -111,7 +112,7 @@ class GoniometerMeasurement(QtCore.QThread):
         # self.parent.gw_animation.move(0)
         self.update_animation.emit(0)
         time.sleep(self.goniometer_measurement_parameters["homing_time"])
-        self.update_log_message.emit("Moved to home position")
+        cf.log_message("Moved to home position")
 
         # The following is only needed for EL measurement
         if not self.goniometer_measurement_parameters["el_or_pl"]:
@@ -145,9 +146,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.keithley_source.set_voltage(
                     self.goniometer_measurement_parameters["vc_value"]
                 )
-                self.update_log_message.emit(
-                    "Keithley source initialised as voltage source"
-                )
+                cf.log_message("Keithley source initialised as voltage source")
             else:
                 self.keithley_source.as_current_source(
                     self.goniometer_measurement_parameters["vc_compliance"]
@@ -155,9 +154,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.keithley_source.set_current(
                     self.goniometer_measurement_parameters["vc_value"]
                 )
-                self.update_log_message.emit(
-                    "Keithley source initialised as current source"
-                )
+                cf.log_message("Keithley source initialised as current source")
 
             self.keithley_source.init_buffer("pulsebuffer", buffer_length=1000)
 
@@ -175,7 +172,7 @@ class GoniometerMeasurement(QtCore.QThread):
             self.keithley_source.deactivate_output()
             self.uno.open_relay(relay=self.pixel[0], state=0)
 
-            self.update_log_message.emit("Specific voltages measured")
+            cf.log_message("Specific voltages measured")
 
         # PL from here on
         self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
@@ -183,7 +180,7 @@ class GoniometerMeasurement(QtCore.QThread):
             self.goniometer_measurement_parameters["minimum_angle"]
         )
 
-        self.update_log_message.emit(
+        cf.log_message(
             "Motor moved to minimum angle: "
             + str(self.goniometer_measurement_parameters["minimum_angle"])
             + " °"
@@ -194,7 +191,7 @@ class GoniometerMeasurement(QtCore.QThread):
         calibration_spectrum = self.spectrometer.measure()
         self.spectrum_data["wavelength"] = calibration_spectrum[0]
         self.spectrum_data["background"] = calibration_spectrum[1]
-        self.update_log_message.emit("Calibration spectrum measured")
+        cf.log_message("Calibration spectrum measured")
 
         # Initial processing time in seconds
         # I am not quite sure why this is done and if there is no better way of doing it
@@ -211,7 +208,7 @@ class GoniometerMeasurement(QtCore.QThread):
         else:
             # Check first if user already aborted the measurement
             if self.pause == "return":
-                self.update_log_message.emit("Goniometer measurement aborted")
+                cf.log_message("Goniometer measurement aborted")
                 self.hide_progress_bar.emit()
                 self.reset_start_button.emit(False)
                 return
@@ -240,7 +237,7 @@ class GoniometerMeasurement(QtCore.QThread):
             # the measurement after each iterration by simply pressing the
             # pushButton again
             if self.pause == "return":
-                self.update_log_message(
+                cf.log_message(
                     "Goniometer measurement aborted at angle " + str(angle) + "°"
                 )
                 self.hide_progress_bar.emit()
@@ -251,7 +248,7 @@ class GoniometerMeasurement(QtCore.QThread):
             # self.parent.gw_animation.move(angle)
             self.update_animation.emit(angle)
             time.sleep(self.goniometer_measurement_parameters["moving_time"])
-            self.update_log_message.emit("Moved to angle " + str(angle) + " °")
+            cf.log_message("Moved to angle " + str(angle) + " °")
 
             # Only activate output for EL measurement
             if not self.goniometer_measurement_parameters["el_or_pl"]:
@@ -318,7 +315,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 * 100,
             )
 
-        self.update_log_message.emit("Measurement finished")
+        cf.log_message("Measurement finished")
 
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             # Close relay and serial connection as well
@@ -419,7 +416,7 @@ class GoniometerMeasurement(QtCore.QThread):
             header=False,
             sep="\t",
         )
-        self.update_log_message.emit("IV data saved")
+        cf.log_message("IV data saved")
 
     def save_spectrum_data(self):
         """
@@ -489,4 +486,4 @@ class GoniometerMeasurement(QtCore.QThread):
             sep="\t",
         )
 
-        self.update_log_message.emit("Spectral data saved")
+        cf.log_message("Spectral data saved")
