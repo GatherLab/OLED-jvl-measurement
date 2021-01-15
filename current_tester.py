@@ -26,9 +26,8 @@ class CurrentTester(QtCore.QThread):
 
     def __init__(
         self,
-        arduino_com_address,
-        keithley_source_address,
-        # keithley_multimeter_address,
+        arduino,
+        keithley_source,
         parent=None,
     ):
 
@@ -36,10 +35,10 @@ class CurrentTester(QtCore.QThread):
 
         self.is_killed = False
 
-        # Initialise arduino and Keithley source and multimeter with the input addresses
-        self.uno = MockArduinoUno(arduino_com_address)
-        self.keithley_source = MockKeithleySource(keithley_source_address, 1.05)
-        # self.keithley_multimeter = MockKeithleyMultimeter(keithley_multimeter_address)
+        # Reset Arduino and Keithley
+        self.uno = arduino
+        self.keithley_source = keithley_source
+        self.keithley_source.as_voltage_source(1.05)
         self.keithley_source.activate_output()
 
         # Connect signal to the updater from the parent class

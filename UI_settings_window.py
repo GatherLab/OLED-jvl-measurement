@@ -21,6 +21,25 @@ class Ui_Settings(QtWidgets.QDialog):
             "color: rgb(255, 255, 255);\n"
             'font: 63 10pt "Segoe UI";\n'
             ""
+            "QPushButton {\n"
+            "            border: 2px solid rgb(52, 59, 72);\n"
+            "            border-radius: 5px;\n"
+            "            background-color: rgb(52, 59, 72);\n"
+            "            color: rgb(255, 255, 255);\n"
+            "            font: 63 bold 10pt 'Segoe UI';\n"
+            "}\n"
+            "QPushButton:hover {\n"
+            "            background-color: rgb(57, 65, 80);\n"
+            "            border: 2px solid rgb(61, 70, 86);\n"
+            "}\n"
+            "QPushButton:pressed {\n"
+            "            background-color: rgb(35, 40, 49);\n"
+            "            border: 2px solid rgb(43, 50, 61);\n"
+            "}\n"
+            "QPushButton:checked {\n"
+            "            background-color: rgb(35, 40, 49);\n"
+            "            border: 2px solid rgb(85, 170, 255);\n"
+            "}"
         )
         self.gridLayout = QtWidgets.QGridLayout(Settings)
         self.gridLayout.setContentsMargins(25, 10, 25, 10)

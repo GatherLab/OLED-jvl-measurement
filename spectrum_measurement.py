@@ -21,18 +21,17 @@ class SpectrumMeasurement(QtCore.QThread):
     # With pyside2 https://wiki.qt.io/Qt_for_Python_Signals_and_Slots
     update_spectrum_signal = QtCore.Signal(list, list)
 
-    def __init__(
-        self, com2_address, keithley_source_address, integration_time, parent=None
-    ):
+    def __init__(self, arduino, keithley_source, spectrometer, parent=None):
         super(SpectrumMeasurement, self).__init__()
         # Variable to kill thread
         self.is_killed = False
-        self.integration_time = integration_time
 
-        # Initialise hardware
-        self.uno = MockArduinoUno(com2_address)
-        self.keithley_source = MockKeithleySource(keithley_source_address, 1.05)
-        self.spectrometer = MockOceanSpectrometer(integration_time)
+        # Assign hardware and reset
+        self.uno = arduino
+        self.uno.init_serial_connection()
+        self.keithley_source = keithley_source
+        self.keithley_source.as_voltage_source(1.05)
+        self.spectrometer = spectrometer
 
         # Connect signal to the updater from the parent class
         self.update_spectrum_signal.connect(parent.update_spectrum)

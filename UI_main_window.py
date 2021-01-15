@@ -1595,31 +1595,3 @@ class Ui_MainWindow(object):
         cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qc.moveCenter(cp)
         self.move(qc.topLeft())
-
-    def browse_folder(self):
-        file_dialog = QtWidgets.QFileDialog()
-        file_dialog.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
-        # file_dialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
-
-        if file_dialog.exec():
-            # Set global path to selected path
-            self.global_path = file_dialog.selectedFiles()
-
-            # Set the according line edit
-            self.sw_folder_path_lineEdit.setText(self.global_path[0] + "/")
-
-    def show_settings(self):
-        self.settings_window = QtWidgets.QDialog()
-        ui = Ui_Settings()
-        ui.setupUi(self.settings_window, parent=self)
-
-        p = (
-            self.frameGeometry().center()
-            - QtCore.QRect(QtCore.QPoint(), self.settings_window.sizeHint()).center()
-        )
-
-        self.settings_window.move(p)
-
-        # self.settings_window.show()
-
-        result = self.settings_window.exec()

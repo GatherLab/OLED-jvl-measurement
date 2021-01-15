@@ -16,6 +16,9 @@ class MockArduinoUno:
     def open_relay(self, relay, state):
         print("relay " + str(relay) + " opened or closed")
 
+    def init_serial_connection(self):
+        print("Serial connection initiated")
+
 
 class MockKeithleySource:
     """

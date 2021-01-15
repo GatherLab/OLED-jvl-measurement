@@ -17,7 +17,7 @@ from tests.tests import (
     MockThorlabMotor,
 )
 from autotube_measurement import AutotubeMeasurement
-import core_function as cf
+import core_functions as cf
 
 import time
 import numpy as np
@@ -39,13 +39,11 @@ class GoniometerMeasurement(QtCore.QThread):
 
     def __init__(
         self,
-        keithley_source_address,
-        keithley_multimeter_address,
-        com2_address,
-        motor_number,
-        motor_offset,
-        integration_time,
-        photodiode_gain,
+        keithley_source,
+        keithley_multimeter,
+        arduino_uno,
+        motor,
+        spectrometer,
         pixel,
         goniometer_measurement_parameters,
         autotube_measurement_parameters,
@@ -59,25 +57,20 @@ class GoniometerMeasurement(QtCore.QThread):
         self.autotube_measurement_parameters = autotube_measurement_parameters
         self.setup_parameters = setup_parameters
 
-        self.photodiode_gain = photodiode_gain
         self.pixel = pixel
-
         self.parent = parent
 
         # Initialise hardware
-        self.spectrometer = MockOceanSpectrometer(integration_time)
-        self.motor = MockThorlabMotor(motor_number, motor_offset)
+        self.spectrometer = spectrometer
+        self.motor = motor
 
-        # Hardware only needed for EL measurement
-        if not self.goniometer_measurement_parameters["el_or_pl"]:
-            self.uno = MockArduinoUno(com2_address)
-            self.keithley_source = MockKeithleySource(
-                keithley_source_address,
-                autotube_measurement_parameters["scan_compliance"],
-            )
-            self.keithley_multimeter = MockKeithleyMultimeter(
-                keithley_multimeter_address
-            )
+        self.uno = arduino_uno
+        self.keithley_source = keithley_source
+        self.keithley_source.as_voltage_source(
+            autotube_measurement_parameters["scan_compliance"]
+        )
+        self.keithley_multimeter = keithley_multimeter
+        self.keithley_multimeter.reset()
 
         # Connect signal to the updater from the parent class
         self.update_goniometer_spectrum_signal.connect(
