@@ -209,6 +209,12 @@ class KeithleySource:
         """
         Initialise buffer of source meter
         """
+        # if the buffer already exists, delete it first to prevent the error
+        # "parameter error TRACe:MAKE cannot use an existing reading buffer name keithley"
+        try:
+            self.keith.write('TRACe:DELete "' + buffer_name + '"')
+        except:
+            print("Buffer " + buffer_name + " does not exist yet")
         self.keith.write(
             'Trace:Make "' + buffer_name + '", ' + str(max(buffer_length, 10))
         )
@@ -329,7 +335,7 @@ class OceanSpectrometer:
         self.spectrometer = sb.Spectrometer(maya_devices[0])
 
         # Set integration time of spectrometer
-        self.spectrometer.integration_time_micros(integration_time)
+        self.spectrometer.integration_time_micros(int(integration_time))
 
     def measure(self):
         """
@@ -380,7 +386,7 @@ class ThorlabMotor:
         # Make sure that the motor position is returned as values between -180 to 180 (definition)
         if self.motor.position + float(self.offset_angle) > 180:
             motor_position_translated = (
-                self.motor.position + float(self.offset_angle) - 360
+                sSourceMeteielf.motor.position + float(self.offset_angle) - 360
             )
         else:
             motor_position_translated = self.motor.position + float(self.offset_angle)

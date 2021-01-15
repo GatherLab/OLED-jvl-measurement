@@ -1186,7 +1186,7 @@ class Ui_MainWindow(object):
         self.gw_integration_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.gw_integration_time_label.setObjectName("gw_integration_time_label")
         self.gridLayout_9.addWidget(self.gw_integration_time_label, 16, 0, 1, 1)
-        self.gw_integration_time_spinBox = QtWidgets.QDoubleSpinBox(
+        self.gw_integration_time_spinBox = QtWidgets.QSpinBox(
             self.gw_scrollAreaWidgetContents
         )
         self.gw_integration_time_spinBox.setObjectName("gw_integration_time_spinBox")
@@ -1390,7 +1390,7 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Batch Name and File Path")
         )
         self.sw_activate_local_mode_pushButton.setText(
-            _translate("MainWindow", "Activate Local Mode")
+            _translate("MainWindow", "Reset Keithley")
         )
         self.sw_pixel_label.setText(_translate("MainWindow", "Select Pixels"))
         self.sw_pixel2_pushButton.setText(_translate("MainWindow", "2"))
@@ -1554,7 +1554,7 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "I/V Compliance (A/V)")
         )
         self.gw_integration_time_label.setText(
-            _translate("MainWindow", "Integration Time (ms)")
+            _translate("MainWindow", "Integration Time (us)")
         )
         self.gw_homing_time_label.setText(_translate("MainWindow", "Homing Time (s)"))
         # self.gw_animation.setText(_translate("MainWindow", "small animation"))

@@ -7,7 +7,8 @@ from spectrum_measurement import SpectrumMeasurement
 from goniometer_measurement import GoniometerMeasurement
 
 from tests.tests import MockThorlabMotor
-from hardware import ThorlabMotor
+from hardware import ThorlabMotor, KeithleyMultimeter, KeithleySource
+import thorlabs_apt as apt
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -62,12 +63,70 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.progressBar.hide()
 
         # -------------------------------------------------------------------- #
+        # -------------------------- Hardware Setup -------------------------- #
+        # -------------------------------------------------------------------- #
+        # Before doing much it should be checked if the hardware can be
+        # initialised savely. If not, ask the user to unplug a certain hardware
+        # again
+        # Read global settings first (what if they are not correct yet?)
+        global_settings = self.read_global_settings()
+
+        # Try if motor can be easily initialised
+        try:
+            motor = ThorlabMotor(
+                global_settings["motor_number"], global_settings["motor_offset"]
+            )
+            motor.motor.move_home(True)
+            self.log_message("Motor successfully initialised")
+            # motor.move_to(-45)
+        except:
+            self.log_message(
+                "Motor could not be initialised! Please reconnect the device and check the serial number in the settings file!"
+            )
+
+        # Try if the spectrometer is present
+        try:
+            self.spectrum_measurement = SpectrumMeasurement(
+                global_settings["arduino_com_address"],
+                global_settings["keithley_source_address"],
+                global_settings["spectrum_integration_time"],  # 300 ms
+                parent=self,
+            )
+            self.log_message("Spectrometer successfully initialised")
+        except:
+            self.log_message(
+                "The spectrometer could not be initialised! Please reconnect the device!"
+            )
+
+        # Check if Keithley source is on and can be used
+        try:
+            self.keithley_source = KeithleySource(
+                global_settings["keithley_source_address"],
+                1.05,
+            )
+            self.log_message("Keithley SourceMeter successfully initialised")
+        except:
+            self.log_message(
+                "The Keithley SourceMeter could not be initialised! Please reconnect the device and check the serial number in the settings file!"
+            )
+
+        # Check if Keithley multimeter is present
+        try:
+            self.keithley_multimeter = KeithleyMultimeter(
+                global_settings["keithley_multimeter_address"]
+            )
+            self.log_message("Keithley Multimeter successfully initialised")
+        except:
+            self.log_message(
+                "The Keithley Multimeter could not be initialised! Please reconnect the device and check the serial number in the settings file!"
+            )
+
+        # -------------------------------------------------------------------- #
         # -------------------------- Current Tester -------------------------- #
         # -------------------------------------------------------------------- #
 
         # First init of current tester (should be activated when starting the
         # program)
-        global_settings = self.read_global_settings()
         self.current_tester = CurrentTester(
             global_settings["arduino_com_address"],
             global_settings["keithley_source_address"],
@@ -143,13 +202,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # -------------------------------------------------------------------- #
         # ---------------------- Spectrum Measurement  ----------------------- #
         # -------------------------------------------------------------------- #
-
-        self.spectrum_measurement = SpectrumMeasurement(
-            global_settings["arduino_com_address"],
-            global_settings["keithley_source_address"],
-            integration_time=300000,  # 300 ms
-            parent=self,
-        )
 
         # Start thread
         self.spectrum_measurement.start()
@@ -251,7 +303,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_maximum_angle_spinBox.setMinimum(-360)
         self.gw_step_angle_spinBox.setValue(1)
         self.gw_step_angle_spinBox.setMaximum(360)
-        self.gw_integration_time_spinBox.setValue(300)
+        self.gw_integration_time_spinBox.setValue(300000)
+        self.gw_integration_time_spinBox.setMaximum(10000000)
+        self.gw_integration_time_spinBox.setMinimum(0)
         self.gw_homing_time_spinBox.setValue(30)
         self.gw_moving_time_spinBox.setValue(1)
         self.gw_pulse_duration_spinBox.setValue(2)
@@ -292,11 +346,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def log_message(self, message):
         """
         Function that manages the logging, in the sense that everything is
-        directly logged into statusbar and the log file at once instead of
-        having to call multiple functions.
+        directly logged into statusbar and the log file at once as well as
+        printed to the console instead of having to call multiple functions.
         """
         self.statusbar.showMessage(message, 10000000)
         logging.info(message)
+        print(message)
 
     def changed_tab_widget(self):
         """
@@ -1311,7 +1366,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gw_start_measurement_pushButton.setChecked(False)
 
     def closeEvent(self, event):
-        # do stuff
+        # Kill motor savely
         try:
             global_settings = self.read_global_settings()
             motor = ThorlabMotor(
@@ -1321,6 +1376,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             time.sleep(5)
         except:
             self.log_message("Motor could not be turned off correctly")
+
+        # Kill spectrometer thread
+        try:
+            self.spectrum_measurement.kill()
+        except:
+            self.log_message("Spectrometer thread could not be killed")
+
+        # Kill keithley thread savely
+        try:
+            self.current_tester.kill()
+        except:
+            self.log_message("Keithley thread could not be killed")
 
         # if can_exit:
         event.accept()  # let the window close

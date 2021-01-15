@@ -32,7 +32,7 @@ class SpectrumMeasurement(QtCore.QThread):
         # Initialise hardware
         self.uno = MockArduinoUno(com2_address)
         self.keithley_source = KeithleySource(keithley_source_address, 1.05)
-        self.spectrometer = MockOceanSpectrometer(integration_time)
+        self.spectrometer = OceanSpectrometer(integration_time)
 
         # Connect signal to the updater from the parent class
         self.update_spectrum_signal.connect(parent.update_spectrum)
@@ -51,6 +51,8 @@ class SpectrumMeasurement(QtCore.QThread):
             time.sleep(1)
 
             if self.is_killed:
+                # Close the connection to the spectrometer
+                self.spectrometer.spectrometer.close()
                 self.quit()
                 break
 
