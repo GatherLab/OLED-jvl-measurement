@@ -73,7 +73,7 @@ class InitThread(QtCore.QThread):
 
         self.emit_arduino.emit(uno)
 
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         self.update_loading_dialog.emit(20, "Initialising Motor")
 
@@ -97,7 +97,7 @@ class InitThread(QtCore.QThread):
 
         self.emit_motor.emit(motor)
 
-        time.sleep(0.5)
+        time.sleep(0.1)
 
         self.update_loading_dialog.emit(40, "Setting up Spectrometer")
 
@@ -119,7 +119,7 @@ class InitThread(QtCore.QThread):
 
         self.emit_spectrometer.emit(spectrometer)
 
-        time.sleep(0.5)
+        time.sleep(0.1)
         self.update_loading_dialog.emit(60, "Checking for Keithley source")
 
         # Check if Keithley source is on and can be used
@@ -142,7 +142,7 @@ class InitThread(QtCore.QThread):
 
         self.emit_source.emit(keithley_source)
 
-        time.sleep(0.5)
+        time.sleep(0.1)
         self.update_loading_dialog.emit(80, "Checking for Keithley multimeter")
 
         # Check if Keithley multimeter is present
@@ -161,7 +161,7 @@ class InitThread(QtCore.QThread):
             )
             keithley_multimeter_init = False
 
-        time.sleep(0.5)
+        time.sleep(0.1)
         self.emit_multimeter.emit(keithley_multimeter)
 
         # If one of the devices could not be initialised for whatever reason,

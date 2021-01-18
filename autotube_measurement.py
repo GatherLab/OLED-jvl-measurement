@@ -106,14 +106,16 @@ class AutotubeMeasurement(QtCore.QThread):
         # To update progres bar
         progress = 0
 
+        # Init buffer before the measurement
+        # self.keithley_source.init_buffer(
+        #     "OLEDbuffer", 10 * len(low_vlt) + len(high_vlt)
+        # )
+
         # Iterate over all selected pixels
         for pixel in self.selected_pixels:
+            # self.keithley_source.empty_buffer("OLEDbuffer")
 
             cf.log_message("Running on Pixel " + str(pixel))
-
-            self.keithley_source.init_buffer(
-                "OLEDbuffer", 10 * len(low_vlt) + len(high_vlt)
-            )
 
             # Take PD voltage reading from Multimeter for background
             background_diodevoltage = self.keithley_multimeter.measure_voltage()

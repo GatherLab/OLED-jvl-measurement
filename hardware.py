@@ -4,7 +4,7 @@ import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
 import core_functions as cf
 
-# import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
+import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
 
 import sys
 import time
@@ -210,10 +210,10 @@ class KeithleySource:
         """
         # if the buffer already exists, delete it first to prevent the error
         # "parameter error TRACe:MAKE cannot use an existing reading buffer name keithley"
-        try:
-            self.keith.write('TRACe:DELete "' + buffer_name + '"')
-        except:
-            cf.log_message("Buffer " + buffer_name + " does not exist yet")
+        # try:
+        # self.keith.write('TRACe:DELete "' + buffer_name + '"')
+        # except:
+        # cf.log_message("Buffer " + buffer_name + " does not exist yet")
         self.keith.write(
             'Trace:Make "' + buffer_name + '", ' + str(max(buffer_length, 10))
         )
@@ -221,6 +221,12 @@ class KeithleySource:
         # Keithley empties the buffer
         self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
         self.buffer_name = buffer_name
+
+    def empty_buffer(self, buffer_name):
+        """
+        Function that empties the Keithley's buffer for the next run
+        """
+        self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
 
     def activate_output(self):
         """
@@ -386,7 +392,7 @@ class ThorlabMotor:
         # Make sure that the motor position is returned as values between -180 to 180 (definition)
         if self.motor.position + float(self.offset_angle) > 180:
             motor_position_translated = (
-                sSourceMeteielf.motor.position + float(self.offset_angle) - 360
+                self.motor.position + float(self.offset_angle) - 360
             )
         else:
             motor_position_translated = self.motor.position + float(self.offset_angle)

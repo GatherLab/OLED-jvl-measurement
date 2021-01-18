@@ -17,8 +17,7 @@ from hardware import (
 )
 
 import core_functions as cf
-
-# import thorlabs_apt as apt
+import thorlabs_apt as apt
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -50,6 +49,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
 
+        # For some odd reason this is necessary in the main thread already.
+        # Otherwise the motor won't initialise and the program crash without an error...
+        global_settings = cf.read_global_settings()
+        ThorlabMotor(global_settings["motor_number"], global_settings["motor_offset"])
+
         # -------------------------------------------------------------------- #
         # -------------------------- Hardware Setup -------------------------- #
         # -------------------------------------------------------------------- #
@@ -59,6 +63,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Execute loading dialog
         loading_window.exec()
+
+        # Update the graphics to the current motor position
+        motor_position = self.motor.read_position()
+        self.gw_animation.move(motor_position)
 
         # Read global settings first (what if they are not correct yet?)
         # global_settings = cf.read_global_settings()
@@ -253,7 +261,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_scan_compliance_spinBox.setSingleStep(0.05)
 
         # Set standard parameters for Goniometer
-        self.gw_offset_angle_spinBox.setValue(0)
+        self.gw_offset_angle_spinBox.setValue(motor_position)
         self.gw_offset_angle_spinBox.setMaximum(180)
         self.gw_offset_angle_spinBox.setMinimum(-180)
         self.gw_minimum_angle_spinBox.setValue(0)
@@ -510,7 +518,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         # Reset the keithley by reseting it as voltage source
         self.keithley_source.as_voltage_source(1.05)
-        self.uno.init_serial_connection()
+        self.arduino_uno.init_serial_connection()
 
         # # Kill process and delete old current tester object
         # self.current_tester.kill()
@@ -659,12 +667,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Pre-bias all pixels automatically
         for pixel in range(len(self.sw_pushbutton_array)):
             # Close all relays
-            self.uno.open_relay(1, False)
+            self.arduino_uno.open_relay(1, False)
 
             # Set push button to checked and open relay of the pixel
             self.sw_pushbutton_array[pixel].setChecked(True)
             self.specw_pushbutton_array[pixel].setChecked(True)
-            self.uno.open_relay(pixel + 1, True)
+            self.arduino_uno.open_relay(pixel + 1, True)
 
             # Turn on the voltage
             self.keithley_source.activate_output()
@@ -679,7 +687,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Deactivate the pixel again
             self.sw_pushbutton_array[pixel].setChecked(False)
             self.specw_pushbutton_array[pixel].setChecked(False)
-            self.uno.open_relay(pixel + 1, False)
+            self.arduino_uno.open_relay(pixel + 1, False)
 
             # Turn off the voltage
             self.keithley_source.deactivate_output()
@@ -723,12 +731,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         for pixel in range(len(self.sw_pushbutton_array)):
             # Close all relays
-            self.uno.open_relay(1, False)
+            self.arduino_uno.open_relay(1, False)
 
             # Set push button to checked and open relay of the pixel
             self.sw_pushbutton_array[pixel].setChecked(True)
             self.specw_pushbutton_array[pixel].setChecked(True)
-            self.uno.open_relay(pixel + 1, True)
+            self.arduino_uno.open_relay(pixel + 1, True)
 
             for voltage in voltage_range:
                 # Turn on the voltage at the value "voltage"
@@ -753,7 +761,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Deactivate the pixel again
             self.sw_pushbutton_array[pixel].setChecked(False)
             self.specw_pushbutton_array[pixel].setChecked(False)
-            self.uno.open_relay(pixel + 1, False)
+            self.arduino_uno.open_relay(pixel + 1, False)
 
             # Turn off the voltage
             self.keithley_source.set_voltage(0)

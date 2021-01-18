@@ -40,6 +40,9 @@ class MockKeithleySource:
     def init_buffer(self, buffer_name, buffer_length):
         print("Buffer written")
 
+    def empty_buffer(self, buffer_name):
+        print("MockKeithleySource buffer emptied")
+
     def activate_output(self):
         print("Output activated")
 
@@ -93,7 +96,6 @@ class MockThorlabMotor:
     """
 
     def __init__(self, motor_number, offset_angle):
-        print("Motor initiated")
         self.position = 0
 
     def move_to(self, angle):
