@@ -163,7 +163,10 @@ class AutotubeMeasurement(QtCore.QThread):
                         time.sleep(1)
                         break
 
-                if diode_voltage >= self.global_settings["photodiode_saturation"]:
+                if (
+                    diode_voltage
+                    >= self.measurement_parameters["photodiode_saturation"]
+                ):
                     cf.log_message(
                         "Photodiode reached saturation. You might want to adjust the photodiode gain."
                     )

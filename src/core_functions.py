@@ -1,5 +1,7 @@
 import json
 import logging
+import os.path
+from pathlib import Path
 
 
 def log_message(message):
@@ -19,7 +21,9 @@ def read_global_settings():
     settings window.
     """
     # Load from file to fill the lines
-    with open("settings/global_settings.json") as json_file:
+    with open(
+        os.path.join(Path(__file__).parent.parent, "settings", "global_settings.json")
+    ) as json_file:
         data = json.load(json_file)
     try:
         settings = data["overwrite"]

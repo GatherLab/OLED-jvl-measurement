@@ -2,7 +2,9 @@
 from PySide2 import QtCore, QtGui, QtWidgets
 
 import json
+import os
 import core_functions as cf
+from pathlib import Path
 
 from loading_window import LoadingWindow
 from UI_settings_window import Ui_Settings
@@ -20,30 +22,25 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         self.parent = parent
 
         # Load from file to fill the lines
-        with open("settings/global_settings.json") as json_file:
-            data = json.load(json_file)
-        try:
-            default_settings = data["overwrite"]
-        except:
-            default_settings = data["default"]
+        default_settings = cf.read_global_settings()
 
         self.keithley_source_address_lineEdit.setText(
-            default_settings[0]["keithley_source_address"]
+            default_settings["keithley_source_address"]
         )
         self.keithley_multimeter_address_lineEdit.setText(
-            default_settings[0]["keithley_multimeter_address"]
+            default_settings["keithley_multimeter_address"]
         )
         self.arduino_com_address_lineEdit.setText(
-            default_settings[0]["arduino_com_address"]
+            default_settings["arduino_com_address"]
         )
-        self.motor_number_lineEdit.setText(default_settings[0]["motor_number"])
-        self.motor_offset_lineEdit.setText(default_settings[0]["motor_offset"])
+        self.motor_number_lineEdit.setText(default_settings["motor_number"])
+        self.motor_offset_lineEdit.setText(default_settings["motor_offset"])
         self.spectrum_integration_time_lineEdit.setText(
-            default_settings[0]["spectrum_integration_time"]
+            default_settings["spectrum_integration_time"]
         )
-        self.photodiode_gain_lineEdit.setText(default_settings[0]["photodiode_gain"])
+        self.photodiode_gain_lineEdit.setText(default_settings["photodiode_gain"])
         self.photodiode_saturation_lineEdit.setText(
-            default_settings[0]["photodiode_saturation"]
+            default_settings["photodiode_saturation"]
         )
 
         # Connect buttons to functions
@@ -72,15 +69,25 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         )
 
         # Load the default parameter settings
-        with open("settings/global_settings.json") as json_file:
+        with open(
+            os.path.join(
+                Path(__file__).parent.parent, "settings", "global_settings.json"
+            )
+        ) as json_file:
             data = json.load(json_file)
 
         # Add the default parameters to the new settings json
         settings_data["default"] = []
         settings_data["default"] = data["default"]
+        print(settings_data)
 
         # Save the entire thing again to the settings.json file
-        with open("settings/global_settings.json", "w") as json_file:
+        with open(
+            os.path.join(
+                Path(__file__).parent.parent, "settings", "global_settings.json"
+            ),
+            "w",
+        ) as json_file:
             json.dump(settings_data, json_file, indent=4)
 
         cf.log_message("Settings saved")
@@ -100,25 +107,29 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         Load default settings (in case the user messed up the own settings)
         """
 
-        with open("settings/global_settings.json") as json_file:
+        with open(
+            os.path.join(
+                Path(__file__).parent.parent, "settings", "global_settings.json"
+            )
+        ) as json_file:
             data = json.load(json_file)
 
-        default_settings = data["default"]
+        default_settings = data["default"][0]
         self.keithley_source_address_lineEdit.setText(
-            default_settings[0]["keithley_source_address"]
+            default_settings["keithley_source_address"]
         )
         self.keithley_multimeter_address_lineEdit.setText(
-            default_settings[0]["keithley_multimeter_address"]
+            default_settings["keithley_multimeter_address"]
         )
         self.arduino_com_address_lineEdit.setText(
-            default_settings[0]["arduino_com_address"]
+            default_settings["arduino_com_address"]
         )
-        self.motor_number_lineEdit.setText(default_settings[0]["motor_number"])
-        self.motor_offset_lineEdit.setText(default_settings[0]["motor_offset"])
+        self.motor_number_lineEdit.setText(default_settings["motor_number"])
+        self.motor_offset_lineEdit.setText(default_settings["motor_offset"])
         self.spectrum_integration_time_lineEdit.setText(
-            default_settings[0]["spectrum_integration_time"]
+            default_settings["spectrum_integration_time"]
         )
-        self.photodiode_gain_lineEdit.setText(default_settings[0]["photodiode_gain"])
+        self.photodiode_gain_lineEdit.setText(default_settings["photodiode_gain"])
         self.photodiode_saturation_lineEdit.setText(
-            default_settings[0]["photodiode_saturation"]
+            default_settings["photodiode_saturation"]
         )
