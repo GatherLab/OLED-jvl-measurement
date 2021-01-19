@@ -23,7 +23,7 @@ python3 jvl_measurement.py
 
 The others are only dependencies.
 
-Furthermore, the apt.dll driver (https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=9019) must be installed as well as the libusb-1.0.lib driver for detecting usb hardware: https://stackoverflow.com/questions/33972145/pyusb-on-windows-8-1-no-backend-available-how-to-install-libusb.
+Furthermore, the thorlabs_apt requires the apt.dll driver. Follow https://github.com/qpit/thorlabs_apt to install it correctly. For us it only worked by copying the APT.dll file to the Windows/System32 folder. Ensure that libusb-1.0.lib driver for detecting usb hardware is installed as well: https://stackoverflow.com/questions/33972145/pyusb-on-windows-8-1-no-backend-available-how-to-install-libusb.
 
 Install NI-visa from website https://www.ni.com/de-de/support/downloads/drivers/download.ni-visa.html#346210
 Install Keithley driver from website: https://de.tek.com/source-measure-units/2450-software-6 (prerequisit: NI-visa)

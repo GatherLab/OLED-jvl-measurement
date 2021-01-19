@@ -163,19 +163,14 @@ class AutotubeMeasurement(QtCore.QThread):
                         time.sleep(1)
                         break
 
-                # check for PD saturation
-                if self.measurement_parameters["check_pd_saturation"] == True:
-                    if (
-                        diode_voltage
-                        >= self.measurement_parameters["check_pd_saturation"]
-                    ):
-                        cf.log_message(
-                            "Photodiode reaches saturation. You might want to adjust the photodiode gain."
-                        )
+                if diode_voltage >= self.global_settings["photodiode_saturation"]:
+                    cf.log_message(
+                        "Photodiode reached saturation. You might want to adjust the photodiode gain."
+                    )
 
-                        # Wait a second so that the user can read the message
-                        time.sleep(1)
-                        break
+                    # Wait a second so that the user can read the message
+                    time.sleep(1)
+                    break
 
                 self.df_data.loc[i, "pd_voltage"] = (
                     diode_voltage - background_diodevoltage

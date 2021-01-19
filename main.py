@@ -1,5 +1,5 @@
 from UI_main_window import Ui_MainWindow
-from UI_settings_window import Ui_Settings
+from settings import Settings
 
 from autotube_measurement import AutotubeMeasurement
 from current_tester import CurrentTester
@@ -51,8 +51,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # For some odd reason this is necessary in the main thread already.
         # Otherwise the motor won't initialise and the program crash without an error...
-        global_settings = cf.read_global_settings()
-        ThorlabMotor(global_settings["motor_number"], global_settings["motor_offset"])
+        try:
+            global_settings = cf.read_global_settings()
+            ThorlabMotor(
+                global_settings["motor_number"], global_settings["motor_offset"]
+            )
+        except:
+            cf.log_message(
+                "Motor can probably not be initialised. Reconnect the motor or change the serial number in the global settings."
+            )
 
         # -------------------------------------------------------------------- #
         # -------------------------- Hardware Setup -------------------------- #
@@ -79,17 +86,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         cf.log_message("Initialising Program")
         self.tabWidget.currentChanged.connect(self.changed_tab_widget)
 
-        # Open the documentation in the browser (maybe in the future directly
-        # open the readme file in the folder but currently this is so much
-        # easier and prettier)
-        self.actionDocumentation.triggered.connect(
-            lambda: webbrowser.open(
-                "https://github.com/GatherLab/OLED-jvl-measurement/blob/main/README.md"
-            )
-        )
-
-        self.actionOpen_Log.triggered.connect(lambda: self.open_log("log.out"))
-
         # Hide by default and only show if a process is running
         self.progressBar.hide()
 
@@ -110,6 +106,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Connect buttons
         self.sw_activate_local_mode_pushButton.clicked.connect(self.activate_local_mode)
+        self.sw_browse_pushButton.clicked.connect(self.browse_folder)
 
         # Connect sw pixel to toggle function
         self.sw_pixel1_pushButton.clicked.connect(
@@ -242,6 +239,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_el_or_pl_toggleSwitch.clicked.connect(self.disable_el_options)
 
         # -------------------------------------------------------------------- #
+        # --------------------------- Menubar -------------------------------- #
+        # -------------------------------------------------------------------- #
+        self.actionOptions.triggered.connect(self.show_settings)
+
+        # Open the documentation in the browser (maybe in the future directly
+        # open the readme file in the folder but currently this is so much
+        # easier and prettier)
+        self.actionDocumentation.triggered.connect(
+            lambda: webbrowser.open(
+                "https://github.com/GatherLab/OLED-jvl-measurement/blob/main/README.md"
+            )
+        )
+
+        self.actionOpen_Log.triggered.connect(lambda: self.open_file("log.out"))
+
+        # -------------------------------------------------------------------- #
         # --------------------- Set Standard Parameters ---------------------- #
         # -------------------------------------------------------------------- #
 
@@ -261,37 +274,37 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_scan_compliance_spinBox.setSingleStep(0.05)
 
         # Set standard parameters for Goniometer
-        self.gw_offset_angle_spinBox.setValue(motor_position)
         self.gw_offset_angle_spinBox.setMaximum(180)
         self.gw_offset_angle_spinBox.setMinimum(-180)
-        self.gw_minimum_angle_spinBox.setValue(0)
+        self.gw_offset_angle_spinBox.setValue(motor_position)
         self.gw_minimum_angle_spinBox.setMaximum(360)
         self.gw_minimum_angle_spinBox.setMinimum(-360)
-        self.gw_maximum_angle_spinBox.setValue(180)
+        self.gw_minimum_angle_spinBox.setValue(0)
         self.gw_maximum_angle_spinBox.setMaximum(360)
         self.gw_maximum_angle_spinBox.setMinimum(-360)
-        self.gw_step_angle_spinBox.setValue(1)
+        self.gw_maximum_angle_spinBox.setValue(180)
         self.gw_step_angle_spinBox.setMaximum(360)
-        self.gw_integration_time_spinBox.setValue(300000)
-        self.gw_integration_time_spinBox.setMaximum(10000000)
+        self.gw_step_angle_spinBox.setValue(1)
+        self.gw_integration_time_spinBox.setMaximum(10000)
         self.gw_integration_time_spinBox.setMinimum(0)
-        self.gw_homing_time_spinBox.setValue(30)
-        self.gw_moving_time_spinBox.setValue(1)
+        self.gw_integration_time_spinBox.setValue(300)
+        # self.gw_homing_time_spinBox.setValue(30)
+        # self.gw_moving_time_spinBox.setValue(1)
         self.gw_pulse_duration_spinBox.setValue(2)
         self.gw_vc_value_spinBox.setValue(5)
         self.gw_vc_compliance_spinBox.setValue(1.05)
 
         # Set standard parameters for Spectral Measurement
-        self.specw_voltage_spinBox.setValue(0)
         self.specw_voltage_spinBox.setMinimum(-5.0)
         self.specw_voltage_spinBox.setMaximum(50.0)
         self.specw_voltage_spinBox.setSingleStep(0.1)
+        self.specw_voltage_spinBox.setValue(0)
 
         # Set standard parameters for Spectral Measurement
-        self.sw_ct_voltage_spinBox.setValue(0)
         self.sw_ct_voltage_spinBox.setMinimum(-5.0)
         self.sw_ct_voltage_spinBox.setMaximum(50.0)
         self.sw_ct_voltage_spinBox.setSingleStep(0.1)
+        self.sw_ct_voltage_spinBox.setValue(0)
 
         # Update statusbar
         cf.log_message("Program ready")
@@ -318,9 +331,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         Shows the settings
         """
-        self.settings_window = QtWidgets.QDialog()
-        ui = Ui_Settings()
-        ui.setupUi(self.settings_window, parent=self)
+        self.settings_window = Settings(self)
+        # ui = Ui_Settings()
+        # ui.setupUi(self.settings_window, parent=self)
 
         p = (
             self.frameGeometry().center()
@@ -798,7 +811,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "high_voltage_step": self.aw_high_voltage_step_spinBox.value(),
             "scan_compliance": self.aw_scan_compliance_spinBox.value(),
             "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
-            "check_pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
+            # "check_pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
         }
 
         # Boolean list for selected pixels
@@ -1002,7 +1015,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             + str(self.specw_voltage_spinBox.value())
             + " V\t"
             + "Integration Time: "
-            + str(self.spectrum_measurement.spectrometer.integration_time / 1000)
+            + str(self.spectrum_measurement.spectrometer.integration_time)
             + " ms"
         )
 
@@ -1072,8 +1085,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "maximum_angle": self.gw_maximum_angle_spinBox.value(),
             "step_angle": self.gw_step_angle_spinBox.value(),
             "integration_time": self.gw_integration_time_spinBox.value(),
-            "homing_time": self.gw_homing_time_spinBox.value(),
-            "moving_time": self.gw_moving_time_spinBox.value(),
+            # "homing_time": self.gw_homing_time_spinBox.value(),
+            # "moving_time": self.gw_moving_time_spinBox.value(),
             "pulse_duration": self.gw_pulse_duration_spinBox.value(),
             "voltage_or_current": self.gw_voltage_or_current_toggleSwitch.isChecked(),
             "voltage_scan": self.gw_voltage_scan_toggleSwitch.isChecked(),
@@ -1282,6 +1295,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gw_animation.move(motor_position)
             app.processEvents()
             time.sleep(0.05)
+
+        # Update animation once more since the position might be 0.9 at this
+        # point (int comparison in the above while loop)
+        self.gw_animation.move(motor_position)
+        app.processEvents()
 
         cf.log_message("Motor moved to " + str(angle) + " °")
 

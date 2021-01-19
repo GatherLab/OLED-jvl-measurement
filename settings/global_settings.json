@@ -7,7 +7,8 @@
             "motor_number": "55000032",
             "motor_offset": "45",
             "spectrum_integration_time": "300000",
-            "photodiode_gain": "50"
+            "photodiode_gain": "50",
+            "photodiode_saturation": "10"
         }
     ],
     "default": [
@@ -18,7 +19,8 @@
             "motor_number": "55000032",
             "motor_offset": "45",
             "spectrum_integration_time": "300000",
-            "photodiode_gain": "50"
+            "photodiode_gain": "50",
+            "photodiode_saturation": "10"
         }
     ]
 }

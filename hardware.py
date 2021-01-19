@@ -338,10 +338,9 @@ class OceanSpectrometer:
 
         # Select our spectrometer (probably only in the list)
         self.spectrometer = sb.Spectrometer(maya_devices[0])
-        self.integration_time = integration_time
 
         # Set integration time of spectrometer
-        self.spectrometer.integration_time_micros(int(integration_time))
+        self.set_integration_time_ms(integration_time)
 
     def measure(self):
         """
@@ -353,6 +352,17 @@ class OceanSpectrometer:
         # intensity = self.spec.intensities()
 
         return self.spectrometer.spectrum()
+
+    def set_integration_time_ms(self, integration_time):
+        """
+        Function that allows the user to set the integration time even after
+        initialisation of the spectrometer
+        """
+        self.integration_time = int(integration_time * 1000)
+        self.spectrometer.integration_time_micros(integration_time)
+        cf.log_message(
+            "Spectrometer integration time set to " + str(self.integration_time) + " ms"
+        )
 
 
 class ThorlabMotor:
