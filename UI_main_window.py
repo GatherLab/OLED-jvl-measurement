@@ -5,7 +5,6 @@
 # from UI_settings_window import Ui_Settings
 from UI_goniometer_animation import Ui_GoniometerAnimation
 from UI_toggle_switch import ToggleSwitch
-from UI_settings_window import Ui_Settings
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -148,7 +147,6 @@ class Ui_MainWindow(object):
         self.sw_browse_pushButton.setSizePolicy(sizePolicy)
         self.sw_browse_pushButton.setMinimumSize(QtCore.QSize(60, 0))
         self.sw_browse_pushButton.setObjectName("sw_browse_pushButton")
-        self.sw_browse_pushButton.clicked.connect(self.browse_folder)
         self.sw_folder_path_horizontalLayout.addWidget(self.sw_browse_pushButton)
         self.gridLayout_7.addLayout(self.sw_folder_path_horizontalLayout, 1, 1, 1, 1)
         self.sw_folder_path_label = QtWidgets.QLabel(self.setup_widget)
@@ -599,17 +597,17 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addWidget(self.aw_scan_compliance_label, 11, 0, 1, 1)
 
         # PD saturation checkbox
-        self.aw_pd_saturation_HLayout = QtWidgets.QHBoxLayout()
-        self.aw_pd_saturation_toggleSwitch = ToggleSwitch()
-        self.aw_pd_saturation_label = QtWidgets.QLabel("PD Saturation")
-        self.aw_pd_saturation_HLayout.addWidget(self.aw_pd_saturation_toggleSwitch)
-        self.aw_pd_saturation_HLayout.addWidget(self.aw_pd_saturation_label)
+        # self.aw_pd_saturation_HLayout = QtWidgets.QHBoxLayout()
+        # self.aw_pd_saturation_toggleSwitch = ToggleSwitch()
+        # self.aw_pd_saturation_label = QtWidgets.QLabel("PD Saturation")
+        # self.aw_pd_saturation_HLayout.addWidget(self.aw_pd_saturation_toggleSwitch)
+        # self.aw_pd_saturation_HLayout.addWidget(self.aw_pd_saturation_label)
 
         # self.aw_pd_saturation_checkBox = QtWidgets.QCheckBox(
         # self.aw_scrollAreaWidgetContents
         # )
         # self.aw_pd_saturation_checkBox.setObjectName("aw_pd_saturation_checkBox")
-        self.gridLayout_3.addLayout(self.aw_pd_saturation_HLayout, 14, 0, 1, 1)
+        # self.gridLayout_3.addLayout(self.aw_pd_saturation_HLayout, 14, 0, 1, 1)
 
         # Check for bad contacts
         self.aw_bad_contacts_HLayout = QtWidgets.QHBoxLayout()
@@ -968,22 +966,22 @@ class Ui_MainWindow(object):
         self.gridLayout_9.addLayout(self.gw_voltage_scan_HLayout, 25, 0, 1, 1)
 
         # Homing time
-        self.gw_homing_time_spinBox = QtWidgets.QDoubleSpinBox(
-            self.gw_scrollAreaWidgetContents
-        )
-        self.gw_homing_time_spinBox.setObjectName("gw_homing_time_spinBox")
-        self.gridLayout_9.addWidget(self.gw_homing_time_spinBox, 19, 0, 1, 1)
-        self.gw_moving_time_spinBox = QtWidgets.QDoubleSpinBox(
-            self.gw_scrollAreaWidgetContents
-        )
-        self.gw_moving_time_spinBox.setObjectName("gw_moving_time_spinBox")
-        self.gridLayout_9.addWidget(self.gw_moving_time_spinBox, 21, 0, 1, 1)
+        # self.gw_homing_time_spinBox = QtWidgets.QDoubleSpinBox(
+        #     self.gw_scrollAreaWidgetContents
+        # )
+        # self.gw_homing_time_spinBox.setObjectName("gw_homing_time_spinBox")
+        # self.gridLayout_9.addWidget(self.gw_homing_time_spinBox, 19, 0, 1, 1)
+        # self.gw_moving_time_spinBox = QtWidgets.QDoubleSpinBox(
+        #     self.gw_scrollAreaWidgetContents
+        # )
+        # self.gw_moving_time_spinBox.setObjectName("gw_moving_time_spinBox")
+        # self.gridLayout_9.addWidget(self.gw_moving_time_spinBox, 21, 0, 1, 1)
 
-        # Moving time
-        self.gw_moving_time_label = QtWidgets.QLabel(self.gw_scrollAreaWidgetContents)
-        self.gw_moving_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
-        self.gw_moving_time_label.setObjectName("gw_moving_time_label")
-        self.gridLayout_9.addWidget(self.gw_moving_time_label, 20, 0, 1, 1)
+        # # Moving time
+        # self.gw_moving_time_label = QtWidgets.QLabel(self.gw_scrollAreaWidgetContents)
+        # self.gw_moving_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        # self.gw_moving_time_label.setObjectName("gw_moving_time_label")
+        # self.gridLayout_9.addWidget(self.gw_moving_time_label, 20, 0, 1, 1)
 
         # Offset angle
         self.gw_offset_angle_spinBox = QtWidgets.QDoubleSpinBox(
@@ -1186,17 +1184,17 @@ class Ui_MainWindow(object):
         self.gw_integration_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.gw_integration_time_label.setObjectName("gw_integration_time_label")
         self.gridLayout_9.addWidget(self.gw_integration_time_label, 16, 0, 1, 1)
-        self.gw_integration_time_spinBox = QtWidgets.QSpinBox(
+        self.gw_integration_time_spinBox = QtWidgets.QDoubleSpinBox(
             self.gw_scrollAreaWidgetContents
         )
         self.gw_integration_time_spinBox.setObjectName("gw_integration_time_spinBox")
         self.gridLayout_9.addWidget(self.gw_integration_time_spinBox, 17, 0, 1, 1)
 
         # Homing time
-        self.gw_homing_time_label = QtWidgets.QLabel(self.gw_scrollAreaWidgetContents)
-        self.gw_homing_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
-        self.gw_homing_time_label.setObjectName("gw_homing_time_label")
-        self.gridLayout_9.addWidget(self.gw_homing_time_label, 18, 0, 1, 1)
+        # self.gw_homing_time_label = QtWidgets.QLabel(self.gw_scrollAreaWidgetContents)
+        # self.gw_homing_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        # self.gw_homing_time_label.setObjectName("gw_homing_time_label")
+        # self.gridLayout_9.addWidget(self.gw_homing_time_label, 18, 0, 1, 1)
 
         # Animation widget
 
@@ -1287,7 +1285,6 @@ class Ui_MainWindow(object):
 
         self.actionOptions = QtWidgets.QAction(MainWindow)
         self.actionOptions.setObjectName("actionOptions")
-        self.actionOptions.triggered.connect(self.show_settings)
 
         self.actionDocumentation = QtWidgets.QAction(MainWindow)
         self.actionDocumentation.setObjectName("actionDocumentation")
@@ -1523,7 +1520,7 @@ class Ui_MainWindow(object):
         # self.gw_voltage_scan_checkBox.setText(_translate("MainWindow", "Voltage Scan"))
         self.gw_header1.setText(_translate("MainWindow", "Setup"))
         self.gw_pulse_duration_label_2.setText(_translate("MainWindow", "Select Pixel"))
-        self.gw_moving_time_label.setText(_translate("MainWindow", "Moving Time (s)"))
+        # self.gw_moving_time_label.setText(_translate("MainWindow", "Moving Time (s)"))
         self.gw_offset_angle_label.setText(_translate("MainWindow", "Offset Angle (°)"))
         self.gw_start_measurement_pushButton.setText(
             _translate("MainWindow", "Start Measurement")
@@ -1554,9 +1551,9 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "I/V Compliance (A/V)")
         )
         self.gw_integration_time_label.setText(
-            _translate("MainWindow", "Integration Time (us)")
+            _translate("MainWindow", "Integration Time (ms)")
         )
-        self.gw_homing_time_label.setText(_translate("MainWindow", "Homing Time (s)"))
+        # self.gw_homing_time_label.setText(_translate("MainWindow", "Homing Time (s)"))
         # self.gw_animation.setText(_translate("MainWindow", "small animation"))
 
         self.tabWidget.setTabText(
@@ -1595,32 +1592,3 @@ class Ui_MainWindow(object):
         cp = QtWidgets.QDesktopWidget().availableGeometry().center()
         qc.moveCenter(cp)
         self.move(qc.topLeft())
-
-    def browse_folder(self):
-        file_dialog = QtWidgets.QFileDialog()
-        file_dialog.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
-        # file_dialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
-
-        if file_dialog.exec():
-            # Set global path to selected path
-            self.global_path = file_dialog.selectedFiles()
-
-            # Set the according line edit
-            self.sw_folder_path_lineEdit.setText(self.global_path[0] + "/")
-
-    def show_settings(self):
-        self.settings_window = QtWidgets.QDialog()
-        ui = Ui_Settings()
-        ui.setupUi(self.settings_window, parent=self)
-
-        p = (
-            self.frameGeometry().center()
-            - QtCore.QRect(QtCore.QPoint(), self.settings_window.sizeHint()).center()
-        )
-
-        self.settings_window.move(p)
-
-        # self.settings_window.show()
-
-        result = self.settings_window.exec()
-        print(result)

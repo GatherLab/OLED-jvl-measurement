@@ -1,13 +1,22 @@
 from UI_main_window import Ui_MainWindow
-from UI_settings_window import Ui_Settings
+from settings import Settings
 
 from autotube_measurement import AutotubeMeasurement
 from current_tester import CurrentTester
 from spectrum_measurement import SpectrumMeasurement
 from goniometer_measurement import GoniometerMeasurement
+from loading_window import LoadingWindow
 
 from tests.tests import MockThorlabMotor
-from hardware import ThorlabMotor, KeithleyMultimeter, KeithleySource
+from hardware import (
+    ArduinoUno,
+    OceanSpectrometer,
+    ThorlabMotor,
+    KeithleyMultimeter,
+    KeithleySource,
+)
+
+import core_functions as cf
 import thorlabs_apt as apt
 
 from PySide2 import QtCore, QtGui, QtWidgets
@@ -40,86 +49,45 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
 
-        # Update statusbar
-        self.log_message("Initialising Program")
-        self.tabWidget.currentChanged.connect(self.changed_tab_widget)
+        # For some odd reason this is necessary in the main thread already.
+        # Otherwise the motor won't initialise and the program crash without an error...
+        try:
+            global_settings = cf.read_global_settings()
+            ThorlabMotor(
+                global_settings["motor_number"], global_settings["motor_offset"]
+            )
+        except:
+            cf.log_message(
+                "Motor can probably not be initialised. Reconnect the motor or change the serial number in the global settings."
+            )
+
+        # -------------------------------------------------------------------- #
+        # -------------------------- Hardware Setup -------------------------- #
+        # -------------------------------------------------------------------- #
+
+        # Execute initialisation thread
+        loading_window = LoadingWindow(self)
+
+        # Execute loading dialog
+        loading_window.exec()
+
+        # Update the graphics to the current motor position
+        motor_position = self.motor.read_position()
+        self.gw_animation.move(motor_position)
+
+        # Read global settings first (what if they are not correct yet?)
+        # global_settings = cf.read_global_settings()
 
         # -------------------------------------------------------------------- #
         # ------------------------------ General ----------------------------- #
         # -------------------------------------------------------------------- #
 
-        # Open the documentation in the browser (maybe in the future directly
-        # open the readme file in the folder but currently this is so much
-        # easier and prettier)
-        self.actionDocumentation.triggered.connect(
-            lambda: webbrowser.open(
-                "https://github.com/GatherLab/OLED-jvl-measurement/blob/main/README.md"
-            )
-        )
-
-        self.actionOpen_Log.triggered.connect(lambda: self.open_log("log.out"))
+        # Update statusbar
+        cf.log_message("Initialising Program")
+        self.tabWidget.currentChanged.connect(self.changed_tab_widget)
 
         # Hide by default and only show if a process is running
         self.progressBar.hide()
-
-        # -------------------------------------------------------------------- #
-        # -------------------------- Hardware Setup -------------------------- #
-        # -------------------------------------------------------------------- #
-        # Before doing much it should be checked if the hardware can be
-        # initialised savely. If not, ask the user to unplug a certain hardware
-        # again
-        # Read global settings first (what if they are not correct yet?)
-        global_settings = self.read_global_settings()
-
-        # Try if motor can be easily initialised
-        try:
-            motor = ThorlabMotor(
-                global_settings["motor_number"], global_settings["motor_offset"]
-            )
-            motor.motor.move_home(True)
-            self.log_message("Motor successfully initialised")
-            # motor.move_to(-45)
-        except:
-            self.log_message(
-                "Motor could not be initialised! Please reconnect the device and check the serial number in the settings file!"
-            )
-
-        # Try if the spectrometer is present
-        try:
-            self.spectrum_measurement = SpectrumMeasurement(
-                global_settings["arduino_com_address"],
-                global_settings["keithley_source_address"],
-                global_settings["spectrum_integration_time"],  # 300 ms
-                parent=self,
-            )
-            self.log_message("Spectrometer successfully initialised")
-        except:
-            self.log_message(
-                "The spectrometer could not be initialised! Please reconnect the device!"
-            )
-
-        # Check if Keithley source is on and can be used
-        try:
-            self.keithley_source = KeithleySource(
-                global_settings["keithley_source_address"],
-                1.05,
-            )
-            self.log_message("Keithley SourceMeter successfully initialised")
-        except:
-            self.log_message(
-                "The Keithley SourceMeter could not be initialised! Please reconnect the device and check the serial number in the settings file!"
-            )
-
-        # Check if Keithley multimeter is present
-        try:
-            self.keithley_multimeter = KeithleyMultimeter(
-                global_settings["keithley_multimeter_address"]
-            )
-            self.log_message("Keithley Multimeter successfully initialised")
-        except:
-            self.log_message(
-                "The Keithley Multimeter could not be initialised! Please reconnect the device and check the serial number in the settings file!"
-            )
 
         # -------------------------------------------------------------------- #
         # -------------------------- Current Tester -------------------------- #
@@ -128,9 +96,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # First init of current tester (should be activated when starting the
         # program)
         self.current_tester = CurrentTester(
-            global_settings["arduino_com_address"],
-            global_settings["keithley_source_address"],
-            # global_settings["keithley_multimeter_address"],
+            self.arduino_uno,
+            self.keithley_source,
             parent=self,
         )
 
@@ -139,6 +106,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Connect buttons
         self.sw_activate_local_mode_pushButton.clicked.connect(self.activate_local_mode)
+        self.sw_browse_pushButton.clicked.connect(self.browse_folder)
 
         # Connect sw pixel to toggle function
         self.sw_pixel1_pushButton.clicked.connect(
@@ -203,6 +171,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # ---------------------- Spectrum Measurement  ----------------------- #
         # -------------------------------------------------------------------- #
 
+        self.spectrum_measurement = SpectrumMeasurement(
+            self.arduino_uno,
+            self.keithley_source,
+            self.spectrometer,
+            parent=self,
+        )
         # Start thread
         self.spectrum_measurement.start()
 
@@ -263,14 +237,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_move_pushButton.clicked.connect(self.move_motor)
 
         self.gw_el_or_pl_toggleSwitch.clicked.connect(self.disable_el_options)
-        try:
-            motor = ThorlabMotor(
-                global_settings["motor_number"], global_settings["motor_offset"]
+
+        # -------------------------------------------------------------------- #
+        # --------------------------- Menubar -------------------------------- #
+        # -------------------------------------------------------------------- #
+        self.actionOptions.triggered.connect(self.show_settings)
+
+        # Open the documentation in the browser (maybe in the future directly
+        # open the readme file in the folder but currently this is so much
+        # easier and prettier)
+        self.actionDocumentation.triggered.connect(
+            lambda: webbrowser.open(
+                "https://github.com/GatherLab/OLED-jvl-measurement/blob/main/README.md"
             )
-            motor.motor.move_home(True)
-            # motor.move_to(-45)
-        except:
-            self.log_message("Motor could not be initialised!")
+        )
+
+        self.actionOpen_Log.triggered.connect(lambda: self.open_file("log.out"))
 
         # -------------------------------------------------------------------- #
         # --------------------- Set Standard Parameters ---------------------- #
@@ -292,44 +274,112 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_scan_compliance_spinBox.setSingleStep(0.05)
 
         # Set standard parameters for Goniometer
-        self.gw_offset_angle_spinBox.setValue(0)
         self.gw_offset_angle_spinBox.setMaximum(180)
         self.gw_offset_angle_spinBox.setMinimum(-180)
-        self.gw_minimum_angle_spinBox.setValue(0)
+        self.gw_offset_angle_spinBox.setValue(motor_position)
         self.gw_minimum_angle_spinBox.setMaximum(360)
         self.gw_minimum_angle_spinBox.setMinimum(-360)
-        self.gw_maximum_angle_spinBox.setValue(180)
+        self.gw_minimum_angle_spinBox.setValue(0)
         self.gw_maximum_angle_spinBox.setMaximum(360)
         self.gw_maximum_angle_spinBox.setMinimum(-360)
-        self.gw_step_angle_spinBox.setValue(1)
+        self.gw_maximum_angle_spinBox.setValue(180)
         self.gw_step_angle_spinBox.setMaximum(360)
-        self.gw_integration_time_spinBox.setValue(300000)
-        self.gw_integration_time_spinBox.setMaximum(10000000)
+        self.gw_step_angle_spinBox.setValue(1)
+        self.gw_integration_time_spinBox.setMaximum(10000)
         self.gw_integration_time_spinBox.setMinimum(0)
-        self.gw_homing_time_spinBox.setValue(30)
-        self.gw_moving_time_spinBox.setValue(1)
+        self.gw_integration_time_spinBox.setValue(300)
+        # self.gw_homing_time_spinBox.setValue(30)
+        # self.gw_moving_time_spinBox.setValue(1)
         self.gw_pulse_duration_spinBox.setValue(2)
         self.gw_vc_value_spinBox.setValue(5)
         self.gw_vc_compliance_spinBox.setValue(1.05)
 
         # Set standard parameters for Spectral Measurement
-        self.specw_voltage_spinBox.setValue(0)
         self.specw_voltage_spinBox.setMinimum(-5.0)
         self.specw_voltage_spinBox.setMaximum(50.0)
         self.specw_voltage_spinBox.setSingleStep(0.1)
+        self.specw_voltage_spinBox.setValue(0)
 
         # Set standard parameters for Spectral Measurement
-        self.sw_ct_voltage_spinBox.setValue(0)
         self.sw_ct_voltage_spinBox.setMinimum(-5.0)
         self.sw_ct_voltage_spinBox.setMaximum(50.0)
         self.sw_ct_voltage_spinBox.setSingleStep(0.1)
+        self.sw_ct_voltage_spinBox.setValue(0)
 
         # Update statusbar
-        self.log_message("Program ready")
+        cf.log_message("Program ready")
 
     # -------------------------------------------------------------------- #
     # ------------------------- Global Functions ------------------------- #
     # -------------------------------------------------------------------- #
+    def browse_folder(self):
+        """
+        Open file dialog to browse through directories
+        """
+        file_dialog = QtWidgets.QFileDialog()
+        file_dialog.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
+        # file_dialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
+
+        if file_dialog.exec():
+            # Set global path to selected path
+            self.global_path = file_dialog.selectedFiles()
+
+            # Set the according line edit
+            self.sw_folder_path_lineEdit.setText(self.global_path[0] + "/")
+
+    def show_settings(self):
+        """
+        Shows the settings
+        """
+        self.settings_window = Settings(self)
+        # ui = Ui_Settings()
+        # ui.setupUi(self.settings_window, parent=self)
+
+        p = (
+            self.frameGeometry().center()
+            - QtCore.QRect(QtCore.QPoint(), self.settings_window.sizeHint()).center()
+        )
+
+        self.settings_window.move(p)
+
+        # self.settings_window.show()
+
+        result = self.settings_window.exec()
+
+    @QtCore.Slot(ArduinoUno)
+    def init_arduino(self, arduino_object):
+        """
+        Receives an arduino object from the init thread
+        """
+        self.arduino_uno = arduino_object
+
+    @QtCore.Slot(ThorlabMotor)
+    def init_motor(self, motor_object):
+        """
+        Receives an arduino object from the init thread
+        """
+        self.motor = motor_object
+
+    @QtCore.Slot(KeithleySource)
+    def init_source(self, source_object):
+        """
+        Receives an arduino object from the init thread
+        """
+        self.keithley_source = source_object
+
+    @QtCore.Slot(KeithleyMultimeter)
+    def init_multimeter(self, multimeter_object):
+        """
+        Receives an arduino object from the init thread
+        """
+        self.keithley_multimeter = multimeter_object
+
+    @QtCore.Slot(OceanSpectrometer)
+    def init_spectrometer(self, spectrometer_object):
+        """
+        Receives an arduino object from the init thread
+        """
+        self.spectrometer = spectrometer_object
 
     def open_file(self, path):
         """
@@ -342,16 +392,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             os.startfile(path)
 
-    @QtCore.Slot(str)
-    def log_message(self, message):
-        """
-        Function that manages the logging, in the sense that everything is
-        directly logged into statusbar and the log file at once as well as
-        printed to the console instead of having to call multiple functions.
-        """
-        self.statusbar.showMessage(message, 10000000)
-        logging.info(message)
-        print(message)
+    # @QtCore.Slot(str)
+    # def cf.log_message(self, message):
+    #     """
+    #     Function that manages the logging, in the sense that everything is
+    #     directly logged into statusbar and the log file at once as well as
+    #     printed to the console instead of having to call multiple functions.
+    #     """
+    #     self.statusbar.showMessage(message, 10000000)
+    #     logging.info(message)
+    #     print(message)
 
     def changed_tab_widget(self):
         """
@@ -362,32 +412,32 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         to just kill all unused threads when we change the tab.
         """
 
-        self.log_message(
+        cf.log_message(
             "Switched to tab widget no. " + str(self.tabWidget.currentIndex())
         )
 
         return
 
-    def read_global_settings(self):
-        """
-        Read in global settings from file. The file can be changed using the
-        settings window.
-        """
-        # Load from file to fill the lines
-        with open("settings/global_settings.json") as json_file:
-            data = json.load(json_file)
-        try:
-            settings = data["overwrite"]
+    # def read_global_settings(self):
+    #     """
+    #     Read in global settings from file. The file can be changed using the
+    #     settings window.
+    #     """
+    #     # Load from file to fill the lines
+    #     with open("settings/global_settings.json") as json_file:
+    #         data = json.load(json_file)
+    #     try:
+    #         settings = data["overwrite"]
 
-            # Update statusbar
-            self.log_message("Global Settings Read from File")
-        except:
-            settings = data["default"]
+    #         # Update statusbar
+    #         cf.log_message("Global Settings Read from File")
+    #     except:
+    #         settings = data["default"]
 
-            # Update statusbar
-            self.log_message("Default device parameters taken")
+    #         # Update statusbar
+    #         cf.log_message("Default device parameters taken")
 
-        return settings[0]
+    #     return settings[0]
 
     def safe_read_setup_parameters(self):
         """
@@ -416,7 +466,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.aw_start_measurement_pushButton.setChecked(False)
             self.gw_start_measurement_pushButton.setChecked(False)
 
-            self.log_message("Folder path or batchname not defined")
+            cf.log_message("Folder path or batchname not defined")
             raise UserWarning("Please set folder path and batchname first!")
 
         # Now check if the folder path ends on a / otherwise try to add it
@@ -439,7 +489,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             self.aw_start_measurement_pushButton.setChecked(False)
 
-            self.log_message("Folder path not valid")
+            cf.log_message("Folder path not valid")
             raise UserWarning("Please enter a valid folder path!")
 
         return setup_parameters
@@ -469,7 +519,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
         # Update statusbar
-        self.log_message("Setup parameters read")
+        cf.log_message("Setup parameters read")
 
         return setup_parameters
 
@@ -479,26 +529,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         activate pixel. I am not really sure if that is how to terminate a qthread correctly but it works.
         https://stackoverflow.com/questions/17045368/qthread-emits-finished-signal-but-isrunning-returns-true-and-isfinished-re
         """
+        # Reset the keithley by reseting it as voltage source
+        self.keithley_source.as_voltage_source(1.05)
+        self.arduino_uno.init_serial_connection()
 
-        # Kill process and delete old current tester object
-        self.current_tester.kill()
-        time.sleep(1)
-        del self.current_tester
+        # # Kill process and delete old current tester object
+        # self.current_tester.kill()
+        # time.sleep(1)
+        # del self.current_tester
 
-        # Read in global settings and instanciate CurrentTester again
-        global_settings = self.read_global_settings()
-        self.current_tester = CurrentTester(
-            global_settings["arduino_com_address"],
-            global_settings["keithley_source_address"],
-            # global_settings["keithley_multimeter_address"],
-            parent=self,
-        )
+        # # Read in global settings and instanciate CurrentTester again
+        # self.current_tester = CurrentTester(
+        #     self.arduino_uno,
+        #     self.keithley_source,
+        #     parent=self,
+        # )
 
-        # Start thread
-        self.current_tester.start()
+        # # Start thread
+        # self.current_tester.start()
 
-        # Update statusbar
-        self.log_message("Current tester successfully reinstanciated")
+        # # Update statusbar
+        # cf.log_message("Current tester successfully reinstanciated")
 
     def toggle_pixel(self, pixel_number, tab):
         """
@@ -515,7 +566,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.current_tester.uno.open_relay(pixel_number, True)
 
             # Update statusbar
-            self.log_message("Activated Pixel " + str(pixel_number))
+            cf.log_message("Activated Pixel " + str(pixel_number))
 
             self.specw_pushbutton_array[pixel_number - 1].setChecked(True)
             self.sw_pushbutton_array[pixel_number - 1].setChecked(True)
@@ -530,7 +581,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.current_tester.uno.open_relay(pixel, True)
 
             # Update statusbar
-            self.log_message("Deactivated Pixel " + str(pixel_number))
+            cf.log_message("Deactivated Pixel " + str(pixel_number))
 
             self.specw_pushbutton_array[pixel_number - 1].setChecked(False)
             self.sw_pushbutton_array[pixel_number - 1].setChecked(False)
@@ -572,7 +623,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.current_tester.keithley_source.set_voltage(voltage)
 
         # Update statusbar
-        self.log_message("Voltage Changed to " + str(round(voltage, 2)) + " V")
+        cf.log_message("Voltage Changed to " + str(round(voltage, 2)) + " V")
 
     def select_all_pixels(self):
         """
@@ -587,7 +638,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             pixel += 1
 
         # Update statusbar
-        self.log_message("All pixels selected")
+        cf.log_message("All pixels selected")
 
     def unselect_all_pixels(self):
         """
@@ -603,7 +654,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.specw_pushbutton_array[i].setChecked(False)
 
         # Update statusbar
-        self.log_message("All pixels unselected")
+        cf.log_message("All pixels unselected")
 
     def prebias_pixels(self):
         """
@@ -611,7 +662,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Update statusbar
-        self.log_message("Prebiasing pixels started")
+        cf.log_message("Prebiasing pixels started")
 
         # This should be in the global settings later on (probably not
         # necessary to change every time but sometimes)
@@ -623,21 +674,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.unselect_all_pixels()
 
         # Set voltage to prebias voltage
-        self.current_tester.keithley_source.set_voltage(pre_bias_voltage)
+        self.keithley_source.set_voltage(pre_bias_voltage)
         self.sw_ct_voltage_spinBox.setValue(pre_bias_voltage)
 
         # Pre-bias all pixels automatically
         for pixel in range(len(self.sw_pushbutton_array)):
             # Close all relays
-            self.current_tester.uno.open_relay(1, False)
+            self.arduino_uno.open_relay(1, False)
 
             # Set push button to checked and open relay of the pixel
             self.sw_pushbutton_array[pixel].setChecked(True)
             self.specw_pushbutton_array[pixel].setChecked(True)
-            self.current_tester.uno.open_relay(pixel + 1, True)
+            self.arduino_uno.open_relay(pixel + 1, True)
 
             # Turn on the voltage
-            self.current_tester.keithley_source.activate_output()
+            self.keithley_source.activate_output()
 
             # Update GUI while being in a loop. It would be better to use
             # separate threads but for now this is the easiest way
@@ -649,18 +700,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Deactivate the pixel again
             self.sw_pushbutton_array[pixel].setChecked(False)
             self.specw_pushbutton_array[pixel].setChecked(False)
-            self.current_tester.uno.open_relay(pixel + 1, False)
+            self.arduino_uno.open_relay(pixel + 1, False)
 
             # Turn off the voltage
-            self.current_tester.keithley_source.deactivate_output()
+            self.keithley_source.deactivate_output()
 
         # Set voltage to prebias voltage
-        self.current_tester.keithley_source.activate_output()
-        self.current_tester.keithley_source.set_voltage(set_voltage)
+        self.keithley_source.activate_output()
+        self.keithley_source.set_voltage(set_voltage)
         self.sw_ct_voltage_spinBox.setValue(set_voltage)
 
         # Update statusbar
-        self.log_message("Finished prebiasing")
+        cf.log_message("Finished prebiasing")
 
     def autotest_pixels(self):
         """
@@ -675,7 +726,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Update statusbar
-        self.log_message("Auto testing pixels started")
+        cf.log_message("Auto testing pixels started")
 
         # Define voltage steps (in the future this could be settings in the
         # global settings as well)
@@ -686,24 +737,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.unselect_all_pixels()
 
         # Turn off the voltage (if that was not already done)
-        self.current_tester.keithley_source.deactivate_output()
+        self.keithley_source.deactivate_output()
 
         # Go over all pixels
         working_pixels = []
 
         for pixel in range(len(self.sw_pushbutton_array)):
             # Close all relays
-            self.current_tester.uno.open_relay(1, False)
+            self.arduino_uno.open_relay(1, False)
 
             # Set push button to checked and open relay of the pixel
             self.sw_pushbutton_array[pixel].setChecked(True)
             self.specw_pushbutton_array[pixel].setChecked(True)
-            self.current_tester.uno.open_relay(pixel + 1, True)
+            self.arduino_uno.open_relay(pixel + 1, True)
 
             for voltage in voltage_range:
                 # Turn on the voltage at the value "voltage"
-                self.current_tester.keithley_source.activate_output()
-                self.current_tester.keithley_source.set_voltage(voltage)
+                self.keithley_source.activate_output()
+                self.keithley_source.set_voltage(voltage)
                 self.sw_ct_voltage_spinBox.setValue(voltage)
 
                 # Update GUI while being in a loop. It would be better to use
@@ -714,7 +765,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 time.sleep(biasing_time)
 
                 # Now read the current
-                current = self.current_tester.keithley_source.read_current()
+                current = self.keithley_source.read_current()
 
                 if current >= 0.02 and current <= 5:
                     working_pixels.append(pixel + 1)
@@ -723,11 +774,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Deactivate the pixel again
             self.sw_pushbutton_array[pixel].setChecked(False)
             self.specw_pushbutton_array[pixel].setChecked(False)
-            self.current_tester.uno.open_relay(pixel + 1, False)
+            self.arduino_uno.open_relay(pixel + 1, False)
 
             # Turn off the voltage
-            self.current_tester.keithley_source.set_voltage(0)
-            self.current_tester.keithley_source.deactivate_output()
+            self.keithley_source.set_voltage(0)
+            self.keithley_source.deactivate_output()
             self.sw_ct_voltage_spinBox.setValue(0)
 
         # Now activate all pixels that do work
@@ -738,10 +789,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             pixel += 1
 
         # Set voltage to prebias voltage
-        self.current_tester.keithley_source.activate_output()
+        self.keithley_source.activate_output()
 
         # Update statusbar
-        self.log_message("Finished auto testing pixels")
+        cf.log_message("Finished auto testing pixels")
 
     # -------------------------------------------------------------------- #
     # ---------------------- Autotube Measurement  ----------------------- #
@@ -760,7 +811,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "high_voltage_step": self.aw_high_voltage_step_spinBox.value(),
             "scan_compliance": self.aw_scan_compliance_spinBox.value(),
             "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
-            "check_pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
+            # "check_pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
         }
 
         # Boolean list for selected pixels
@@ -779,7 +830,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         selected_pixels_numbers = [i + 1 for i, x in enumerate(selected_pixels) if x]
 
         # Update statusbar
-        self.log_message("Autotube paremeters read")
+        cf.log_message("Autotube paremeters read")
 
         return measurement_parameters, selected_pixels_numbers
 
@@ -824,7 +875,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_fig.draw()
 
         # Update statusbar
-        self.log_message("Autotube measurement plotted")
+        cf.log_message("Autotube measurement plotted")
 
     def start_autotube_measurement(self):
         """
@@ -837,7 +888,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         setup_parameters = self.safe_read_setup_parameters()
 
         # Update statusbar
-        self.log_message("Autotube measurement started")
+        cf.log_message("Autotube measurement started")
 
         measurement_parameters, selected_pixels = self.read_autotube_parameters()
 
@@ -846,13 +897,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.progressBar.setProperty("value", 0)
 
         # Now read in the global settings from file
-        global_settings = self.read_global_settings()
+        # global_settings = cf.read_global_settings()
 
         # Instantiate our class
         self.autotube_measurement = AutotubeMeasurement(
-            global_settings["keithley_source_address"],
-            global_settings["keithley_multimeter_address"],
-            global_settings["arduino_com_address"],
+            self.keithley_source,
+            self.keithley_multimeter,
+            self.arduino_uno,
             measurement_parameters,
             setup_parameters,
             selected_pixels,
@@ -862,49 +913,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Start thread to run measurement
         self.autotube_measurement.start()
-        # for pixel in selected_pixels:
-        #     # This shall create an instance of the AutotubeMeasurement class
-        #     progress = 0
-
-        #     self.log_message("Running on Pixel " + str(pixel))
-
-        #     # Instantiate our class
-        #     measurement = AutotubeMeasurement(
-        #         global_settings["keithley_source_address"],
-        #         global_settings["keithley_multimeter_address"],
-        #         global_settings["arduino_com_address"],
-        #         measurement_parameters,
-        #         setup_parameters,
-        #         pixel,
-        #     )
-
-        #     # Call measurement.save_data() to directly save the data to a file
-        #     measurement.save_data()
-
-        #     # Call measurement.get_data() that returns the actual data
-        #     # so that we can feed it into plot_autotube_measurement
-        #     self.plot_autotube_measurement(measurement.df_data)
-
-        #     # Update progress bar
-        #     progress += 1
-        #     self.progressBar.setProperty(
-        #         "value", int(progress / len(selected_pixels) * 100)
-        #     )
-
-        #     # Update GUI while being in a loop. It would be better to use
-        #     # separate threads but for now this is the easiest way
-        #     app.processEvents()
-
-        #     # Wait a few seconds so that the user can have a look at the graph
-        #     time.sleep(1)
-
-        # # Untoggle the pushbutton
-        # self.aw_start_measurement_pushButton.setChecked(False)
-
-        # # Update statusbar
-        # self.log_message("Autotube measurement finished")
-
-        # self.progressBar.hide()
 
     # -------------------------------------------------------------------- #
     # ---------------------- Spectrum Measurement  ----------------------- #
@@ -928,7 +936,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
         # Update statusbar
-        self.log_message("Spectrum parameters read")
+        cf.log_message("Spectrum parameters read")
 
         return spectrum_parameters
 
@@ -962,7 +970,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             )
             msgBox.exec()
 
-            self.log_message("More or less than one pixel selected")
+            cf.log_message("More or less than one pixel selected")
             raise UserWarning("Please select exactly one pixel!")
 
         self.progressBar.show()
@@ -976,7 +984,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         (
             df_spectrum_data["wavelength"],
             df_spectrum_data["intensity"],
-        ) = self.spectrum_measurement.spectrometer.measure()
+        ) = self.spectrometer.measure()
 
         self.progressBar.setProperty("value", 50)
 
@@ -986,7 +994,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         (
             wavelength,
             df_spectrum_data["background"],
-        ) = self.spectrum_measurement.spectrometer.measure()
+        ) = self.spectrometer.measure()
 
         # Save data
         file_path = (
@@ -1007,7 +1015,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             + str(self.specw_voltage_spinBox.value())
             + " V\t"
             + "Integration Time: "
-            + str(self.spectrum_measurement.integration_time / 1000)
+            + str(self.spectrum_measurement.spectrometer.integration_time)
             + " ms"
         )
 
@@ -1077,8 +1085,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "maximum_angle": self.gw_maximum_angle_spinBox.value(),
             "step_angle": self.gw_step_angle_spinBox.value(),
             "integration_time": self.gw_integration_time_spinBox.value(),
-            "homing_time": self.gw_homing_time_spinBox.value(),
-            "moving_time": self.gw_moving_time_spinBox.value(),
+            # "homing_time": self.gw_homing_time_spinBox.value(),
+            # "moving_time": self.gw_moving_time_spinBox.value(),
             "pulse_duration": self.gw_pulse_duration_spinBox.value(),
             "voltage_or_current": self.gw_voltage_or_current_toggleSwitch.isChecked(),
             "voltage_scan": self.gw_voltage_scan_toggleSwitch.isChecked(),
@@ -1089,7 +1097,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
         # Update statusbar
-        self.log_message("Goniometer parameters read")
+        cf.log_message("Goniometer parameters read")
 
         return goniometer_parameters
 
@@ -1112,7 +1120,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             selected_pixels,
         ) = self.read_autotube_parameters()
         goniometer_measurement_parameters = self.read_goniometer_parameters()
-        global_settings = self.read_global_settings()
+        # global_settings = cf.read_global_settings()
 
         # Check that only exactly one pixel is selected before measurement can
         # be started (this could be also done with the gui directly). Also if
@@ -1130,13 +1138,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             msgBox.exec()
 
             self.gw_start_measurement_pushButton.setChecked(False)
-            self.log_message("More or less than one pixel selected")
+            cf.log_message("More or less than one pixel selected")
             raise UserWarning("Please select exactly one pixel")
 
             return
 
         # Update statusbar
-        self.log_message("Goniometer measurement started")
+        cf.log_message("Goniometer measurement started")
 
         # Set progress bar to zero
         self.progressBar.show()
@@ -1145,13 +1153,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Instantiate our class it has to be a class variable otherwise it
         # would be destroyed as soon as this function terminates
         self.goniometer_measurement = GoniometerMeasurement(
-            global_settings["keithley_source_address"],
-            global_settings["keithley_multimeter_address"],
-            global_settings["arduino_com_address"],
-            global_settings["motor_number"],
-            global_settings["motor_offset"],
-            global_settings["spectrum_integration_time"],
-            global_settings["photodiode_gain"],
+            self.keithley_source,
+            self.keithley_multimeter,
+            self.arduino_uno,
+            self.motor,
+            self.spectrometer,
             goniometer_measurement_parameters["selected_pixels"],
             goniometer_measurement_parameters,
             autotube_measurement_parameters,
@@ -1261,41 +1267,41 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_fig.draw()
 
         # Update statusbar
-        self.log_message("Goniometer Measurement Plotted")
+        cf.log_message("Goniometer Measurement Plotted")
 
     def move_motor(self):
         """
         Function to do a bare movement of the motor without any measurement.
         """
-        # Read the global settings to initialise the motor
-        global_settings = self.read_global_settings()
-
-        # Initialise motor (it might be better to do this less often)
-        motor = ThorlabMotor(
-            global_settings["motor_number"], global_settings["motor_offset"]
-        )
+        # # Read the global settings to initialise the motor
+        # global_settings = cf.read_global_settings()
 
         # Read the angle from the spinBox
         angle = self.gw_offset_angle_spinBox.value()
 
-        self.log_message("Motor is moving")
+        cf.log_message("Motor is moving")
 
         # Move the motor and change the animation
-        motor.move_to(angle)
+        self.motor.move_to(angle)
 
         # I decided to read the motor position instead of doing a virtual animation. The animation shall always show the true motor position (if the hardware allows that). The
-        motor_position = motor.read_position()
+        motor_position = self.motor.read_position()
         self.gw_animation.move(motor_position)
         app.processEvents()
         time.sleep(0.05)
 
         while int(angle) != int(motor_position):
-            motor_position = motor.read_position()
+            motor_position = self.motor.read_position()
             self.gw_animation.move(motor_position)
             app.processEvents()
             time.sleep(0.05)
 
-        self.log_message("Motor moved to " + str(angle) + " °")
+        # Update animation once more since the position might be 0.9 at this
+        # point (int comparison in the above while loop)
+        self.gw_animation.move(motor_position)
+        app.processEvents()
+
+        cf.log_message("Motor moved to " + str(angle) + " °")
 
     def disable_el_options(self):
         """
@@ -1359,35 +1365,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         if button == QtWidgets.QMessageBox.Ok:
             self.goniometer_measurement.pause = "break"
-            self.log_message("UV lamp was turned on")
+            cf.log_message("UV lamp was turned on")
         elif button == QtWidgets.QMessageBox.Cancel:
             self.goniometer_measurement.pause = "return"
-            self.log_message("PL measurement aborted before UV lamp was turned on")
+            cf.log_message("PL measurement aborted before UV lamp was turned on")
             self.gw_start_measurement_pushButton.setChecked(False)
 
     def closeEvent(self, event):
         # Kill motor savely
         try:
-            global_settings = self.read_global_settings()
-            motor = ThorlabMotor(
-                global_settings["motor_number"], global_settings["motor_offset"]
-            )
-            motor.motor._cleanup()
-            time.sleep(5)
+            self.motor.motor._cleanup()
         except:
-            self.log_message("Motor could not be turned off correctly")
+            cf.log_message("Motor could not be turned off correctly")
 
         # Kill spectrometer thread
         try:
             self.spectrum_measurement.kill()
         except:
-            self.log_message("Spectrometer thread could not be killed")
+            cf.log_message("Spectrometer thread could not be killed")
 
         # Kill keithley thread savely
         try:
             self.current_tester.kill()
         except:
-            self.log_message("Keithley thread could not be killed")
+            cf.log_message("Keithley thread could not be killed")
 
         # if can_exit:
         event.accept()  # let the window close

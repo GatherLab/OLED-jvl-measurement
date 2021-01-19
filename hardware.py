@@ -2,6 +2,8 @@ import pyvisa  # Keithley Module
 import serial  # Arduino Module
 import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
+import core_functions as cf
+
 import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
 
 import sys
@@ -23,10 +25,7 @@ class ArduinoUno:
 
         # Open COM port to Arduino (usually COM2):
         if com2_address not in visa_resources:
-            logging.error(
-                "The Arduino Uno seems to be missing. Try to reconnect to computer."
-            )
-            raise IOError(
+            cf.log_message(
                 "The Arduino Uno seems to be missing. Try to reconnect to computer."
             )
             # self.queue.put(
@@ -40,13 +39,13 @@ class ArduinoUno:
         self.uno.port = "COM2"  # assign COM2
 
         try:  # try to open COM2 port
-            self.__init_serial_connection()
+            self.init_serial_connection()
         except serial.SerialException:
             try:  # try to catch exception
                 self.uno.close()
-                self.__init_serial_connection()
+                self.init_serial_connection()
             except IOError:
-                logging.error(
+                cf.log_message(
                     "COM2 port to Arduino Uno already open. Close port manually."
                 )
                 raise IOError(
@@ -58,9 +57,9 @@ class ArduinoUno:
                 # )
                 sys.exit()
 
-        print("Arduino successfully initiated")
+        cf.log_message("Arduino successfully initiated")
 
-    def __init_serial_connection(self, wait=1):
+    def init_serial_connection(self, wait=1):
         """
         Private function
         Initialise serial connection to com.
@@ -73,18 +72,18 @@ class ArduinoUno:
         wait: flt
             time in seconds to wait before collecting initialisation message.
         """
-        com = self.uno
 
         # Open serial port
-        com.open()
+        self.uno.open()
 
         # Wait for a defined period of time
         time.sleep(wait)
 
         # Read serial port result
-        com.readall()
-
-        print("Arduino serial port successfully initialised with " + str(com.readall()))
+        cf.log_message(
+            "Arduino serial port successfully initialised with "
+            + str(self.uno.readall())
+        )
         # self.queue.put(com.readall())
 
     def close_serial_connection(self):
@@ -118,11 +117,11 @@ class ArduinoUno:
             if int(relay) >= 1 and int(relay) <= 9:
                 com.write(str(relay))
             else:
-                logging.error("The called self.pixel does not exist.")
+                cf.log_message("The called self.pixel does not exist.")
                 raise ValueError("The called self.pixel does not exist.")
 
         com.readall()
-        print(com.readall())
+        cf.log_message(com.readall())
         # self.queue.put(com.readall())  # reads all there is
 
 
@@ -144,7 +143,7 @@ class KeithleySource:
 
         # Check if keithley source is present at the given address
         if keithley_source_address not in visa_resources:
-            logging.error("The SourceMeter seems to be absent or switched off.")
+            cf.log_message("The SourceMeter seems to be absent or switched off.")
             raise IOError("The SourceMeter seems to be absent or switched off.")
 
         self.keith = rm.open_resource(keithley_source_address)
@@ -211,10 +210,10 @@ class KeithleySource:
         """
         # if the buffer already exists, delete it first to prevent the error
         # "parameter error TRACe:MAKE cannot use an existing reading buffer name keithley"
-        try:
-            self.keith.write('TRACe:DELete "' + buffer_name + '"')
-        except:
-            print("Buffer " + buffer_name + " does not exist yet")
+        # try:
+        # self.keith.write('TRACe:DELete "' + buffer_name + '"')
+        # except:
+        # cf.log_message("Buffer " + buffer_name + " does not exist yet")
         self.keith.write(
             'Trace:Make "' + buffer_name + '", ' + str(max(buffer_length, 10))
         )
@@ -222,6 +221,12 @@ class KeithleySource:
         # Keithley empties the buffer
         self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
         self.buffer_name = buffer_name
+
+    def empty_buffer(self, buffer_name):
+        """
+        Function that empties the Keithley's buffer for the next run
+        """
+        self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
 
     def activate_output(self):
         """
@@ -288,7 +293,7 @@ class KeithleyMultimeter:
         visa_resources = rm.list_resources()
 
         if keithley_multimeter_address not in visa_resources:
-            logging.error("The Multimeter seems to be absent or switched off.")
+            cf.log_message("The Multimeter seems to be absent or switched off.")
             raise IOError("The Multimeter seems to be absent or switched off.")
 
         self.keithmulti = rm.open_resource(keithley_multimeter_address)
@@ -335,7 +340,7 @@ class OceanSpectrometer:
         self.spectrometer = sb.Spectrometer(maya_devices[0])
 
         # Set integration time of spectrometer
-        self.spectrometer.integration_time_micros(int(integration_time))
+        self.set_integration_time_ms(integration_time)
 
     def measure(self):
         """
@@ -347,6 +352,17 @@ class OceanSpectrometer:
         # intensity = self.spec.intensities()
 
         return self.spectrometer.spectrum()
+
+    def set_integration_time_ms(self, integration_time):
+        """
+        Function that allows the user to set the integration time even after
+        initialisation of the spectrometer
+        """
+        self.integration_time = int(integration_time * 1000)
+        self.spectrometer.integration_time_micros(integration_time)
+        cf.log_message(
+            "Spectrometer integration time set to " + str(self.integration_time) + " ms"
+        )
 
 
 class ThorlabMotor:
@@ -386,7 +402,7 @@ class ThorlabMotor:
         # Make sure that the motor position is returned as values between -180 to 180 (definition)
         if self.motor.position + float(self.offset_angle) > 180:
             motor_position_translated = (
-                sSourceMeteielf.motor.position + float(self.offset_angle) - 360
+                self.motor.position + float(self.offset_angle) - 360
             )
         else:
             motor_position_translated = self.motor.position + float(self.offset_angle)

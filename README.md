@@ -1,36 +1,80 @@
-# OLED-jvl-measurement
+<h1 align="center">
+  GatherLab OLED Measurement Setup
+</h1>
 
-Tested on Arch Linux with Python 3.8.6
+<p align="center">
+   <a href="https://github.com/GatherLab/OLED-jvl-measurement/commits/" title="Last Commit"><img src="https://img.shields.io/github/last-commit/GatherLab/OLED-jvl-measurement?style=flat"></a>
+   <a href="https://github.com/GatherLab/OLED-jvl-measurement/issues" title="Open Issues"><img src="https://img.shields.io/github/issues/GatherLab/OLED-jvl-measurement?style=flat"></a>
+   <a href="./LICENSE" title="Python Version"><img src="https://img.shields.io/pypi/pyversion/PySide2"></a>
+   <a href="./LICENSE" title="License"><img src="https://img.shields.io/github/license/GatherLab/OLED-jvl-measurement"></a>
+</p>
 
-## Introduction
+<p align="center">
+  <a href="#development">Setup</a> •
+  <a href="#hardware">Hardware</a> •
+  <a href="#documentation">Documentation</a> •
+  <a href="#licensing">Licensing</a>
+</p>
 
-An easy to use tool to facilitate OLED characterisation using a fixed distance measurement setup as well as a goniometer for angle resolved EQE measurements.
+The goal of this project is to develop an easy to use interface for the investigation of organic leds (OLEDs). The measurements may or may not comprise current-voltage-luminance or spectral measurements. Additionally, an angle resolved spectrum of the OLED under investigation is made possible. Ultimately, the program should be easily usable and facilitate measurement and evaluation of classic OLED characterisation.
 
-## Requirements
+<!-- ![Figure 1: Example of the interface]("link" "Figure 1: UI Screens for Apple iOS") -->
 
-Formatting happens with black python formatter. Any changes to the code should be formatted accordingly.
-Please find all the package requirements in requirements.txt. I recommend using a virtual environment management tool like venv together with pip or anaconda to install the packages within a virtual environment using
+## Setup
+
+### First Setup
+
+Setup a python environment with your favourite virtual environment management tool. The following step by step guide assumes that the user wants to use the since python 3.3 recommended software venv that ships with python on a windows machine.
+
+1. Clone project folder to your local machine
+2. Change e.g. with windows power shell into the project folder
+3. Generate a virtual environement with the name "venv"
 
 ```terminal
+py -m venv venv
+```
+
+4. Activate the new environement
+
+```
+Set-ExecutionPolicy Unrestricted -Scope Process
+.\venv\Scripts\activate
+```
+
+5. Install required packages from requirements.txt (this assumes that pip is activated on your machine)
+
+```
 pip install -r requirements.txt
 ```
 
-Execute the jvl_measurement.py file which is the main file e.g. with
+6. Install thorlabs_apt to obtain apt.dll driver (Follow https://github.com/qpit/thorlabs_apt for correct installation guidelines. For us, it only worked when apt.dll was copied to the Windows/System32 folder.
+7. Ensure that libusb-1.0.lib driver is installed for detecting usb hardware (Follow https://stackoverflow.com/questions/33972145/pyusb-on-windows-8-1-no-backend-available-how-to-install-libusb for more on this)
+8. Install NI-visa from website: https://www.ni.com/de-de/support/downloads/drivers/download.ni-visa.html#346210
+9. Install Keithley drivers from website: https://de.tek.com/source-measure-units/2450-software-6 (prerequisit: NI-visa)
+10. On the Keithley source meter (for specs see below) the command set on the Keithley has to be changed to SCPI
+11. Execute the main.py file to start the program
 
 ```terminal
-python3 jvl_measurement.py
+python3 main.py
 ```
 
-The others are only dependencies.
+### Development
 
-Furthermore, the apt.dll driver must be installed as well as the libusb-1.0.lib driver for detecting usb hardware: https://stackoverflow.com/questions/33972145/pyusb-on-windows-8-1-no-backend-available-how-to-install-libusb.
+- Python formatter: black
 
-Install NI-visa from website https://www.ni.com/de-de/support/downloads/drivers/download.ni-visa.html#346210
-Install Keithley driver from website: https://de.tek.com/source-measure-units/2450-software-6 (prerequisit: NI-visa)
+## Hardware
 
-Furthermore, the command set in the Keithley source has to be set to SCPI
+The different OLED pixels are activated with and Arduino UNO and a relay shield. Power is provided by a Keithley source unit that also allows the simultaneous measurement of applied voltage and drawn current. Photodiode voltage is measured with a Keithley Multimeter. Spectra are measured with an Ocean Spectrometer. For the goniometer setup, the rotation of the sample is done with a Thorlab motor. All items needed for the setup are listed below.
 
-## User Journey
+| Item                | Brand    | Model Number      |
+| ------------------- | -------- | ----------------- |
+| Ocean Spectrometer  | Ocean    | ?                 |
+| Arduino UNO         | Arduino  | ?                 |
+| Keithley Source     | Keithley | ?                 |
+| Keithley Multimeter | Keithley | ?                 |
+| Thorlab Motor       | Thorlab  | ? # Documentation |
+
+## Documentation
 
 ### Setup (Current Tester)
 
@@ -100,9 +144,3 @@ The settings tab is not yet clearly defined although it shall link to the docume
 
 - Keithley and arduino addresses
 - photodiode gain
-
-## Documentation
-
-### Arduino Communication
-
-Our setup uses an arduino only to select the pixels of a device that shall be measured. Arduino-Python communication does not seem trivial. An easy way to circumvent the problem is to design the Arduino sketch in such a manner that we can communicate with it via serial communication. If the arduino is connected to the PC python can use the same channel to communicate with the Arduino. Predefined commands that we can also enter manually can now be sent using a python script and the serial package for python.

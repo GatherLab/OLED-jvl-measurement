@@ -14,6 +14,7 @@ from tests.tests import MockArduinoUno, MockKeithleySource, MockKeithleyMultimet
 import time
 import datetime as dt
 import sys
+import core_functions as cf
 
 import os
 
@@ -27,7 +28,6 @@ class AutotubeMeasurement(QtCore.QThread):
     """
 
     update_plot = QtCore.Signal(list, list, list)
-    update_log_message = QtCore.Signal(str)
     update_progress_bar = QtCore.Signal(str, float)
     hide_progress_bar = QtCore.Signal()
     reset_start_button = QtCore.Signal(bool)
@@ -36,7 +36,7 @@ class AutotubeMeasurement(QtCore.QThread):
         self,
         keithley_source,
         keithley_multimeter,
-        uno,
+        arduino,
         measurement_parameters,
         setup_parameters,
         selected_pixels,
@@ -48,17 +48,15 @@ class AutotubeMeasurement(QtCore.QThread):
         """
         super(AutotubeMeasurement, self).__init__()
 
-        # Initialise arduino and Keithley source and multimeter with the input addresses
-        if devices_already_initialised:
-            self.uno = uno
-            self.keithley_source = keithley_source
-            self.keithley_multimeter = keithley_multimeter
-        else:
-            self.uno = MockArduinoUno(uno)
-            self.keithley_source = KeithleySource(
-                keithley_source, measurement_parameters["scan_compliance"]
-            )
-            self.keithley_multimeter = KeithleyMultimeter(keithley_multimeter)
+        # Assign hardware and reset
+        self.uno = arduino
+        self.uno.init_serial_connection()
+        self.keithley_source = keithley_source
+        self.keithley_source.as_voltage_source(
+            measurement_parameters["scan_compliance"]
+        )
+        self.keithley_multimeter = keithley_multimeter
+        self.keithley_multimeter.reset()
 
         # Now set the input parameters as parameters of the datastructure
         self.measurement_parameters = measurement_parameters
@@ -73,7 +71,6 @@ class AutotubeMeasurement(QtCore.QThread):
 
         # Connect the signals
         self.update_plot.connect(parent.plot_autotube_measurement)
-        self.update_log_message.connect(parent.log_message)
         self.update_progress_bar.connect(parent.progressBar.setProperty)
         self.hide_progress_bar.connect(parent.progressBar.hide)
         self.reset_start_button.connect(
@@ -109,14 +106,16 @@ class AutotubeMeasurement(QtCore.QThread):
         # To update progres bar
         progress = 0
 
+        # Init buffer before the measurement
+        # self.keithley_source.init_buffer(
+        #     "OLEDbuffer", 10 * len(low_vlt) + len(high_vlt)
+        # )
+
         # Iterate over all selected pixels
         for pixel in self.selected_pixels:
+            # self.keithley_source.empty_buffer("OLEDbuffer")
 
-            self.update_log_message.emit("Running on Pixel " + str(pixel))
-
-            self.keithley_source.init_buffer(
-                "OLEDbuffer", 10 * len(low_vlt) + len(high_vlt)
-            )
+            cf.log_message("Running on Pixel " + str(pixel))
 
             # Take PD voltage reading from Multimeter for background
             background_diodevoltage = self.keithley_multimeter.measure_voltage()
@@ -142,7 +141,7 @@ class AutotubeMeasurement(QtCore.QThread):
                 # check if compliance is reached
                 if abs(oled_current) >= self.measurement_parameters["scan_compliance"]:
                     self.keithley_source.deactivate_output()
-                    self.update_log_message.emit("Current compliance reached")
+                    self.log_message("Current compliance reached")
                     break
 
                 # check for a bad contact
@@ -154,7 +153,7 @@ class AutotubeMeasurement(QtCore.QThread):
                         <= self.measurement_parameters["check_bad_contacts"]
                     ):
                         self.keithley_source.deactivate_output()  # Turn power off
-                        self.update_log_message.emit(
+                        cf.log_message(
                             "Pixel "
                             + str(pixel)
                             + " probably has a bad contact. Measurement aborted."
@@ -164,19 +163,14 @@ class AutotubeMeasurement(QtCore.QThread):
                         time.sleep(1)
                         break
 
-                # check for PD saturation
-                if self.measurement_parameters["check_pd_saturation"] == True:
-                    if (
-                        diode_voltage
-                        >= self.measurement_parameters["check_pd_saturation"]
-                    ):
-                        self.update_log_message.emit(
-                            "Photodiode reaches saturation. You might want to adjust the photodiode gain."
-                        )
+                if diode_voltage >= self.global_settings["photodiode_saturation"]:
+                    cf.log_message(
+                        "Photodiode reached saturation. You might want to adjust the photodiode gain."
+                    )
 
-                        # Wait a second so that the user can read the message
-                        time.sleep(1)
-                        break
+                    # Wait a second so that the user can read the message
+                    time.sleep(1)
+                    break
 
                 self.df_data.loc[i, "pd_voltage"] = (
                     diode_voltage - background_diodevoltage
@@ -221,7 +215,7 @@ class AutotubeMeasurement(QtCore.QThread):
         self.reset_start_button.emit(False)
 
         # Update statusbar
-        self.update_log_message.emit("Autotube measurement finished")
+        cf.log_message("Autotube measurement finished")
 
         # Hise progress bar
         self.hide_progress_bar.emit()
