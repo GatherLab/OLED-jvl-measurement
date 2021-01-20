@@ -60,7 +60,7 @@ class SpectrumMeasurement(QtCore.QThread):
         Kill this thread by stopping the loop
         """
         # Turn arduino relays off
-        self.uno.open_relay(1, False)
+        self.uno.trigger_relay(0)
         self.uno.close_serial_connection()
 
         # Turn keithley off

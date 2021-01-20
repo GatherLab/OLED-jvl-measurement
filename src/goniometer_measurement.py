@@ -68,6 +68,7 @@ class GoniometerMeasurement(QtCore.QThread):
         self.motor = motor
 
         self.uno = arduino_uno
+        self.uno.init_serial_connection()
         self.keithley_source = keithley_source
         self.keithley_source.as_voltage_source(
             autotube_measurement_parameters["scan_compliance"]
@@ -171,7 +172,7 @@ class GoniometerMeasurement(QtCore.QThread):
             self.keithley_source.init_buffer("pulsebuffer", buffer_length=1000)
 
             # Now activate the output to measure the specific voltages/current
-            self.uno.open_relay(relay=self.pixel[0], state=1)
+            self.uno.trigger_relay(self.pixel[0])
             self.keithley_source.activate_output()
 
             self.specific_pd_voltage = (
@@ -182,7 +183,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # Deactivate output
             self.keithley_source.deactivate_output()
-            self.uno.open_relay(relay=self.pixel[0], state=0)
+            self.uno.trigger_relay(relay=0)
 
             cf.log_message("Specific voltages measured")
 
@@ -233,7 +234,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # If el measurement was selected, activate the selected pixel already
         if not self.goniometer_measurement_parameters["el_or_pl"]:
-            self.uno.open_relay(relay=self.pixel[0], state=1)
+            self.uno.trigger_relay(self.pixel[0])
         else:
             # Check first if user already aborted the measurement
             if self.pause == "return":
@@ -366,7 +367,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             # Close relay and serial connection as well
-            self.uno.open_relay(relay=self.pixel[0], state=0)
+            self.uno.trigger_relay(relay=0)
             self.uno.close_serial_connection()  # close COM port
 
             # Only save iv data for el measurement, because it otherwise does not exist

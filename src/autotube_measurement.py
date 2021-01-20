@@ -121,7 +121,7 @@ class AutotubeMeasurement(QtCore.QThread):
             background_diodevoltage = self.keithley_multimeter.measure_voltage()
 
             # Activate the relay of the selected pixel
-            self.uno.open_relay(relay=pixel, state=1)
+            self.uno.trigger_relay(pixel)
 
             # Turn on the voltage
             self.keithley_source.activate_output()
@@ -188,7 +188,7 @@ class AutotubeMeasurement(QtCore.QThread):
             self.keithley_source.deactivate_output()
 
             # Turn off all relays
-            self.uno.open_relay(relay=pixel, state=0)
+            self.uno.trigger_relay(0)
 
             # Save data
             self.save_data(pixel)

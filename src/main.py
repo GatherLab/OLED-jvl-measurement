@@ -387,7 +387,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Opens a file on the machine with the standard program
         https://stackoverflow.com/questions/6045679/open-file-with-pyqt
         """
-        print(path)
         if sys.platform.startswith("linux"):
             subprocess.call(["xdg-open", path])
         else:
@@ -532,6 +531,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         # Reset the keithley by reseting it as voltage source
         self.keithley_source.as_voltage_source(1.05)
+        self.keithley_multimeter.reset()
         self.arduino_uno.init_serial_connection()
 
         # # Kill process and delete old current tester object
@@ -554,33 +554,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def toggle_pixel(self, pixel_number, tab):
         """
-        Toggle pixel on or off by checking if the selected pixel was on
-        already or not. This might require turning all pixels off first.
+        Toggles the pixel and changes the state of the pushbuttons
         """
         if tab == "sw":
             selected_pixels = self.read_setup_parameters()["selected_pixel"]
         elif tab == "specw":
             selected_pixels = self.read_spectrum_parameters()["selected_pixel"]
 
-        if selected_pixels[pixel_number - 1]:
-            # Turn pixel on
-            self.current_tester.uno.open_relay(pixel_number, True)
+        # Turn pixel on
+        self.current_tester.uno.trigger_relay(pixel_number)
 
+        if selected_pixels[pixel_number - 1]:
             # Update statusbar
             cf.log_message("Activated Pixel " + str(pixel_number))
 
             self.specw_pushbutton_array[pixel_number - 1].setChecked(True)
             self.sw_pushbutton_array[pixel_number - 1].setChecked(True)
         else:
-            # Turn all pixels off first
-            self.current_tester.uno.open_relay(pixel_number, False)
-
-            # Get pixel numbers of those pixel that are True (activated)
-            activated_pixels = [i + 1 for i, x in enumerate(selected_pixels) if x]
-
-            for pixel in activated_pixels:
-                self.current_tester.uno.open_relay(pixel, True)
-
             # Update statusbar
             cf.log_message("Deactivated Pixel " + str(pixel_number))
 
@@ -632,11 +622,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Toggle all buttons for the unselected pixels
-        pixel = 1
-        for push_button in self.sw_pushbutton_array:
-            push_button.setChecked(True)
-            self.toggle_pixel(pixel, "sw")
-            pixel += 1
+        self.current_tester.uno.trigger_relay(9)
+
+        for i in range(len(self.sw_pushbutton_array)):
+            self.sw_pushbutton_array[i].setChecked(True)
+            self.specw_pushbutton_array[i].setChecked(True)
 
         # Update statusbar
         cf.log_message("All pixels selected")
@@ -647,7 +637,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Collectively turn off all pixels
-        self.current_tester.uno.open_relay(1, False)
+        self.current_tester.uno.trigger_relay(0)
 
         # Uncheck all pixels
         for i in range(len(self.sw_pushbutton_array)):
@@ -681,12 +671,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Pre-bias all pixels automatically
         for pixel in range(len(self.sw_pushbutton_array)):
             # Close all relays
-            self.arduino_uno.open_relay(1, False)
+            self.arduino_uno.trigger_relay(0)
 
             # Set push button to checked and open relay of the pixel
             self.sw_pushbutton_array[pixel].setChecked(True)
             self.specw_pushbutton_array[pixel].setChecked(True)
-            self.arduino_uno.open_relay(pixel + 1, True)
+            self.arduino_uno.trigger_relay(pixel + 1)
 
             # Turn on the voltage
             self.keithley_source.activate_output()
@@ -701,7 +691,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Deactivate the pixel again
             self.sw_pushbutton_array[pixel].setChecked(False)
             self.specw_pushbutton_array[pixel].setChecked(False)
-            self.arduino_uno.open_relay(pixel + 1, False)
+            self.arduino_uno.trigger_relay(pixel + 1)
 
             # Turn off the voltage
             self.keithley_source.deactivate_output()
@@ -745,12 +735,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         for pixel in range(len(self.sw_pushbutton_array)):
             # Close all relays
-            self.arduino_uno.open_relay(1, False)
+            self.arduino_uno.trigger_relay(0)
 
             # Set push button to checked and open relay of the pixel
             self.sw_pushbutton_array[pixel].setChecked(True)
             self.specw_pushbutton_array[pixel].setChecked(True)
-            self.arduino_uno.open_relay(pixel + 1, True)
+            self.arduino_uno.trigger_relay(pixel + 1)
 
             for voltage in voltage_range:
                 # Turn on the voltage at the value "voltage"
@@ -775,7 +765,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Deactivate the pixel again
             self.sw_pushbutton_array[pixel].setChecked(False)
             self.specw_pushbutton_array[pixel].setChecked(False)
-            self.arduino_uno.open_relay(pixel + 1, False)
+            self.arduino_uno.trigger_relay(pixel + 1)
 
             # Turn off the voltage
             self.keithley_source.set_voltage(0)
@@ -804,6 +794,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Function to read out the current measurement parameters that are
         present when clicking the Start Measurement button
         """
+        global_parameters = cf.read_global_settings()
         measurement_parameters = {
             "min_voltage": self.aw_min_voltage_spinBox.value(),
             "max_voltage": self.aw_max_voltage_spinBox.value(),
@@ -812,6 +803,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "high_voltage_step": self.aw_high_voltage_step_spinBox.value(),
             "scan_compliance": self.aw_scan_compliance_spinBox.value(),
             "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
+            "photodiode_saturation": float(global_parameters["photodiode_saturation"]),
             # "check_pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
         }
 
@@ -1373,6 +1365,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gw_start_measurement_pushButton.setChecked(False)
 
     def closeEvent(self, event):
+        """
+        Function that shall allow for save closing of the program
+        """
+
+        cf.log_message("Program closed")
+
         # Kill motor savely
         try:
             self.motor.motor._cleanup()
@@ -1390,6 +1388,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.current_tester.kill()
         except:
             cf.log_message("Keithley thread could not be killed")
+
+        try:
+            self.arduino_uno.close_serial_connection()
+        except:
+            cf.log_message("Arduino connection could not be savely killed")
 
         # if can_exit:
         event.accept()  # let the window close

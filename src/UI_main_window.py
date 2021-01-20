@@ -1451,7 +1451,7 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Batch Name and File Path")
         )
         self.sw_activate_local_mode_pushButton.setText(
-            _translate("MainWindow", "Reset Keithley")
+            _translate("MainWindow", "Reset Hardware")
         )
         self.sw_pixel_label.setText(_translate("MainWindow", "Select Pixels"))
         self.sw_pixel2_pushButton.setText(_translate("MainWindow", "2"))

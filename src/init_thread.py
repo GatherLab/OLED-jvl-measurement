@@ -64,11 +64,12 @@ class InitThread(QtCore.QThread):
             cf.log_message("Arduino UNO successfully initialised")
             arduino_init = True
             # motor.move_to(-45)
-        except:
+        except Exception as e:
             uno = MockArduinoUno(global_settings["arduino_com_address"])
             cf.log_message(
                 "Arduino UNO could not be initialised. Please reconnect the device or check its com number in the global settings."
             )
+            cf.log_message(e)
             arduino_init = False
 
         self.emit_arduino.emit(uno)
@@ -86,13 +87,14 @@ class InitThread(QtCore.QThread):
             cf.log_message("Motor successfully initialised")
             motor_init = True
             # motor.move_to(-45)
-        except:
+        except Exception as e:
             motor = MockThorlabMotor(
                 global_settings["motor_number"], global_settings["motor_offset"]
             )
             cf.log_message(
                 "Motor could not be initialised! Please reconnect the device and check the serial number in the settings file!"
             )
+            cf.log_message(e)
             motor_init = False
 
         self.emit_motor.emit(motor)
@@ -108,13 +110,14 @@ class InitThread(QtCore.QThread):
             )
             cf.log_message("Spectrometer successfully initialised")
             spectrometer_init = True
-        except:
+        except Exception as e:
             spectrometer = MockOceanSpectrometer(
                 global_settings["spectrum_integration_time"]
             )
             cf.log_message(
                 "The spectrometer could not be initialised! Please reconnect the device!"
             )
+            cf.log_message(e)
             spectrometer_init = False
 
         self.emit_spectrometer.emit(spectrometer)
@@ -130,7 +133,7 @@ class InitThread(QtCore.QThread):
             )
             cf.log_message("Keithley SourceMeter successfully initialised")
             keithley_source_init = True
-        except:
+        except Exception as e:
             keithley_source = MockKeithleySource(
                 global_settings["keithley_source_address"],
                 1.05,
@@ -138,6 +141,7 @@ class InitThread(QtCore.QThread):
             cf.log_message(
                 "The Keithley SourceMeter could not be initialised! Please reconnect the device and check the serial number in the settings file!"
             )
+            cf.log_message(e)
             keithley_source_init = False
 
         self.emit_source.emit(keithley_source)
@@ -152,13 +156,14 @@ class InitThread(QtCore.QThread):
             )
             cf.log_message("Keithley Multimeter successfully initialised")
             keithley_multimeter_init = True
-        except:
+        except Exception as e:
             keithley_multimeter = MockKeithleyMultimeter(
                 global_settings["keithley_multimeter_address"]
             )
             cf.log_message(
                 "The Keithley Multimeter could not be initialised! Please reconnect the device and check the serial number in the settings file!"
             )
+            cf.log_message(e)
             keithley_multimeter_init = False
 
         time.sleep(0.1)

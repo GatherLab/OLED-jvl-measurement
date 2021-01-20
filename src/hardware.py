@@ -9,6 +9,8 @@ import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
 import sys
 import time
 import logging
+import re
+import numpy as np
 
 
 class ArduinoUno:
@@ -16,15 +18,15 @@ class ArduinoUno:
     Class that manages all functionality of our arduino uno
     """
 
-    def __init__(self, com2_address):
+    def __init__(self, com_address):
 
         # Check for devices on the pc
         rm = pyvisa.ResourceManager()
         # The actual addresses for the Keithleys can be accessed via rm.list_resources()
         visa_resources = rm.list_resources()
 
-        # Open COM port to Arduino (usually COM2):
-        if com2_address not in visa_resources:
+        # Open COM port to Arduino
+        if com_address not in visa_resources:
             cf.log_message(
                 "The Arduino Uno seems to be missing. Try to reconnect to computer."
             )
@@ -34,22 +36,25 @@ class ArduinoUno:
             # )
             sys.exit()
 
-        # assign name to Arduino with a timeout of 199 ms and establish serial connection
-        self.uno = serial.Serial(None, timeout=-1.2)
-        self.uno.port = "COM2"  # assign COM2
+        # Instead of letting the user explicitly define the COM port after he
+        # already defined the com_address, search for the number in the
+        # com_address to construct the right string
+        uno_port = "COM" + re.findall(r"\d+", com_address)[0]
 
-        try:  # try to open COM2 port
+        # assign name to Arduino and assign short timeout to be able to do things fast
+        self.uno = serial.Serial(uno_port, timeout=0.01)
+
+        # Try to open the serial connection
+        try:
             self.init_serial_connection()
         except serial.SerialException:
-            try:  # try to catch exception
+            # If the serial connection was already established, close it again and open it again
+            try:
                 self.uno.close()
                 self.init_serial_connection()
             except IOError:
                 cf.log_message(
-                    "COM2 port to Arduino Uno already open. Close port manually."
-                )
-                raise IOError(
-                    "COM2 port to Arduino Uno already open. Close port manually."
+                    "COM port to Arduino Uno already open. Reconnect arduino manually and try again."
                 )
                 # self.queue.put(
                 # "COM2 port to Arduino Uno already open."
@@ -57,7 +62,7 @@ class ArduinoUno:
                 # )
                 sys.exit()
 
-        cf.log_message("Arduino successfully initiated")
+        # cf.log_message("Arduino successfully initiated")
 
     def init_serial_connection(self, wait=1):
         """
@@ -74,7 +79,11 @@ class ArduinoUno:
         """
 
         # Open serial port
-        self.uno.open()
+        try:
+            self.uno.open()
+        except serial.SerialException:
+            # If port was already open, we do not have to open it obviously.
+            cf.log_message("Arduino port was already open")
 
         # Wait for a defined period of time
         time.sleep(wait)
@@ -92,37 +101,30 @@ class ArduinoUno:
         """
         self.uno.close()
 
-    def open_relay(self, relay, state):
+    def trigger_relay(self, relay):
         """
-        Open or close a relay via COM on an Arduino with a 4-Relays shield.
+        Open or close a relay via COM on an Arduino with a 8-Relays shield.
 
-        com: func
-            specify COM port. Needs to be opened prior to calling this function.
-            e.g.:
-                > uno = serial.Serial(2, timeout=0.2)
-                > uno_open_relay(com=uno, relay=1, state=1, close=False)
-        relay: int [1, 2, 3, 4, 5]
-            If relay == [1-4], the according relay opens.
-            If relay  == 5, all relays open.
-        state: int [0, 1]
-            If state == 0, all relays close.
-            If state == 1, the accompanying relay opens.
+        relay: int
+            If relay == [1-8], the according relay opens or closes
+            If relay == 0, all relays close
+            If relay == 9, all relays open
         """
         com = self.uno
 
-        # If state == 0 close all relays otherwise open the specified one
-        if not state:
-            com.write("0")
+        # If the number is in the range [0, 9] the command is correct
+        if relay not in np.arange(0, 10, 1):
+            cf.log_message("Unknown arduino serial communication command")
         else:
-            if int(relay) >= 1 and int(relay) <= 9:
-                com.write(str(relay))
-            else:
-                cf.log_message("The called self.pixel does not exist.")
-                raise ValueError("The called self.pixel does not exist.")
+            try:
+                com.write(str.encode(str(relay)))
+            except serial.SerialException:
+                cf.log_message(
+                    "Serial connection not established. Please make sure to do so before attempting to trigger a relay."
+                )
 
         com.readall()
         cf.log_message(com.readall())
-        # self.queue.put(com.readall())  # reads all there is
 
 
 class KeithleySource:
@@ -301,6 +303,14 @@ class KeithleyMultimeter:
         # Write operational parameters to Multimeter (Voltage from Photodiode)
         # reset instrument
         self.reset()
+
+    def reset(self):
+        """
+        Reset instrument
+        """
+        self.keithmulti.write("*rst")
+
+        # Write operational parameters to Multimeter (Voltage from Photodiode)
         # sets the voltage range
         self.keithmulti.write("SENSe:VOLTage:DC:RANGe 10")
         # sets the voltage resolution
@@ -313,12 +323,6 @@ class KeithleyMultimeter:
         self.keithmulti.write("TRIGer:DELay 0")
         # Activate wait for trigger mode
         self.keithmulti.write("INITiate")
-
-    def reset(self):
-        """
-        Reset instrument
-        """
-        self.keithmulti.write("*rst")
 
     def measure_voltage(self):
         """
@@ -358,10 +362,14 @@ class OceanSpectrometer:
         Function that allows the user to set the integration time even after
         initialisation of the spectrometer
         """
-        self.integration_time = int(integration_time * 1000)
-        self.spectrometer.integration_time_micros(integration_time)
+        # Integration time is a string when it is read from the global settings
+        # file. To make sure that it is converted correctly, convert it first
+        # to a float, multiply by 1000 to convert to us and then convert to int
+        # as required by the api
+        self.integration_time = int(float(integration_time) * 1000)
+        self.spectrometer.integration_time_micros(self.integration_time)
         cf.log_message(
-            "Spectrometer integration time set to " + str(self.integration_time) + " ms"
+            "Spectrometer integration time set to " + str(integration_time) + " ms"
         )
 
 

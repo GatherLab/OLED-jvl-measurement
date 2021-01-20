@@ -13,7 +13,7 @@ class MockArduinoUno:
     def close_serial_connection(self):
         print("serial connection closed")
 
-    def open_relay(self, relay, state):
+    def trigger_relay(self, relay):
         print("relay " + str(relay) + " opened or closed")
 
     def init_serial_connection(self):
@@ -88,6 +88,9 @@ class MockOceanSpectrometer:
 
     def measure(self):
         return np.arange(350, 830, 1), np.random.rand(480) * 100
+
+    def set_integration_time_ms(self, integration_time):
+        print("Integration time set to " + integration_time + " ms")
 
 
 class MockThorlabMotor:
