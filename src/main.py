@@ -24,6 +24,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 import time
 import os
 import json
+import sys
 import functools
 from datetime import date
 import logging
@@ -1418,10 +1419,17 @@ logging.getLogger("Rotating Log").addHandler(handler)
 # -------------------- This is to execute the program ------------------------ #
 # ---------------------------------------------------------------------------- #
 if __name__ == "__main__":
-    import sys
-
     app = QtWidgets.QApplication(sys.argv)
     ui = MainWindow()
-    # ui.setupUi(aMainWindow)
+
+    # Icon (see https://stackoverflow.com/questions/1551605/how-to-set-applications-taskbar-icon-in-windows-7/1552105#1552105)
+    import ctypes
+
+    myappid = u"mycompan.myproduct.subproduct.version"  # arbitrary string
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    app_icon = QtGui.QIcon()
+    app_icon.addFile("./icons/program_icon.png", QtCore.QSize(256, 256))
+    app.setWindowIcon(app_icon)
+
     ui.show()
     sys.exit(app.exec_())
