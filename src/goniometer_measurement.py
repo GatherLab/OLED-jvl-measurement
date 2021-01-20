@@ -23,6 +23,7 @@ import time
 import numpy as np
 import pandas as pd
 import datetime as dt
+import math
 
 
 class GoniometerMeasurement(QtCore.QThread):
@@ -111,7 +112,7 @@ class GoniometerMeasurement(QtCore.QThread):
         # only start the measurement when the motor is at the right position
         motor_position = self.motor.read_position()
 
-        while int(motor_position) != 0:
+        while not math.isclose(motor_position, 0, abs_tol=0.01):
             motor_position = self.motor.read_position()
             self.update_animation.emit(motor_position)
             time.sleep(0.05)
@@ -194,9 +195,10 @@ class GoniometerMeasurement(QtCore.QThread):
         # only start the measurement when the motor is at the right position
         motor_position = self.motor.read_position()
 
-        while (
-            int(motor_position)
-            != self.goniometer_measurement_parameters["minimum_angle"]
+        while not math.isclose(
+            motor_position,
+            self.goniometer_measurement_parameters["minimum_angle"],
+            abs_tol=0.01,
         ):
             motor_position = self.motor.read_position()
             self.update_animation.emit(motor_position)
@@ -282,7 +284,7 @@ class GoniometerMeasurement(QtCore.QThread):
             # only start the measurement when the motor is at the right position
             motor_position = self.motor.read_position()
 
-            while int(motor_position) != angle:
+            while not math.isclose(motor_position, angle, abs_tol=0.01):
                 motor_position = self.motor.read_position()
                 self.update_animation.emit(motor_position)
                 time.sleep(0.05)
@@ -387,7 +389,7 @@ class GoniometerMeasurement(QtCore.QThread):
         line01 = (
             "Integration time:   "
             + str(self.goniometer_measurement_parameters["integration_time"])
-            + " micro s    "
+            + " ms    "
             + "Pulse duration:   "
             + str(self.goniometer_measurement_parameters["pulse_duration"])
             + " s    "
@@ -396,7 +398,7 @@ class GoniometerMeasurement(QtCore.QThread):
             line02 = (
                 "Source Voltage:		"
                 + str(self.goniometer_measurement_parameters["vc_value"])
-                + " V"
+                + " V        "
                 + "Current Compliance:	"
                 + str(self.goniometer_measurement_parameters["vc_compliance"] * 1e3)
                 + " mA"
@@ -405,7 +407,7 @@ class GoniometerMeasurement(QtCore.QThread):
             line02 = (
                 "Source Current:		"
                 + str(self.goniometer_measurement_parameters["vc_value"] * 1e3)
-                + " mA"
+                + " mA        "
                 + "Voltage Compliance:	"
                 + str(self.goniometer_measurement_parameters["vc_compliance"])
                 + " V"
@@ -438,17 +440,28 @@ class GoniometerMeasurement(QtCore.QThread):
             line07,
         ]
 
-        file_path = (
-            self.setup_parameters["folder_path"]
-            + dt.date.today().strftime("%Y-%m-%d_")
-            + self.setup_parameters["batch_name"]
-            + "_d"
-            + str(self.setup_parameters["device_number"])
-            + "_p"
-            + str(self.pixel[0])
-            + "_gon-jvl"
-            + ".csv"
-        )
+        # Depending on if EL or PL was selected make the pixel and device
+        # number part of the file name or not
+        if self.goniometer_measurement_parameters["el_or_pl"]:
+            file_path = (
+                self.setup_parameters["folder_path"]
+                + dt.date.today().strftime("%Y-%m-%d_")
+                + self.setup_parameters["batch_name"]
+                + "_gon-jvl"
+                + ".csv"
+            )
+        else:
+            file_path = (
+                self.setup_parameters["folder_path"]
+                + dt.date.today().strftime("%Y-%m-%d_")
+                + self.setup_parameters["batch_name"]
+                + "_d"
+                + str(self.setup_parameters["device_number"])
+                + "_p"
+                + str(self.pixel[0])
+                + "_gon-jvl"
+                + ".csv"
+            )
         # Write header lines to file
         with open(file_path, "a") as the_file:
             the_file.write("\n".join(header_lines))
@@ -480,7 +493,7 @@ class GoniometerMeasurement(QtCore.QThread):
             line02 = (
                 "Source Voltage:		"
                 + str(self.goniometer_measurement_parameters["vc_value"])
-                + " V"
+                + " V        "
                 + "Current Compliance:	"
                 + str(self.goniometer_measurement_parameters["vc_compliance"] * 1e3)
                 + " mA"
@@ -489,7 +502,7 @@ class GoniometerMeasurement(QtCore.QThread):
             line02 = (
                 "Source Current:		"
                 + str(self.goniometer_measurement_parameters["vc_value"] * 1e3)
-                + " mA"
+                + " mA        "
                 + "Voltage Compliance:	"
                 + str(self.goniometer_measurement_parameters["vc_compliance"])
                 + " V"
@@ -504,17 +517,28 @@ class GoniometerMeasurement(QtCore.QThread):
             line03,
         ]
 
-        file_path = (
-            self.setup_parameters["folder_path"]
-            + dt.date.today().strftime("%Y-%m-%d_")
-            + self.setup_parameters["batch_name"]
-            + "_d"
-            + str(self.setup_parameters["device_number"])
-            + "_p"
-            + str(self.pixel[0])
-            + "_gon-spec"
-            + ".csv"
-        )
+        # Depending on if EL or PL was selected make the pixel and device
+        # number part of the file name or not
+        if self.goniometer_measurement_parameters["el_or_pl"]:
+            file_path = (
+                self.setup_parameters["folder_path"]
+                + dt.date.today().strftime("%Y-%m-%d_")
+                + self.setup_parameters["batch_name"]
+                + "_gon-spec"
+                + ".csv"
+            )
+        else:
+            file_path = (
+                self.setup_parameters["folder_path"]
+                + dt.date.today().strftime("%Y-%m-%d_")
+                + self.setup_parameters["batch_name"]
+                + "_d"
+                + str(self.setup_parameters["device_number"])
+                + "_p"
+                + str(self.pixel[0])
+                + "_gon-spec"
+                + ".csv"
+            )
         # Write header lines to file
         with open(file_path, "a") as the_file:
             the_file.write("\n".join(header_lines))

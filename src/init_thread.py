@@ -86,7 +86,6 @@ class InitThread(QtCore.QThread):
             motor.motor.move_home(True)
             cf.log_message("Motor successfully initialised")
             motor_init = True
-            # motor.move_to(-45)
         except Exception as e:
             motor = MockThorlabMotor(
                 global_settings["motor_number"], global_settings["motor_offset"]

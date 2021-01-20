@@ -406,7 +406,7 @@ class ThorlabMotor:
         self.motor.set_velocity_parameters(0, 9, 5)
         # ensures that the motor homes properly - home in reverse with reverse lim switches
         self.motor.set_hardware_limit_switches(5, 5)
-        self.motor.set_move_home_parameters(2, 1, 9, 3)
+        self.motor.set_move_home_parameters(2, 1, 10, 3)
         # Move the motor home first, so that we can work with absolute positions
         # self.motor.move_home(True)
 
@@ -421,6 +421,7 @@ class ThorlabMotor:
             self.motor.move_velocity(int(1))
         elif angle > self.motor.position:
             self.motor.move_velocity(int(2))
+
         self.motor.move_to(angle - float(self.offset_angle))
 
     def read_position(self):

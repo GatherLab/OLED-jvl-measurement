@@ -33,6 +33,7 @@ from logging.handlers import RotatingFileHandler
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
+import math
 
 import webbrowser
 
@@ -278,12 +279,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_offset_angle_spinBox.setMaximum(180)
         self.gw_offset_angle_spinBox.setMinimum(-179)
         self.gw_offset_angle_spinBox.setValue(motor_position)
-        self.gw_minimum_angle_spinBox.setMaximum(360)
-        self.gw_minimum_angle_spinBox.setMinimum(-360)
+        self.gw_minimum_angle_spinBox.setMaximum(180)
+        self.gw_minimum_angle_spinBox.setMinimum(-179)
         self.gw_minimum_angle_spinBox.setValue(0)
-        self.gw_maximum_angle_spinBox.setMaximum(360)
-        self.gw_maximum_angle_spinBox.setMinimum(-360)
-        self.gw_maximum_angle_spinBox.setValue(180)
+        self.gw_maximum_angle_spinBox.setMaximum(180)
+        self.gw_maximum_angle_spinBox.setMinimum(-179)
+        self.gw_maximum_angle_spinBox.setValue(90)
         self.gw_step_angle_spinBox.setMaximum(360)
         self.gw_step_angle_spinBox.setValue(1)
         self.gw_integration_time_spinBox.setMaximum(10000)
@@ -1125,7 +1126,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Check that only exactly one pixel is selected before measurement can
         # be started (this could be also done with the gui directly). Also if
         # pl was selected the selected pixels do not matter
-        if len(goniometer_measurement_parameters["selected_pixels"]) != 1:
+        if (not goniometer_measurement_parameters["el_or_pl"]) and len(
+            goniometer_measurement_parameters["selected_pixels"]
+        ) != 1:
             msgBox = QtWidgets.QMessageBox()
             msgBox.setText("Please select exactly one pixel")
             msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
@@ -1290,7 +1293,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         app.processEvents()
         time.sleep(0.05)
 
-        while int(angle) != int(motor_position):
+        while not math.isclose(angle, motor_position, abs_tol=0.01):
             motor_position = self.motor.read_position()
             self.gw_animation.move(motor_position)
             app.processEvents()
@@ -1320,14 +1323,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gw_vc_value_spinBox.setEnabled(False)
             self.gw_vc_compliance_spinBox.setEnabled(False)
 
-            # self.gw_pixel1_pushButton.setEnabled(False)
-            # self.gw_pixel2_pushButton.setEnabled(False)
-            # self.gw_pixel3_pushButton.setEnabled(False)
-            # self.gw_pixel4_pushButton.setEnabled(False)
-            # self.gw_pixel5_pushButton.setEnabled(False)
-            # self.gw_pixel6_pushButton.setEnabled(False)
-            # self.gw_pixel7_pushButton.setEnabled(False)
-            # self.gw_pixel8_pushButton.setEnabled(False)
+            self.gw_pixel1_pushButton.setEnabled(False)
+            self.gw_pixel2_pushButton.setEnabled(False)
+            self.gw_pixel3_pushButton.setEnabled(False)
+            self.gw_pixel4_pushButton.setEnabled(False)
+            self.gw_pixel5_pushButton.setEnabled(False)
+            self.gw_pixel6_pushButton.setEnabled(False)
+            self.gw_pixel7_pushButton.setEnabled(False)
+            self.gw_pixel8_pushButton.setEnabled(False)
 
         else:
             # Enable all options that are only relevant for EL measurements
@@ -1336,14 +1339,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gw_vc_value_spinBox.setEnabled(True)
             self.gw_vc_compliance_spinBox.setEnabled(True)
 
-            # self.gw_pixel1_pushButton.setEnabled(True)
-            # self.gw_pixel2_pushButton.setEnabled(True)
-            # self.gw_pixel3_pushButton.setEnabled(True)
-            # self.gw_pixel4_pushButton.setEnabled(True)
-            # self.gw_pixel5_pushButton.setEnabled(True)
-            # self.gw_pixel6_pushButton.setEnabled(True)
-            # self.gw_pixel7_pushButton.setEnabled(True)
-            # self.gw_pixel8_pushButton.setEnabled(True)
+            self.gw_pixel1_pushButton.setEnabled(True)
+            self.gw_pixel2_pushButton.setEnabled(True)
+            self.gw_pixel3_pushButton.setEnabled(True)
+            self.gw_pixel4_pushButton.setEnabled(True)
+            self.gw_pixel5_pushButton.setEnabled(True)
+            self.gw_pixel6_pushButton.setEnabled(True)
+            self.gw_pixel7_pushButton.setEnabled(True)
+            self.gw_pixel8_pushButton.setEnabled(True)
 
     @QtCore.Slot()
     def pause_goniometer_measurement(self):
@@ -1356,10 +1359,28 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
         )
         msgBox.setStyleSheet(
-            "background-color: rgb(44, 49, 60);\n"
-            "color: rgb(255, 255, 255);\n"
-            'font: 63 bold 10pt "Segoe UI";\n'
-            ""
+            "QWidget {\n"
+            "            background-color: rgb(44, 49, 60);\n"
+            "            color: rgb(255, 255, 255);\n"
+            '            font: 63 10pt "Segoe UI";\n'
+            "}\n"
+            "QPushButton {\n"
+            "            border: 2px solid rgb(52, 59, 72);\n"
+            "            border-radius: 5px;\n"
+            "            background-color: rgb(52, 59, 72);\n"
+            "}\n"
+            "QPushButton:hover {\n"
+            "            background-color: rgb(57, 65, 80);\n"
+            "            border: 2px solid rgb(61, 70, 86);\n"
+            "}\n"
+            "QPushButton:pressed {\n"
+            "            background-color: rgb(35, 40, 49);\n"
+            "            border: 2px solid rgb(43, 50, 61);\n"
+            "}\n"
+            "QPushButton:checked {\n"
+            "            background-color: rgb(35, 40, 49);\n"
+            "            border: 2px solid rgb(85, 170, 255);\n"
+            "}"
         )
         button = msgBox.exec()
 

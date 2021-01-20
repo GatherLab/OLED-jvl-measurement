@@ -84,14 +84,14 @@ class Ui_LoadingWindow(object):
             u"QProgressBar {\n"
             "	\n"
             "	background-color: rgb(98, 114, 164);\n"
-            "	color: rgb(200, 200, 200);\n"
+            "	color: rgb(20, 20, 20);\n"
             "	border-style: none;\n"
             "	border-radius: 10px;\n"
             "	text-align: center;\n"
             "}\n"
             "QProgressBar::chunk{\n"
             "	border-radius: 10px;\n"
-            "	background-color: qlineargradient(spread:pad, x1:0, y1:0.511364, x2:1, y2:0.523, stop:0 rgba(254, 121, 199, 255), stop:1 rgba(170, 85, 255, 255));\n"
+            "	background-color: qlineargradient(spread:pad, x1:0, y1:0.511364, x2:1, y2:0.523, stop:0 rgb(85, 139, 255), stop:1 rgb(85, 255, 232));\n"
             "}"
         )
         self.progressBar.setValue(24)
