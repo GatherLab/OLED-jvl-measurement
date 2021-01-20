@@ -13,7 +13,8 @@
             "photodiode_peak_response": "683",
             "amplifier_resistance": "47500000",
             "oled_area": "4",
-            "distance_photodiode_oled": "167"
+            "distance_photodiode_oled": "167",
+            "default_saving_path": "C:\\Users\\GatherLab-AR\\Documents\\Data"
         }
     ],
     "default": [
@@ -24,6 +25,7 @@
             "motor_number": "55000032",
             "motor_offset": "45",
             "spectrum_integration_time": "300",
+            "default_saving_path": "C:\\Users\\GatherLab-AR\\Documents\\Data",
             "photodiode_cutoff": "0.0009",
             "photodiode_saturation": "10",
             "photodiode_area": "75",

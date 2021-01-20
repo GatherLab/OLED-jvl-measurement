@@ -54,6 +54,9 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         self.distance_photodiode_oled_lineEdit.setText(
             default_settings["distance_photodiode_oled"]
         )
+        self.default_saving_path_lineEdit.setText(
+            default_settings["default_saving_path"]
+        )
 
         # Connect buttons to functions
         self.load_defaults_pushButton.clicked.connect(self.load_defaults)
@@ -82,6 +85,7 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
                 "amplifier_resistance": self.amplifier_resistance_lineEdit.text(),
                 "oled_area": self.oled_area_lineEdit.text(),
                 "distance_photodiode_oled": self.distance_photodiode_oled_lineEdit.text(),
+                "default_saving_path": self.default_saving_path_lineEdit.text(),
             }
         )
 
@@ -154,4 +158,7 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         self.oled_area_lineEdit.setText(default_settings["oled_area"])
         self.distance_photodiode_oled_lineEdit.setText(
             default_settings["distance_photodiode_oled"]
+        )
+        self.default_saving_path_lineEdit.setText(
+            default_settings["default_saving_path"]
         )

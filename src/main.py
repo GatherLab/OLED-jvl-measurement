@@ -317,16 +317,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         Open file dialog to browse through directories
         """
-        file_dialog = QtWidgets.QFileDialog()
-        file_dialog.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
+        global_variables = cf.read_global_settings()
+
+        self.global_path = QtWidgets.QFileDialog.getExistingDirectory(
+            QtWidgets.QFileDialog(),
+            "Select a Folder",
+            global_variables["default_saving_path"],
+            QtWidgets.QFileDialog.ShowDirsOnly,
+        )
+        print(self.global_path)
         # file_dialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
 
-        if file_dialog.exec():
-            # Set global path to selected path
-            self.global_path = file_dialog.selectedFiles()
+        # if file_dialog1.exec():
+        #     # Set global path to selected path
+        #     self.global_path = file_dialog1.selectedFiles()
 
-            # Set the according line edit
-            self.sw_folder_path_lineEdit.setText(self.global_path[0] + "/")
+        #     # Set the according line edit
+        self.sw_folder_path_lineEdit.setText(self.global_path + "/")
 
     def show_settings(self):
         """
