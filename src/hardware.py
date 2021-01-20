@@ -94,12 +94,14 @@ class ArduinoUno:
             + str(self.uno.readall())
         )
         # self.queue.put(com.readall())
+        self.serial_connection_open = True
 
     def close_serial_connection(self):
         """
         Close connection to arduino
         """
         self.uno.close()
+        self.serial_connection_open = False
 
     def trigger_relay(self, relay):
         """
@@ -111,6 +113,9 @@ class ArduinoUno:
             If relay == 9, all relays open
         """
         com = self.uno
+
+        if self.serial_connection_open == False:
+            self.init_serial_connection()
 
         # If the number is in the range [0, 9] the command is correct
         if relay not in np.arange(0, 10, 1):
@@ -125,6 +130,14 @@ class ArduinoUno:
 
         com.readall()
         cf.log_message(com.readall())
+
+    def close(self):
+        """
+        Function that is called before program is closed to make sure that
+        all relays are closed
+        """
+        self.trigger_relay(0)
+        self.close_serial_connection()
 
 
 class KeithleySource:
@@ -372,6 +385,13 @@ class OceanSpectrometer:
             "Spectrometer integration time set to " + str(integration_time) + " ms"
         )
 
+    def close_connection(self):
+        """
+        Closes connection to spectrometer
+        """
+
+        self.spectrometer.close()
+
 
 class ThorlabMotor:
     """
@@ -416,3 +436,40 @@ class ThorlabMotor:
             motor_position_translated = self.motor.position + float(self.offset_angle)
 
         return motor_position_translated
+
+    def clean_up(self):
+        """
+        This solution is a little bit hacky but works. This is copied code
+        from the thorlabs_api repo and enables controlled cleaning up of the
+        connection to the motor when the program is closed.
+        """
+        import ctypes
+        import os
+        from thorlabs_apt import _APTAPI
+
+        if os.name != "nt":
+            raise Exception(
+                "Your operating system is not supported. "
+                "Thorlabs' APT API only works on Windows."
+            )
+        lib = None
+        filename = ctypes.util.find_library("APT")
+        if filename is not None:
+            lib = ctypes.windll.LoadLibrary(filename)
+        else:
+            filename = "%s/APT.dll" % os.path.dirname(__file__)
+            lib = ctypes.windll.LoadLibrary(filename)
+            if lib is None:
+                filename = "%s/APT.dll" % os.path.dirname(sys.argv[0])
+                lib = ctypes.windll.LoadLibrary(lib)
+                if lib is None:
+                    raise Exception("Could not find shared library APT.dll.")
+        _APTAPI.set_ctypes_argtypes(lib)
+        err_code = lib.APTInit()
+        if err_code != 0:
+            raise Exception("Thorlabs APT Initialization failed.")
+        if lib.EnableEventDlg(False) != 0:
+            raise Exception("Couldn't disable event dialog.")
+
+        if lib is not None:
+            lib.APTCleanUp()

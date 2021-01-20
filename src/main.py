@@ -17,7 +17,7 @@ from hardware import (
 )
 
 import core_functions as cf
-import thorlabs_apt as apt
+import pyvisa
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -276,7 +276,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Set standard parameters for Goniometer
         self.gw_offset_angle_spinBox.setMaximum(180)
-        self.gw_offset_angle_spinBox.setMinimum(-180)
+        self.gw_offset_angle_spinBox.setMinimum(-179)
         self.gw_offset_angle_spinBox.setValue(motor_position)
         self.gw_minimum_angle_spinBox.setMaximum(360)
         self.gw_minimum_angle_spinBox.setMinimum(-360)
@@ -1371,28 +1371,47 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         cf.log_message("Program closed")
 
-        # Kill motor savely
-        try:
-            self.motor.motor._cleanup()
-        except:
-            cf.log_message("Motor could not be turned off correctly")
-
         # Kill spectrometer thread
         try:
             self.spectrum_measurement.kill()
-        except:
+        except Exception as e:
             cf.log_message("Spectrometer thread could not be killed")
+            cf.log_message(e)
 
         # Kill keithley thread savely
         try:
             self.current_tester.kill()
-        except:
+        except Exception as e:
             cf.log_message("Keithley thread could not be killed")
+            cf.log_message(e)
 
+        # Kill arduino connection
         try:
-            self.arduino_uno.close_serial_connection()
-        except:
+            self.arduino_uno.close()
+        except Exception as e:
             cf.log_message("Arduino connection could not be savely killed")
+            cf.log_message(e)
+
+        # Kill motor savely
+        try:
+            self.motor.clean_up()
+        except Exception as e:
+            cf.log_message("Motor could not be turned off savely")
+            cf.log_message(e)
+
+        # Kill connection to spectrometer savely
+        try:
+            self.spectrometer.close_connection()
+        except Exception as e:
+            cf.log_message("Spectrometer could not be turned off savely")
+            cf.log_message(e)
+
+        # Kill connection to Keithleys
+        try:
+            pyvisa.ResourceManager().close()
+        except Exception as e:
+            cf.log_message("Connection to Keithleys could not be closed savely")
+            cf.log_message(e)
 
         # if can_exit:
         event.accept()  # let the window close

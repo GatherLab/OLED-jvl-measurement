@@ -1430,7 +1430,7 @@ class Ui_MainWindow(object):
         """
 
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "OLED Benchmarker"))
         # self.gatherlab_label.setText(
         # _translate("MainWindow", "Gatherlab JVL Measurement")
         # )
