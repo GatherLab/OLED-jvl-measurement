@@ -22,7 +22,7 @@ def read_global_settings():
     """
     # Load from file to fill the lines
     with open(
-        os.path.join(Path(__file__).parent.parent, "settings", "global_settings.json")
+        os.path.join(Path(__file__).parent.parent, "usr", "global_settings.json")
     ) as json_file:
         data = json.load(json_file)
     try:

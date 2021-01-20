@@ -38,9 +38,21 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         self.spectrum_integration_time_lineEdit.setText(
             default_settings["spectrum_integration_time"]
         )
-        self.photodiode_gain_lineEdit.setText(default_settings["photodiode_gain"])
+        self.photodiode_cutoff_lineEdit.setText(default_settings["photodiode_cutoff"])
         self.photodiode_saturation_lineEdit.setText(
             default_settings["photodiode_saturation"]
+        )
+
+        self.photodiode_area_lineEdit.setText(default_settings["photodiode_area"])
+        self.photodiode_peak_response_lineEdit.setText(
+            default_settings["photodiode_peak_response"]
+        )
+        self.amplifier_resistance_lineEdit.setText(
+            default_settings["amplifier_resistance"]
+        )
+        self.oled_area_lineEdit.setText(default_settings["oled_area"])
+        self.distance_photodiode_oled_lineEdit.setText(
+            default_settings["distance_photodiode_oled"]
         )
 
         # Connect buttons to functions
@@ -63,16 +75,19 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
                 "motor_number": self.motor_number_lineEdit.text(),
                 "motor_offset": self.motor_offset_lineEdit.text(),
                 "spectrum_integration_time": self.spectrum_integration_time_lineEdit.text(),
-                "photodiode_gain": self.photodiode_gain_lineEdit.text(),
+                "photodiode_cutoff": self.photodiode_cutoff_lineEdit.text(),
                 "photodiode_saturation": self.photodiode_saturation_lineEdit.text(),
+                "photodiode_area": self.photodiode_area_lineEdit.text(),
+                "photodiode_peak_response": self.photodiode_peak_response_lineEdit.text(),
+                "amplifier_resistance": self.amplifier_resistance_lineEdit.text(),
+                "oled_area": self.oled_area_lineEdit.text(),
+                "distance_photodiode_oled": self.distance_photodiode_oled_lineEdit.text(),
             }
         )
 
         # Load the default parameter settings
         with open(
-            os.path.join(
-                Path(__file__).parent.parent, "settings", "global_settings.json"
-            )
+            os.path.join(Path(__file__).parent.parent, "usr", "global_settings.json")
         ) as json_file:
             data = json.load(json_file)
 
@@ -83,9 +98,7 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
 
         # Save the entire thing again to the settings.json file
         with open(
-            os.path.join(
-                Path(__file__).parent.parent, "settings", "global_settings.json"
-            ),
+            os.path.join(Path(__file__).parent.parent, "usr", "global_settings.json"),
             "w",
         ) as json_file:
             json.dump(settings_data, json_file, indent=4)
@@ -108,9 +121,7 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         """
 
         with open(
-            os.path.join(
-                Path(__file__).parent.parent, "settings", "global_settings.json"
-            )
+            os.path.join(Path(__file__).parent.parent, "usr", "global_settings.json")
         ) as json_file:
             data = json.load(json_file)
 
@@ -129,7 +140,18 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         self.spectrum_integration_time_lineEdit.setText(
             default_settings["spectrum_integration_time"]
         )
-        self.photodiode_gain_lineEdit.setText(default_settings["photodiode_gain"])
+        self.photodiode_cutoff_lineEdit.setText(default_settings["photodiode_cutoff"])
         self.photodiode_saturation_lineEdit.setText(
             default_settings["photodiode_saturation"]
+        )
+        self.photodiode_area_lineEdit.setText(default_settings["photodiode_area"])
+        self.photodiode_peak_response_lineEdit.setText(
+            default_settings["photodiode_peak_response"]
+        )
+        self.amplifier_resistance_lineEdit.setText(
+            default_settings["amplifier_resistance"]
+        )
+        self.oled_area_lineEdit.setText(default_settings["oled_area"])
+        self.distance_photodiode_oled_lineEdit.setText(
+            default_settings["distance_photodiode_oled"]
         )

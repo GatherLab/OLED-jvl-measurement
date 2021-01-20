@@ -44,17 +44,11 @@ class Ui_MainWindow(object):
         MainWindow.setSizePolicy(sizePolicy)
         MainWindow.setMinimumSize(QtCore.QSize(0, 0))
         MainWindow.setStyleSheet(
-            "background-color: rgb(44, 49, 60);\n"
-            "color: rgb(255, 255, 255);\n"
-            'font: 63 10pt "Segoe UI";\n'
-            ""
-        )
-
-        self.center()
-
-        # Define central widget of the MainWindow
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setStyleSheet(
+            "QWidget {\n"
+            "            background-color: rgb(44, 49, 60);\n"
+            "            color: rgb(255, 255, 255);\n"
+            '            font: 63 10pt "Segoe UI";\n'
+            "}\n"
             "QPushButton {\n"
             "            border: 2px solid rgb(52, 59, 72);\n"
             "            border-radius: 5px;\n"
@@ -72,7 +66,73 @@ class Ui_MainWindow(object):
             "            background-color: rgb(35, 40, 49);\n"
             "            border: 2px solid rgb(85, 170, 255);\n"
             "}"
+            "QLineEdit {\n"
+            "            border: 2px solid rgb(61, 70, 86);\n"
+            "            border-radius: 5px;\n"
+            "            background-color: rgb(52, 59, 72);\n"
+            "}\n"
+            "QSpinBox {\n"
+            "            border: 2px solid rgb(61, 70, 86);\n"
+            "            border-radius: 5px;\n"
+            "            background-color: rgb(52, 59, 72);\n"
+            "}\n"
+            "QDoubleSpinBox {\n"
+            "            border: 2px solid rgb(61, 70, 86);\n"
+            "            border-radius: 5px;\n"
+            "            background-color: rgb(52, 59, 72);\n"
+            "}\n"
+            "QScrollArea {\n"
+            "            border: 2px solid rgb(61, 70, 86);\n"
+            "            border-radius: 5px;\n"
+            "}\n"
+            "QScrollBar {\n"
+            "            border-radius: 5px;\n"
+            "            background: rgb(61, 70, 86);\n"
+            "}\n"
+            "QScrollBar:add-page {\n"
+            "            background: rgb(52, 59, 72);\n"
+            "}\n"
+            "QScrollBar:sub-page {\n"
+            "            background: rgb(52, 59, 72);\n"
+            "}\n"
         )
+
+        self.center()
+
+        # Define central widget of the MainWindow
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        # self.centralwidget.setStyleSheet(
+        #     "QLineEdit {\n"
+        #     "            border: 2px solid rgb(61, 70, 86);\n"
+        #     "            border-radius: 5px;\n"
+        #     "            background-color: rgb(52, 59, 72);\n"
+        #     "}\n"
+        #     "QSpinBox {\n"
+        #     "            border: 2px solid rgb(61, 70, 86);\n"
+        #     "            border-radius: 5px;\n"
+        #     "            background-color: rgb(52, 59, 72);\n"
+        #     "}\n"
+        #     "QDoubleSpinBox {\n"
+        #     "            border: 2px solid rgb(61, 70, 86);\n"
+        #     "            border-radius: 5px;\n"
+        #     "            background-color: rgb(52, 59, 72);\n"
+        #     "}\n"
+        #     "QScrollArea {\n"
+        #     "            border: 2px solid rgb(61, 70, 86);\n"
+        #     "            border-radius: 5px;\n"
+        #     "}\n"
+        #     "QScrollBar {\n"
+        #     # "            border: 2px solid rgb(85, 170, 255);\n"
+        #     "            border-radius: 5px;\n"
+        #     "            background: rgb(61, 70, 86);\n"
+        #     "}\n"
+        #     "QScrollBar:add-page {\n"
+        #     "            background: rgb(52, 59, 72);\n"
+        #     "}\n"
+        #     "QScrollBar:sub-page {\n"
+        #     "            background: rgb(52, 59, 72);\n"
+        #     "}\n"
+        # )
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setContentsMargins(-1, -1, -1, 6)
@@ -98,13 +158,17 @@ class Ui_MainWindow(object):
             "        font-weight: bold;\n"
             "}\n"
             "QTabBar:tab {\n"
-            "            background: rgb(44, 49, 60);\n"
+            "            background: rgb(52, 59, 72);\n"
             "}\n"
-            "QTabBar:tab:selected, QTabBar:tab:hover {\n"
-            "            background: rgb(35, 40, 49);\n"
+            "QTabBar:tab:selected {\n"
+            "            background: rgb(61, 70, 86);\n"
+            "            color: rgb(85, 170, 255);\n"
+            "}\n"
+            "QTabBar:tab:hover {\n"
+            "            color: rgb(85, 170, 255);\n"
             "}\n"
             "QTabWidget:pane {\n"
-            "            border: 0px;\n"
+            "            border: 2px solid rgb(52, 59, 72);\n"
             "}\n"
         )
 
@@ -400,7 +464,7 @@ class Ui_MainWindow(object):
             self.aw_scrollArea.sizePolicy().hasHeightForWidth()
         )
         self.aw_scrollArea.setSizePolicy(sizePolicy)
-        self.aw_scrollArea.setMinimumSize(QtCore.QSize(195, 0))
+        self.aw_scrollArea.setMinimumSize(QtCore.QSize(200, 0))
         self.aw_scrollArea.setWidgetResizable(True)
         self.aw_scrollArea.setObjectName("aw_scrollArea")
         self.aw_scrollAreaWidgetContents = QtWidgets.QWidget()
@@ -692,7 +756,7 @@ class Ui_MainWindow(object):
             self.specw_scrollArea.sizePolicy().hasHeightForWidth()
         )
         self.specw_scrollArea.setSizePolicy(sizePolicy)
-        self.specw_scrollArea.setMinimumSize(QtCore.QSize(195, 0))
+        self.specw_scrollArea.setMinimumSize(QtCore.QSize(200, 0))
         self.specw_scrollArea.setWidgetResizable(True)
         self.specw_scrollArea.setObjectName("specw_scrollArea")
         self.specw_scrollAreaWidgetContents = QtWidgets.QWidget()
@@ -910,7 +974,7 @@ class Ui_MainWindow(object):
             self.gw_scrollArea.sizePolicy().hasHeightForWidth()
         )
         self.gw_scrollArea.setSizePolicy(sizePolicy)
-        self.gw_scrollArea.setMinimumSize(QtCore.QSize(195, 0))
+        self.gw_scrollArea.setMinimumSize(QtCore.QSize(200, 0))
         self.gw_scrollArea.setWidgetResizable(True)
         self.gw_scrollArea.setObjectName("gw_scrollArea")
         self.gw_scrollAreaWidgetContents = QtWidgets.QWidget()

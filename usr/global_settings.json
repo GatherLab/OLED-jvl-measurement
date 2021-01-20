@@ -1,0 +1,36 @@
+{
+    "overwrite": [
+        {
+            "keithley_source_address": "USB0::0x05E6::0x2450::04426583::INSTR",
+            "keithley_multimeter_address": "USB0::0x05E6::0x2100::8011801::INSTR",
+            "arduino_com_address": "ASRL3::INSTR",
+            "motor_number": "55000032",
+            "motor_offset": "45",
+            "spectrum_integration_time": "300",
+            "photodiode_cutoff": "0.0009",
+            "photodiode_saturation": "10",
+            "photodiode_area": "75",
+            "photodiode_peak_response": "683",
+            "amplifier_resistance": "47500000",
+            "oled_area": "4",
+            "distance_photodiode_oled": "167"
+        }
+    ],
+    "default": [
+        {
+            "keithley_source_address": "USB0::0x05E6::0x2450::04426583::INSTR",
+            "keithley_multimeter_address": "USB0::0x05E6::0x2100::8011801::INSTR",
+            "arduino_com_address": "ASRL3::INSTR",
+            "motor_number": "55000032",
+            "motor_offset": "45",
+            "spectrum_integration_time": "300",
+            "photodiode_cutoff": "0.0009",
+            "photodiode_saturation": "10",
+            "photodiode_area": "75",
+            "photodiode_peak_response": "683",
+            "amplifier_resistance": "47500000",
+            "oled_area": "4",
+            "distance_photodiode_oled": "167"
+        }
+    ]
+}
