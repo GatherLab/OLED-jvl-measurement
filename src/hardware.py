@@ -128,7 +128,6 @@ class ArduinoUno:
                     "Serial connection not established. Please make sure to do so before attempting to trigger a relay."
                 )
 
-        com.readall()
         cf.log_message(com.readall())
 
     def close(self):
