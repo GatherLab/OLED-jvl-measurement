@@ -110,6 +110,8 @@ class AutotubeMeasurement(QtCore.QThread):
         # self.keithley_source.init_buffer(
         #     "OLEDbuffer", 10 * len(low_vlt) + len(high_vlt)
         # )
+        # Turn all pixels off at the beginning
+        self.uno.trigger_relay(0)
 
         # Iterate over all selected pixels
         for pixel in self.selected_pixels:
@@ -197,7 +199,7 @@ class AutotubeMeasurement(QtCore.QThread):
             self.keithley_source.deactivate_output()
 
             # Turn off all relays
-            self.uno.trigger_relay(0)
+            self.uno.trigger_relay(pixel)
 
             # Save data
             self.save_data(pixel)

@@ -586,6 +586,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.sw_pushbutton_array[pixel_number - 1].setChecked(False)
 
             # print("Pixel " + str(pixel_number) + " turned off")
+        self.keithley_source.activate_output()
 
     @QtCore.Slot(float)
     def update_ammeter(self, current_reading):
@@ -593,7 +594,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Function that is continuously evoked when the current is updated by
         current_tester thread.
         """
-        self.sw_current_lcdNumber.display(str(current_reading) + " A")
+        self.sw_current_lcdNumber.display(current_reading)
 
     def voltage_changed(self, tab, voltage):
         """
