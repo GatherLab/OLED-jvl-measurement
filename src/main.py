@@ -1031,14 +1031,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             line04,
         ]
 
-        # Write header lines to file
-        with open(file_path, "a") as the_file:
-            the_file.write("\n".join(header_lines))
+        cf.save_file(df_spectrum_data, file_path, header_lines)
 
-        # Now write pandas dataframe to file
-        df_spectrum_data.to_csv(
-            file_path, index=False, mode="a", header=False, sep="\t"
-        )
+        # # Write header lines to file
+        # with open(file_path, "a") as the_file:
+        #     the_file.write("\n".join(header_lines))
+
+        # # Now write pandas dataframe to file
+        # df_spectrum_data.to_csv(
+        #     file_path, index=False, mode="a", header=False, sep="\t"
+        # )
 
         self.progressBar.setProperty("value", 100)
         time.sleep(0.5)

@@ -2,6 +2,7 @@ import json
 import logging
 import os.path
 from pathlib import Path
+import pandas as pd
 
 
 def log_message(message):
@@ -37,3 +38,31 @@ def read_global_settings():
         log_message("Default device parameters taken")
 
     return settings[0]
+
+
+def save_file(df, file_path, header_lines):
+    """
+    Generic function that allows to save a file. If it exists already, rename
+    it.
+    """
+    # First check if file already exists. If yes, add a number at the end (this
+    # is checked as often as the file still exists to count up the numbers)
+    i = 2
+    while True:
+        if not os.path.isfile(file_path):
+            break
+
+        # Get rid of file ending
+        if i == 2:
+            file_path = os.path.splitext(file_path)[0] + "_" + f"{i:02d}" + ".csv"
+        else:
+            # Since we already added a new _no to the file we have to get rid of it again
+            file_path = "_".join(file_path.split("_")[:-1]) + "_" + f"{i:02d}" + ".csv"
+
+        i += 1
+
+    with open(file_path, "a") as the_file:
+        the_file.write("\n".join(header_lines))
+
+    # Now write pandas dataframe to file
+    df.to_csv(file_path, index=False, mode="a", header=False, sep="\t")

@@ -295,11 +295,15 @@ class AutotubeMeasurement(QtCore.QThread):
             + "_jvl"
             + ".csv"
         )
-        with open(file_path, "a") as the_file:
-            the_file.write("\n".join(header_lines))
 
-        # Now write pandas dataframe to file
-        self.df_data.to_csv(file_path, index=False, mode="a", header=False, sep="\t")
+        # Save file
+        cf.save_file(self.df_data, file_path, header_lines)
+
+        # with open(file_path, "a") as the_file:
+        #     the_file.write("\n".join(header_lines))
+
+        # # Now write pandas dataframe to file
+        # self.df_data.to_csv(file_path, index=False, mode="a", header=False, sep="\t")
 
     # def get_data(self):
     #     """
