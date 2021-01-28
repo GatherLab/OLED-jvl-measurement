@@ -296,6 +296,17 @@ class AutotubeMeasurement(QtCore.QThread):
             + ".csv"
         )
 
+        # Format the dataframe for saving (no. of digits)
+        self.df_data["voltage"] = self.df_data["voltage"].map(
+            lambda x: "{0:.2f}".format(x)
+        )
+        self.df_data["current"] = self.df_data["current"].map(
+            lambda x: "{0:.5f}".format(x)
+        )
+        self.df_data["pd_voltage"] = self.df_data["pd_voltage"].map(
+            lambda x: "{0:.7f}".format(x)
+        )
+
         # Save file
         cf.save_file(self.df_data, file_path, header_lines)
 

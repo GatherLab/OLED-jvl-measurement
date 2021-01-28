@@ -1031,6 +1031,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             line04,
         ]
 
+        # Format the dataframe for saving (no. of digits)
+        df_spectrum_data["wavelength"] = df_spectrum_data["wavelength"].map(
+            lambda x: "{0:.2f}".format(x)
+        )
+        df_spectrum_data["background"] = df_spectrum_data["background"].map(
+            lambda x: "{0:.1f}".format(x)
+        )
+        df_spectrum_data["intensity"] = df_spectrum_data["intensity"].map(
+            lambda x: "{0:.1f}".format(x)
+        )
+
         cf.save_file(df_spectrum_data, file_path, header_lines)
 
         # # Write header lines to file
