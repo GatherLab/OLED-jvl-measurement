@@ -398,7 +398,7 @@ class Ui_MainWindow(object):
         self.sw_current_lcdNumber.setAutoFillBackground(False)
         self.sw_current_lcdNumber.setSmallDecimalPoint(False)
         self.sw_current_lcdNumber.setObjectName("sw_current_lcdNumber")
-        self.sw_current_lcdNumber.display("0.0001 A")
+        # self.sw_current_lcdNumber.display("0.0001 A")
         self.gridLayout_7.addWidget(self.sw_current_lcdNumber, 5, 1, 1, 1)
 
         self.tabWidget.addTab(self.setup_widget, "")

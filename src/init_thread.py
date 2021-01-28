@@ -44,6 +44,7 @@ class InitThread(QtCore.QThread):
         self.emit_source.connect(widget.parent.init_source)
         self.emit_multimeter.connect(widget.parent.init_multimeter)
         self.emit_spectrometer.connect(widget.parent.init_spectrometer)
+        self.widget = widget
 
         # Variable that checks if initialisation shall be repeated
         self.repeat = False
@@ -60,9 +61,19 @@ class InitThread(QtCore.QThread):
 
         # Try if Arduino can be initialised
         try:
-            uno = ArduinoUno(global_settings["arduino_com_address"])
-            cf.log_message("Arduino UNO successfully initialised")
-            arduino_init = True
+            try:
+                uno = ArduinoUno(global_settings["arduino_com_address"])
+                cf.log_message("Arduino UNO successfully initialised")
+                arduino_init = True
+            except:
+                # In the case that there was already a connection established,
+                # it could happen that the arduino does not allow to establish
+                # a new one. Therefore, close the old one first.
+                self.widget.parent.arduino_uno.close()
+                uno = ArduinoUno(global_settings["arduino_com_address"])
+                cf.log_message("Arduino UNO successfully initialised")
+                arduino_init = True
+
             # motor.move_to(-45)
         except Exception as e:
             uno = MockArduinoUno(global_settings["arduino_com_address"])

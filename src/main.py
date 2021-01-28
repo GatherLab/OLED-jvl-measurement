@@ -586,6 +586,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.sw_pushbutton_array[pixel_number - 1].setChecked(False)
 
             # print("Pixel " + str(pixel_number) + " turned off")
+        self.keithley_source.activate_output()
 
     @QtCore.Slot(float)
     def update_ammeter(self, current_reading):
@@ -593,7 +594,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Function that is continuously evoked when the current is updated by
         current_tester thread.
         """
-        self.sw_current_lcdNumber.display(str(current_reading) + " A")
+        self.sw_current_lcdNumber.display(current_reading)
 
     def voltage_changed(self, tab, voltage):
         """
@@ -1030,14 +1031,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             line04,
         ]
 
-        # Write header lines to file
-        with open(file_path, "a") as the_file:
-            the_file.write("\n".join(header_lines))
-
-        # Now write pandas dataframe to file
-        df_spectrum_data.to_csv(
-            file_path, index=False, mode="a", header=False, sep="\t"
+        # Format the dataframe for saving (no. of digits)
+        df_spectrum_data["wavelength"] = df_spectrum_data["wavelength"].map(
+            lambda x: "{0:.2f}".format(x)
         )
+        df_spectrum_data["background"] = df_spectrum_data["background"].map(
+            lambda x: "{0:.1f}".format(x)
+        )
+        df_spectrum_data["intensity"] = df_spectrum_data["intensity"].map(
+            lambda x: "{0:.1f}".format(x)
+        )
+
+        cf.save_file(df_spectrum_data, file_path, header_lines)
+
+        # # Write header lines to file
+        # with open(file_path, "a") as the_file:
+        #     the_file.write("\n".join(header_lines))
+
+        # # Now write pandas dataframe to file
+        # df_spectrum_data.to_csv(
+        #     file_path, index=False, mode="a", header=False, sep="\t"
+        # )
 
         self.progressBar.setProperty("value", 100)
         time.sleep(0.5)

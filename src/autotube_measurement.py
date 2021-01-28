@@ -110,6 +110,8 @@ class AutotubeMeasurement(QtCore.QThread):
         # self.keithley_source.init_buffer(
         #     "OLEDbuffer", 10 * len(low_vlt) + len(high_vlt)
         # )
+        # Turn all pixels off at the beginning
+        self.uno.trigger_relay(0)
 
         # Iterate over all selected pixels
         for pixel in self.selected_pixels:
@@ -197,7 +199,7 @@ class AutotubeMeasurement(QtCore.QThread):
             self.keithley_source.deactivate_output()
 
             # Turn off all relays
-            self.uno.trigger_relay(0)
+            self.uno.trigger_relay(pixel)
 
             # Save data
             self.save_data(pixel)
@@ -293,11 +295,26 @@ class AutotubeMeasurement(QtCore.QThread):
             + "_jvl"
             + ".csv"
         )
-        with open(file_path, "a") as the_file:
-            the_file.write("\n".join(header_lines))
 
-        # Now write pandas dataframe to file
-        self.df_data.to_csv(file_path, index=False, mode="a", header=False, sep="\t")
+        # Format the dataframe for saving (no. of digits)
+        self.df_data["voltage"] = self.df_data["voltage"].map(
+            lambda x: "{0:.2f}".format(x)
+        )
+        self.df_data["current"] = self.df_data["current"].map(
+            lambda x: "{0:.5f}".format(x)
+        )
+        self.df_data["pd_voltage"] = self.df_data["pd_voltage"].map(
+            lambda x: "{0:.7f}".format(x)
+        )
+
+        # Save file
+        cf.save_file(self.df_data, file_path, header_lines)
+
+        # with open(file_path, "a") as the_file:
+        #     the_file.write("\n".join(header_lines))
+
+        # # Now write pandas dataframe to file
+        # self.df_data.to_csv(file_path, index=False, mode="a", header=False, sep="\t")
 
     # def get_data(self):
     #     """
