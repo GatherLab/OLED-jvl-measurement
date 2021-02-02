@@ -19,6 +19,8 @@ class ArduinoUno:
     """
 
     def __init__(self, com_address):
+        # Define a mutex
+        self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
 
         # Check for devices on the pc
         rm = pyvisa.ResourceManager()
@@ -78,6 +80,8 @@ class ArduinoUno:
             time in seconds to wait before collecting initialisation message.
         """
 
+        self.mutex.lock()
+
         # Open serial port
         try:
             self.uno.open()
@@ -95,13 +99,16 @@ class ArduinoUno:
         )
         # self.queue.put(com.readall())
         self.serial_connection_open = True
+        self.mutex.unlock()
 
     def close_serial_connection(self):
         """
         Close connection to arduino
         """
+        self.mutex.lock()
         self.uno.close()
         self.serial_connection_open = False
+        self.mutex.unlock()
 
     def trigger_relay(self, relay):
         """
@@ -112,6 +119,7 @@ class ArduinoUno:
             If relay == 0, all relays close
             If relay == 9, all relays open
         """
+        self.mutex.lock()
         com = self.uno
 
         if self.serial_connection_open == False:
@@ -129,14 +137,17 @@ class ArduinoUno:
                 )
 
         cf.log_message(com.readall())
+        self.mutex.unlock()
 
     def close(self):
         """
         Function that is called before program is closed to make sure that
         all relays are closed
         """
+        self.mutex.lock()
         self.trigger_relay(0)
         self.close_serial_connection()
+        self.mutex.unlock()
 
 
 class KeithleySource:
@@ -149,6 +160,8 @@ class KeithleySource:
         Initialise Hardware. This function must be improved later as well.
         For the time being it is probably alright.
         """
+        # Define a mutex
+        self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
 
         # Keithley Finding Device
         rm = pyvisa.ResourceManager()
@@ -172,6 +185,7 @@ class KeithleySource:
         """
         Function that initalises the Keithley as a voltage source
         """
+        self.mutex.lock()
         # Write operational parameters to Sourcemeter (Voltage to OLED)
         self.reset()
         # set voltage as source
@@ -189,11 +203,13 @@ class KeithleySource:
 
         # Set voltage mode indicator
         self.mode = "voltage"
+        self.mutex.unlock()
 
     def as_current_source(self, voltage_compliance):
         """
         Initialise (or reinitialise) class as current source
         """
+        self.mutex.lock()
         # Write operational parameters to Sourcemeter (Voltage to OLED)
         self.reset()
         # Write operational parameters to Sourcemeter (Current to OLED)
@@ -211,17 +227,21 @@ class KeithleySource:
 
         # Set current mode indicator
         self.mode = "current"
+        self.mutex.unlock()
 
     def reset(self):
         """
         reset instrument
         """
+        self.mutex.lock()
         self.keith.write("*rst")
+        self.mutex.unlock()
 
     def init_buffer(self, buffer_name, buffer_length):
         """
         Initialise buffer of source meter
         """
+        self.mutex.lock()
         # if the buffer already exists, delete it first to prevent the error
         # "parameter error TRACe:MAKE cannot use an existing reading buffer name keithley"
         # try:
@@ -235,24 +255,31 @@ class KeithleySource:
         # Keithley empties the buffer
         self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
         self.buffer_name = buffer_name
+        self.mutex.unlock()
 
     def empty_buffer(self, buffer_name):
         """
         Function that empties the Keithley's buffer for the next run
         """
+        self.mutex.lock()
         self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
+        self.mutex.unlock()
 
     def activate_output(self):
         """
         Activate output
         """
+        self.mutex.lock()
         self.keith.write("Output ON")
+        self.mutex.unlock()
 
     def deactivate_output(self):
         """
         Turn power off
         """
+        self.mutex.lock()
         self.keith.write("Output OFF")
+        self.mutex.unlock()
 
     def read_current(self):
         """
@@ -274,17 +301,20 @@ class KeithleySource:
         Set the voltage on the source meter (only in voltage mode)
         """
 
+        self.mutex.lock()
         if self.mode == "voltage":
             self.keith.write("Source:Volt " + str(voltage))
         else:
             logging.warning(
                 "You can not set the voltage of the Keithley source in current mode"
             )
+        self.mutex.unlock()
 
     def set_current(self, current):
         """
         Set the current on the source meter (only in current mode)
         """
+        self.mutex.lock()
         # set current to source_value
         if self.mode == "current":
             self.keith.write("Source:Current " + str(current))
@@ -292,6 +322,7 @@ class KeithleySource:
             logging.warning(
                 "You can not set the current of the Keithley source in voltage mode"
             )
+        self.mutex.unlock()
 
 
 class KeithleyMultimeter:
@@ -300,6 +331,8 @@ class KeithleyMultimeter:
     """
 
     def __init__(self, keithley_multimeter_address):
+        # Define a mutex
+        self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
 
         # Keithley Finding Device
         rm = pyvisa.ResourceManager()
@@ -320,6 +353,7 @@ class KeithleyMultimeter:
         """
         Reset instrument
         """
+        self.mutex.lock()
         self.keithmulti.write("*rst")
 
         # Write operational parameters to Multimeter (Voltage from Photodiode)
@@ -335,6 +369,7 @@ class KeithleyMultimeter:
         self.keithmulti.write("TRIGer:DELay 0")
         # Activate wait for trigger mode
         self.keithmulti.write("INITiate")
+        self.mutex.unlock()
 
     def measure_voltage(self):
         """
@@ -349,6 +384,8 @@ class OceanSpectrometer:
     """
 
     def __init__(self, integration_time):
+        # Define a mutex
+        self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
         # List all spectrometers
         maya_devices = sb.list_devices()
 
@@ -378,18 +415,22 @@ class OceanSpectrometer:
         # file. To make sure that it is converted correctly, convert it first
         # to a float, multiply by 1000 to convert to us and then convert to int
         # as required by the api
+        self.mutex.lock()
         self.integration_time = int(float(integration_time) * 1000)
         self.spectrometer.integration_time_micros(self.integration_time)
         cf.log_message(
             "Spectrometer integration time set to " + str(integration_time) + " ms"
         )
+        self.mutex.unlock()
 
     def close_connection(self):
         """
         Closes connection to spectrometer
         """
 
+        self.mutex.lock()
         self.spectrometer.close()
+        self.mutex.unlock()
 
 
 class ThorlabMotor:
@@ -398,6 +439,8 @@ class ThorlabMotor:
     """
 
     def __init__(self, motor_number, offset_angle):
+        # Define a mutex
+        self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
 
         # Set the motor to the number
         self.motor = apt.Motor(int(motor_number))
@@ -415,6 +458,7 @@ class ThorlabMotor:
         """
         Call the move_to function of the apt package
         """
+        self.mutex.lock()
         # The motor does not always choose the closest way. If we want that, it must be calculated first
         if angle < self.motor.position:
             self.motor.move_velocity(int(1))
@@ -422,11 +466,13 @@ class ThorlabMotor:
             self.motor.move_velocity(int(2))
 
         self.motor.move_to(angle - float(self.offset_angle))
+        self.mutex.unlock()
 
     def read_position(self):
         """
         Function that reads out the current motor position
         """
+        self.mutex.lock()
         # Make sure that the motor position is returned as values between -180 to 180 (definition)
         if self.motor.position + float(self.offset_angle) > 180:
             motor_position_translated = (
@@ -435,6 +481,7 @@ class ThorlabMotor:
         else:
             motor_position_translated = self.motor.position + float(self.offset_angle)
 
+        self.mutex.unlock()
         return motor_position_translated
 
     def clean_up(self):
@@ -443,6 +490,7 @@ class ThorlabMotor:
         from the thorlabs_api repo and enables controlled cleaning up of the
         connection to the motor when the program is closed.
         """
+        self.mutex.lock()
         import ctypes
         import os
         from thorlabs_apt import _APTAPI
@@ -473,3 +521,4 @@ class ThorlabMotor:
 
         if lib is not None:
             lib.APTCleanUp()
+        self.mutex.unlock()
