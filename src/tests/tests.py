@@ -85,12 +85,13 @@ class MockOceanSpectrometer:
 
     def __init__(self, integration_time):
         print(integration_time)
+        self.integration_time = integration_time
 
     def measure(self):
         return np.arange(350, 830, 1), np.random.rand(480) * 100
 
     def set_integration_time_ms(self, integration_time):
-        print("Integration time set to " + integration_time + " ms")
+        print("Integration time set to " + str(integration_time) + " ms")
 
 
 class MockThorlabMotor:
