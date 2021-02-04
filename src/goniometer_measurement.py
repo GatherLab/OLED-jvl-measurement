@@ -365,6 +365,31 @@ class GoniometerMeasurement(QtCore.QThread):
                 * 100,
             )
 
+        # Move again back to the minimum angle and take another spectrum to see
+        # if the device degraded already
+        self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
+
+        # Instead of defining a moving time, just read the motor position and
+        # only start the measurement when the motor is at the right position
+        motor_position = self.motor.read_position()
+
+        while not math.isclose(
+            motor_position,
+            self.goniometer_measurement_parameters["minimum_angle"],
+            abs_tol=0.01,
+        ):
+            motor_position = self.motor.read_position()
+            self.update_animation.emit(motor_position)
+            time.sleep(0.05)
+
+        # Update animation once more since the position might be 0.9 at this
+        # point (int comparison in the above while loop)
+        self.update_animation.emit(motor_position)
+
+        self.spectrum_data[
+            str(self.goniometer_measurement_parameters["minimum_angle"]) + "_deg"
+        ] = self.spectrometer.measure()[1]
+
         cf.log_message("Measurement finished")
 
         if not self.goniometer_measurement_parameters["el_or_pl"]:

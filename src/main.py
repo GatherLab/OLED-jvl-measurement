@@ -1436,7 +1436,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Kill motor savely
         try:
+            # Move motor back go home position
+            self.motor.move_to(45)
+
+            # Instead of defining a moving time, just read the motor position and
+            # only start the measurement when the motor is at the right position
+            motor_position = self.motor.read_position()
+
+            while not math.isclose(motor_position, 45, abs_tol=0.01):
+                motor_position = self.motor.read_position()
+                self.update_animation.emit(motor_position)
+                time.sleep(0.05)
+
+            # Update animation once more since the position might be 0.9 at this
+            # point (int comparison in the above while loop)
+            self.update_animation.emit(motor_position)
             self.motor.clean_up()
+
         except Exception as e:
             cf.log_message("Motor could not be turned off savely")
             cf.log_message(e)
