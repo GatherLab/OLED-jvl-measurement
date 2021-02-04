@@ -40,7 +40,7 @@ def read_global_settings():
     return settings[0]
 
 
-def save_file(df, file_path, header_lines):
+def save_file(df, file_path, header_lines, save_header=False):
     """
     Generic function that allows to save a file. If it exists already, rename
     it.
@@ -65,4 +65,4 @@ def save_file(df, file_path, header_lines):
         the_file.write("\n".join(header_lines))
 
     # Now write pandas dataframe to file
-    df.to_csv(file_path, index=False, mode="a", header=False, sep="\t")
+    df.to_csv(file_path, index=False, mode="a", header=save_header, sep="\t")

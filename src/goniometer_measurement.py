@@ -462,18 +462,20 @@ class GoniometerMeasurement(QtCore.QThread):
                 + "_gon-jvl"
                 + ".csv"
             )
-        # Write header lines to file
-        with open(file_path, "a") as the_file:
-            the_file.write("\n".join(header_lines))
 
-        # Now write pandas dataframe to file
-        self.iv_data.to_csv(
-            file_path,
-            index=False,
-            mode="a",
-            header=False,
-            sep="\t",
-        )
+        cf.save_file(self.iv_data, file_path, header_lines)
+        # # Write header lines to file
+        # with open(file_path, "a") as the_file:
+        #     the_file.write("\n".join(header_lines))
+
+        # # Now write pandas dataframe to file
+        # self.iv_data.to_csv(
+        #     file_path,
+        #     index=False,
+        #     mode="a",
+        #     header=False,
+        #     sep="\t",
+        # )
         cf.log_message("IV data saved")
 
     def save_spectrum_data(self):
@@ -541,7 +543,7 @@ class GoniometerMeasurement(QtCore.QThread):
             )
 
         # Save data
-        cf.save_file(self.spectrum_data, file_path, header_lines)
+        cf.save_file(self.spectrum_data, file_path, header_lines, save_header=True)
 
         # # Write header lines to file
         # with open(file_path, "a") as the_file:
