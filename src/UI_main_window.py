@@ -5,6 +5,7 @@
 # from UI_settings_window import Ui_Settings
 from UI_goniometer_animation import Ui_GoniometerAnimation
 from UI_toggle_switch import ToggleSwitch
+from humble_spinbox import HumbleDoubleSpinBox, HumbleSpinBox
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -76,7 +77,7 @@ class Ui_MainWindow(object):
             "            border-radius: 5px;\n"
             "            background-color: rgb(52, 59, 72);\n"
             "}\n"
-            "QDoubleSpinBox {\n"
+            "HumbleDoubleSpinBox {\n"
             "            border: 2px solid rgb(61, 70, 86);\n"
             "            border-radius: 5px;\n"
             "            background-color: rgb(52, 59, 72);\n"
@@ -112,7 +113,7 @@ class Ui_MainWindow(object):
         #     "            border-radius: 5px;\n"
         #     "            background-color: rgb(52, 59, 72);\n"
         #     "}\n"
-        #     "QDoubleSpinBox {\n"
+        #     "HumbleDoubleSpinBox {\n"
         #     "            border: 2px solid rgb(61, 70, 86);\n"
         #     "            border-radius: 5px;\n"
         #     "            background-color: rgb(52, 59, 72);\n"
@@ -218,7 +219,7 @@ class Ui_MainWindow(object):
         self.gridLayout_7.addWidget(self.sw_folder_path_label, 1, 0, 1, 1)
 
         # Setup widget current tester voltage
-        self.sw_ct_voltage_spinBox = QtWidgets.QDoubleSpinBox(self.setup_widget)
+        self.sw_ct_voltage_spinBox = HumbleDoubleSpinBox(self.setup_widget)
         self.sw_ct_voltage_spinBox.setObjectName("sw_ct_voltage_spinBox")
         self.gridLayout_7.addWidget(self.sw_ct_voltage_spinBox, 8, 1, 1, 1)
         self.sw_change_voltage_label = QtWidgets.QLabel(self.setup_widget)
@@ -237,7 +238,7 @@ class Ui_MainWindow(object):
         self.sw_device_number_label = QtWidgets.QLabel(self.setup_widget)
         self.sw_device_number_label.setObjectName("sw_device_number_label")
         self.gridLayout_7.addWidget(self.sw_device_number_label, 3, 0, 1, 1)
-        self.sw_device_number_spinBox = QtWidgets.QSpinBox(self.setup_widget)
+        self.sw_device_number_spinBox = HumbleSpinBox(self.setup_widget)
         self.sw_device_number_spinBox.setObjectName("sw_device_number_spinBox")
         self.gridLayout_7.addWidget(self.sw_device_number_spinBox, 3, 1, 1, 1)
 
@@ -490,7 +491,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addWidget(self.aw_scrollArea, 0, 3, 1, 1)
 
         # Max voltage
-        self.aw_max_voltage_spinBox = QtWidgets.QDoubleSpinBox(
+        self.aw_max_voltage_spinBox = HumbleDoubleSpinBox(
             self.aw_scrollAreaWidgetContents
         )
         self.aw_max_voltage_spinBox.setObjectName("aw_max_voltage_spinBox")
@@ -507,7 +508,7 @@ class Ui_MainWindow(object):
         self.aw_high_voltage_step_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.aw_high_voltage_step_label.setObjectName("aw_high_voltage_step_label")
         self.gridLayout_3.addWidget(self.aw_high_voltage_step_label, 9, 0, 1, 1)
-        self.aw_high_voltage_step_spinBox = QtWidgets.QDoubleSpinBox(
+        self.aw_high_voltage_step_spinBox = HumbleDoubleSpinBox(
             self.aw_scrollAreaWidgetContents
         )
         self.aw_high_voltage_step_spinBox.setObjectName("aw_high_voltage_step_spinBox")
@@ -613,7 +614,7 @@ class Ui_MainWindow(object):
         self.aw_min_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.aw_min_voltage_label.setObjectName("aw_min_voltage_label")
         self.gridLayout_3.addWidget(self.aw_min_voltage_label, 1, 0, 1, 1)
-        self.aw_min_voltage_spinBox = QtWidgets.QDoubleSpinBox(
+        self.aw_min_voltage_spinBox = HumbleDoubleSpinBox(
             self.aw_scrollAreaWidgetContents
         )
         self.aw_min_voltage_spinBox.setObjectName("aw_min_voltage_spinBox")
@@ -626,7 +627,7 @@ class Ui_MainWindow(object):
         self.aw_changeover_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.aw_changeover_voltage_label.setObjectName("aw_changeover_voltage_label")
         self.gridLayout_3.addWidget(self.aw_changeover_voltage_label, 5, 0, 1, 1)
-        self.aw_changeover_voltage_spinBox = QtWidgets.QDoubleSpinBox(
+        self.aw_changeover_voltage_spinBox = HumbleDoubleSpinBox(
             self.aw_scrollAreaWidgetContents
         )
         self.aw_changeover_voltage_spinBox.setObjectName(
@@ -641,14 +642,14 @@ class Ui_MainWindow(object):
         self.aw_low_voltage_step_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.aw_low_voltage_step_label.setObjectName("aw_low_voltage_step_label")
         self.gridLayout_3.addWidget(self.aw_low_voltage_step_label, 7, 0, 1, 1)
-        self.aw_low_voltage_step_spinBox = QtWidgets.QDoubleSpinBox(
+        self.aw_low_voltage_step_spinBox = HumbleDoubleSpinBox(
             self.aw_scrollAreaWidgetContents
         )
         self.aw_low_voltage_step_spinBox.setObjectName("aw_low_voltage_step_spinBox")
         self.gridLayout_3.addWidget(self.aw_low_voltage_step_spinBox, 8, 0, 1, 1)
 
         # Scan compliance
-        self.aw_scan_compliance_spinBox = QtWidgets.QDoubleSpinBox(
+        self.aw_scan_compliance_spinBox = HumbleDoubleSpinBox(
             self.aw_scrollAreaWidgetContents
         )
         self.aw_scan_compliance_spinBox.setObjectName("aw_scan_compliance_spinBox")
@@ -785,7 +786,7 @@ class Ui_MainWindow(object):
         self.specw_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.specw_voltage_label.setObjectName("specw_voltage_label")
         self.specw_scrollArea_gridLayout.addWidget(self.specw_voltage_label, 1, 0, 1, 1)
-        self.specw_voltage_spinBox = QtWidgets.QDoubleSpinBox(
+        self.specw_voltage_spinBox = HumbleDoubleSpinBox(
             self.specw_scrollAreaWidgetContents
         )
         self.specw_voltage_spinBox.setObjectName("specw_voltage_spinBox")
@@ -1018,7 +1019,7 @@ class Ui_MainWindow(object):
         self.gw_offset_angle_label.setObjectName("gw_offset_angle_label")
         self.gridLayout_9.addWidget(self.gw_offset_angle_label, 4, 0, 1, 1)
 
-        self.gw_offset_angle_spinBox = QtWidgets.QDoubleSpinBox(
+        self.gw_offset_angle_spinBox = HumbleDoubleSpinBox(
             self.gw_scrollAreaWidgetContents
         )
         self.gw_offset_angle_spinBox.setObjectName("gw_offset_angle_spinBox")
@@ -1048,7 +1049,7 @@ class Ui_MainWindow(object):
         self.gw_step_angle_label.setObjectName("gw_step_angle_label")
         self.gridLayout_9.addWidget(self.gw_step_angle_label, 14, 0, 1, 1)
 
-        self.gw_step_angle_spinBox = QtWidgets.QDoubleSpinBox(
+        self.gw_step_angle_spinBox = HumbleDoubleSpinBox(
             self.gw_scrollAreaWidgetContents
         )
         self.gw_step_angle_spinBox.setMaximum(180.0)
@@ -1081,7 +1082,7 @@ class Ui_MainWindow(object):
         self.gw_pulse_duration_label.setObjectName("gw_pulse_duration_label")
         self.gridLayout_9.addWidget(self.gw_pulse_duration_label, 26, 0, 1, 1)
 
-        self.gw_pulse_duration_spinBox = QtWidgets.QDoubleSpinBox(
+        self.gw_pulse_duration_spinBox = HumbleDoubleSpinBox(
             self.gw_scrollAreaWidgetContents
         )
         self.gw_pulse_duration_spinBox.setObjectName("gw_pulse_duration_spinBox")
@@ -1092,9 +1093,7 @@ class Ui_MainWindow(object):
         self.gw_vc_value_label.setStyleSheet('font: 75 bold 10pt "Noto Sans";')
         self.gw_vc_value_label.setObjectName("gw_vc_value_label")
         self.gridLayout_9.addWidget(self.gw_vc_value_label, 28, 0, 1, 1)
-        self.gw_vc_value_spinBox = QtWidgets.QDoubleSpinBox(
-            self.gw_scrollAreaWidgetContents
-        )
+        self.gw_vc_value_spinBox = HumbleDoubleSpinBox(self.gw_scrollAreaWidgetContents)
         self.gw_vc_value_spinBox.setObjectName("gw_vc_value_spinBox")
         self.gridLayout_9.addWidget(self.gw_vc_value_spinBox, 29, 0, 1, 1)
 
@@ -1103,7 +1102,7 @@ class Ui_MainWindow(object):
         self.gw_vc_compliance_label.setStyleSheet('font: 75 bold 10pt "Noto Sans";')
         self.gw_vc_compliance_label.setObjectName("gw_vc_compliance_label")
         self.gridLayout_9.addWidget(self.gw_vc_compliance_label, 30, 0, 1, 1)
-        self.gw_vc_compliance_spinBox = QtWidgets.QDoubleSpinBox(
+        self.gw_vc_compliance_spinBox = HumbleDoubleSpinBox(
             self.gw_scrollAreaWidgetContents
         )
         self.gw_vc_compliance_spinBox.setObjectName("gw_vc_compliance_spinBox")
@@ -1225,7 +1224,7 @@ class Ui_MainWindow(object):
         self.gw_integration_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.gw_integration_time_label.setObjectName("gw_integration_time_label")
         self.gridLayout_9.addWidget(self.gw_integration_time_label, 16, 0, 1, 1)
-        self.gw_integration_time_spinBox = QtWidgets.QDoubleSpinBox(
+        self.gw_integration_time_spinBox = HumbleDoubleSpinBox(
             self.gw_scrollAreaWidgetContents
         )
         self.gw_integration_time_spinBox.setObjectName("gw_integration_time_spinBox")
@@ -1266,9 +1265,7 @@ class Ui_MainWindow(object):
         self.gw_minimum_angle_label.setObjectName("gw_minimum_angle_label")
         self.gridLayout_9.addWidget(self.gw_minimum_angle_label, 10, 0, 1, 1)
 
-        self.gw_minimum_angle_spinBox = QtWidgets.QSpinBox(
-            self.gw_scrollAreaWidgetContents
-        )
+        self.gw_minimum_angle_spinBox = HumbleSpinBox(self.gw_scrollAreaWidgetContents)
         self.gw_minimum_angle_spinBox.setMinimum(-180)
         self.gw_minimum_angle_spinBox.setMaximum(180)
         self.gw_minimum_angle_spinBox.setProperty("value", 180)
@@ -1281,9 +1278,7 @@ class Ui_MainWindow(object):
         self.gw_maximum_angle_label.setObjectName("gw_maximum_angle_label")
         self.gridLayout_9.addWidget(self.gw_maximum_angle_label, 12, 0, 1, 1)
 
-        self.gw_maximum_angle_spinBox = QtWidgets.QSpinBox(
-            self.gw_scrollAreaWidgetContents
-        )
+        self.gw_maximum_angle_spinBox = HumbleSpinBox(self.gw_scrollAreaWidgetContents)
         self.gw_maximum_angle_spinBox.setMinimum(-180)
         self.gw_maximum_angle_spinBox.setMaximum(180)
         self.gw_maximum_angle_spinBox.setProperty("value", 180)
