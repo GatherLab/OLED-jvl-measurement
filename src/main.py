@@ -1334,6 +1334,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Disable all non-relevant options
             self.gw_voltage_scan_toggleSwitch.setEnabled(False)
             self.gw_voltage_or_current_toggleSwitch.setEnabled(False)
+            self.gw_pulse_duration_spinBox.setEnabled(False)
             self.gw_vc_value_spinBox.setEnabled(False)
             self.gw_vc_compliance_spinBox.setEnabled(False)
 
@@ -1350,6 +1351,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Enable all options that are only relevant for EL measurements
             self.gw_voltage_scan_toggleSwitch.setEnabled(True)
             self.gw_voltage_or_current_toggleSwitch.setEnabled(True)
+            self.gw_pulse_duration_spinBox.setEnabled(True)
             self.gw_vc_value_spinBox.setEnabled(True)
             self.gw_vc_compliance_spinBox.setEnabled(True)
 
@@ -1505,8 +1507,9 @@ if __name__ == "__main__":
     # Icon (see https://stackoverflow.com/questions/1551605/how-to-set-applications-taskbar-icon-in-windows-7/1552105#1552105)
     import ctypes
 
-    myappid = u"mycompan.myproduct.subproduct.version"  # arbitrary string
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    # myappid = u"mycompan.myproduct.subproduct.version"  # arbitrary string
+    # ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
     app_icon = QtGui.QIcon()
     app_icon.addFile("./icons/program_icon.png", QtCore.QSize(256, 256))
     app.setWindowIcon(app_icon)

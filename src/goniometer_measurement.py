@@ -304,10 +304,12 @@ class GoniometerMeasurement(QtCore.QThread):
             if not self.goniometer_measurement_parameters["el_or_pl"]:
                 self.keithley_source.activate_output()
 
-            time.sleep(
-                self.goniometer_measurement_parameters["pulse_duration"]
-                - processing_time
-            )
+                # The pulse duration is a valid parameter for the EL
+                # measurements but hinders fast scans for PL measurements
+                time.sleep(
+                    self.goniometer_measurement_parameters["pulse_duration"]
+                    - processing_time
+                )
 
             start_process = time.process_time()
 
