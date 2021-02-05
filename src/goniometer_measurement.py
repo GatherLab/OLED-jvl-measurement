@@ -428,17 +428,14 @@ class GoniometerMeasurement(QtCore.QThread):
                     ]
                     - self.spectrum_data["background"],
                 ],
-                [
-                    str(self.goniometer_measurement_parameters["minimum_angle"]),
-                    str(self.goniometer_measurement_parameters["minimum_angle"])
-                    + "_deg",
-                ],
+                ["before measurement", "after measurement"],
             )
 
         self.save_spectrum_data()
 
         self.hide_progress_bar.emit()
         self.reset_start_button.emit(False)
+
         cf.log_message("Measurement finished")
 
         if not self.goniometer_measurement_parameters["el_or_pl"]:

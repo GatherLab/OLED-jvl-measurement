@@ -1206,9 +1206,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Now put the dataframe together again
         spectrum = pd.DataFrame(spec, columns=column_names)
 
-        # Check if second axis already exists. If so, we only have to clear it.
-        # If not, it has to be created.
-        if not hasattr(self, "gw_ax2"):
+        # Check if this is the first time in this run that the graph is
+        # plotted. This is the case, when the dataframe only has three columns
+        # (wavelength, background, minimum angle intensity)
+        if spectrum.shape[1] == 3:
             self.gw_fig.figure.clf()
             self.gw_ax1, self.gw_ax2 = self.gw_fig.figure.subplots(1, 2)
         else:
