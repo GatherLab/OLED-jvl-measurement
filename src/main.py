@@ -1105,6 +1105,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "pulse_duration": self.gw_pulse_duration_spinBox.value(),
             "voltage_or_current": self.gw_voltage_or_current_toggleSwitch.isChecked(),
             "voltage_scan": self.gw_voltage_scan_toggleSwitch.isChecked(),
+            "degradation_check": self.gw_degradation_check_toggleSwitch.isChecked(),
             "el_or_pl": self.gw_el_or_pl_toggleSwitch.isChecked(),
             "vc_value": self.gw_vc_value_spinBox.value(),
             "vc_compliance": self.gw_vc_compliance_spinBox.value(),
@@ -1202,17 +1203,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         Function that updates the goniometer measured spectrum as well as the status and progress bar
         """
-        # Update progress bar
-        # progress += 1
-        # self.progressBar.setProperty(
-        # "value", int(progress / len(selected_pixels) * 100)
-        # )
-
         # Now put the dataframe together again
         spectrum = pd.DataFrame(spec, columns=column_names)
 
-        # Clear axis
-        self.gw_ax.cla()
+        # Check if second axis already exists. If so, we only have to clear it.
+        # If not, it has to be created.
+        if not hasattr(self, "gw_ax2"):
+            self.gw_fig.figure.clf()
+            self.gw_ax1, self.gw_ax2 = self.gw_fig.figure.subplots(1, 2)
+        else:
+            self.gw_ax1.cla()
+            self.gw_ax2.cla()
 
         # first subtract the background from all columns but the wavelength
         temp = (
@@ -1228,63 +1229,65 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # And set the wavelength as index of the dataframe and drop the background instead now
         temp = temp.set_index("wavelength").drop(["background"], axis=1)
 
-        # temp = (
-        # spectrum.transpose()
-        # .sub(spectrum["background"])
-        # .transpose()
-        # .set_index("wavelength")
-        # .drop(["background"], axis=1)
-        # )
-        # self.gw_animation.move(float(spectrum.columns[-1][:-1]))
-
-        # spectrum.drop(["background"], axis=1)
-        # spectrum.set_index("wavelength")
-        self.gw_ax.set_xlabel("Angle (°)")
-        self.gw_ax.set_ylabel("Wavelength (nm)")
-
         # Plot current data
         # This is the best way I could come up with so far. There must be a better one, however.
         x = temp.index.values.tolist()
         y = list(map(float, temp.columns.values.tolist()))
 
-        # if (max(x) - min(x)) / len(x) == 0:
-        #     x_step = 1
-        # else:
-        #      _step = (max(x) - min(x)) / len(x)
-
-        # if (max(y) - min(y)) / len(y) == 0:
-        #      _step = 1
-        #     y_max = max(y) + 1
-        # else:
-        #     y_step = (max(y) - min(y)) / len(y)
-        #     y_max = max(y)
-
-        # X, Y = np.mgrid[
-        #     min(x) : max(x) : x_step,
-        #      in(y) : y_max : y_step,
-        # ]
-
         X, Y = np.meshgrid(x, y)
 
-        self.gw_ax.pcolormesh(Y, X, temp.to_numpy().T, shading="auto")
-        # self.gw_fig.figure.colorbar(im, ax=self.gw_ax)
+        self.gw_ax1.set_xlabel("Angle (°)")
+        self.gw_ax1.set_ylabel("Wavelength (nm)")
 
-        # Now set the labels (not correct by default)
-        # self.gw_ax.yaxis.set_major_locator(plt.MaxNLocator(5))
-        # self.gw_ax.xaxis.set_major_locator(plt.MaxNLocator(5))
+        self.gw_ax1.pcolormesh(Y, X, temp.to_numpy().T, shading="auto")
 
-        # self.gw_ax.set_yticks(np.linspace(np.min(temp.index), np.max(temp.index), 5))
-        # self.gw_ax.set_xticks(np.arange(0.5, len(temp.index), 1))
+        # Calculate the maximum for each angle
+        max_intensity_for_each_angle = temp.max(axis=0).to_list()
+        angles = temp.max(axis=0).index.to_numpy(dtype=float)
 
-        # self.gw_ax.set_yticks(np.arange(0.5, len(temp.index), 1))
-        # self.gw_ax.set_xticks(np.arange(0.5, len(temp.columns), 1))
-        # self.gw_ax.set_xticklabels(xlabels, minor=False)
-        # self.gw_ax.set_yticklabels(ylabels, minor=False)
+        self.gw_ax2.set_xlabel("Angle (°)")
+        self.gw_ax2.set_ylabel("Maximum Intensity (counts)")
+        self.gw_ax2.grid(True)
 
+        self.gw_ax2.plot(
+            angles,
+            max_intensity_for_each_angle,
+            color=(85 / 255, 170 / 255, 255 / 255),
+            marker="o",
+        )
+
+        # Draw the new figure
         self.gw_fig.draw()
 
         # Update statusbar
         cf.log_message("Goniometer Measurement Plotted")
+
+    @QtCore.Slot(list, list)
+    def update_goniometer_simple_spectrum(self, spectrum, labels):
+        """
+        Function that does simple plotting of a 1D spectrum at the beginning
+        and in the end
+        """
+        # Clear the figure and create one with single graph
+        self.gw_fig.figure.clf()
+        self.gw_ax1 = self.gw_fig.figure.subplots()
+
+        # Depending on the size of the input array, plot several graphs
+        for i in range(np.shape(spectrum)[0] - 1):
+            self.gw_ax1.set_xlabel("Wavelength (nm)")
+            self.gw_ax1.set_ylabel("Intensity (counts)")
+            self.gw_ax1.grid(True)
+
+            self.gw_ax1.plot(spectrum[0], spectrum[i + 1], label=labels[i])
+
+        # Show a legend
+        self.gw_ax1.legend()
+
+        # Draw the new figure
+        self.gw_fig.draw()
+
+        # Update statusbar
+        cf.log_message("Spectrum plotted")
 
     def move_motor(self):
         """

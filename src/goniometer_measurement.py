@@ -32,6 +32,7 @@ class GoniometerMeasurement(QtCore.QThread):
     """
 
     update_goniometer_spectrum_signal = QtCore.Signal(list, list)
+    update_simple_spectrum_signal = QtCore.Signal(list, list)
     update_animation = QtCore.Signal(float)
     update_progress_bar = QtCore.Signal(str, float)
     hide_progress_bar = QtCore.Signal()
@@ -80,6 +81,9 @@ class GoniometerMeasurement(QtCore.QThread):
         # Connect signal to the updater from the parent class
         self.update_goniometer_spectrum_signal.connect(
             parent.update_goniometer_spectrum
+        )
+        self.update_simple_spectrum_signal.connect(
+            parent.update_goniometer_simple_spectrum
         )
         self.update_animation.connect(parent.gw_animation.move)
         self.update_progress_bar.connect(parent.progressBar.setProperty)
@@ -223,6 +227,14 @@ class GoniometerMeasurement(QtCore.QThread):
         calibration_spectrum = self.spectrometer.measure()
         self.spectrum_data["wavelength"] = calibration_spectrum[0]
         self.spectrum_data["background"] = calibration_spectrum[1]
+
+        self.update_simple_spectrum_signal.emit(
+            [
+                calibration_spectrum[0],
+                calibration_spectrum[1],
+            ],
+            ["background"],
+        )
         cf.log_message("Calibration spectrum measured")
 
         # Initial processing time in seconds
@@ -367,30 +379,61 @@ class GoniometerMeasurement(QtCore.QThread):
                 * 100,
             )
 
-        # Move again back to the minimum angle and take another spectrum to see
-        # if the device degraded already
-        self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
+        # If the user wants it, move again back to the minimum angle and take
+        # another spectrum to see if the device degraded already
+        if self.goniometer_measurement_parameters["degradation_check"]:
+            self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
 
-        # Instead of defining a moving time, just read the motor position and
-        # only start the measurement when the motor is at the right position
-        motor_position = self.motor.read_position()
-
-        while not math.isclose(
-            motor_position,
-            self.goniometer_measurement_parameters["minimum_angle"],
-            abs_tol=0.01,
-        ):
+            # Instead of defining a moving time, just read the motor position and
+            # only start the measurement when the motor is at the right position
             motor_position = self.motor.read_position()
+
+            while not math.isclose(
+                motor_position,
+                self.goniometer_measurement_parameters["minimum_angle"],
+                abs_tol=0.01,
+            ):
+                motor_position = self.motor.read_position()
+                self.update_animation.emit(motor_position)
+                time.sleep(0.05)
+
+            # Update animation once more since the position might be 0.9 at this
+            # point (int comparison in the above while loop)
             self.update_animation.emit(motor_position)
-            time.sleep(0.05)
 
-        # Update animation once more since the position might be 0.9 at this
-        # point (int comparison in the above while loop)
-        self.update_animation.emit(motor_position)
+            self.spectrum_data[
+                str(float(self.goniometer_measurement_parameters["minimum_angle"]))
+                + "_deg"
+            ] = self.spectrometer.measure()[1]
 
-        self.spectrum_data[
-            str(self.goniometer_measurement_parameters["minimum_angle"]) + "_deg"
-        ] = self.spectrometer.measure()[1]
+            # Now plot the spectrum of minimum angle and the final repeated measurement
+            self.update_simple_spectrum_signal.emit(
+                [
+                    self.spectrum_data["wavelength"],
+                    self.spectrum_data[
+                        str(
+                            float(
+                                self.goniometer_measurement_parameters["minimum_angle"]
+                            )
+                        )
+                    ]
+                    - self.spectrum_data["background"],
+                    self.spectrum_data[
+                        str(
+                            float(
+                                self.goniometer_measurement_parameters["minimum_angle"]
+                            )
+                        )
+                        + "_deg"
+                    ]
+                    - self.spectrum_data["background"],
+                ],
+                [
+                    str(self.goniometer_measurement_parameters["minimum_angle"]),
+                    str(self.goniometer_measurement_parameters["minimum_angle"])
+                    + "_deg",
+                ],
+            )
 
         self.save_spectrum_data()
 
