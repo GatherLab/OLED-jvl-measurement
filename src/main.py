@@ -1364,13 +1364,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gw_pixel7_pushButton.setEnabled(True)
             self.gw_pixel8_pushButton.setEnabled(True)
 
-    @QtCore.Slot()
-    def pause_goniometer_measurement(self):
+    @QtCore.Slot(str)
+    def pause_goniometer_measurement(self, status):
         """
         Function to ask to turn the PL lamp on before continuing
         """
         msgBox = QtWidgets.QMessageBox()
-        msgBox.setText("You can now turn on the UV-lamp")
+        # Now check which message to display (turn on or off the lamp)
+        if status == "on":
+            msgBox.setText("You can now turn on the UV-lamp")
+        elif status == "off":
+            msgBox.setText("You can now turn off the UV-lamp")
+
         msgBox.setStandardButtons(
             QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel
         )
@@ -1402,10 +1407,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         if button == QtWidgets.QMessageBox.Ok:
             self.goniometer_measurement.pause = "break"
-            cf.log_message("UV lamp was turned on")
         elif button == QtWidgets.QMessageBox.Cancel:
             self.goniometer_measurement.pause = "return"
-            cf.log_message("PL measurement aborted before UV lamp was turned on")
             self.gw_start_measurement_pushButton.setChecked(False)
 
     def closeEvent(self, event):

@@ -35,7 +35,7 @@ class GoniometerMeasurement(QtCore.QThread):
     update_animation = QtCore.Signal(float)
     update_progress_bar = QtCore.Signal(str, float)
     hide_progress_bar = QtCore.Signal()
-    pause_thread_pl = QtCore.Signal()
+    pause_thread_pl = QtCore.Signal(str)
     reset_start_button = QtCore.Signal(bool)
 
     def __init__(
@@ -249,7 +249,7 @@ class GoniometerMeasurement(QtCore.QThread):
             # now be turned on, only continue if the continue button was
             # pressed
             self.pause = "True"
-            self.pause_thread_pl.emit()
+            self.pause_thread_pl.emit("on")
 
             while self.pause == "True":
                 time.sleep(0.1)
@@ -392,6 +392,10 @@ class GoniometerMeasurement(QtCore.QThread):
             str(self.goniometer_measurement_parameters["minimum_angle"]) + "_deg"
         ] = self.spectrometer.measure()[1]
 
+        self.save_spectrum_data()
+
+        self.hide_progress_bar.emit()
+        self.reset_start_button.emit(False)
         cf.log_message("Measurement finished")
 
         if not self.goniometer_measurement_parameters["el_or_pl"]:
@@ -402,10 +406,18 @@ class GoniometerMeasurement(QtCore.QThread):
             # Only save iv data for el measurement, because it otherwise does not exist
             self.iv_data = pd.DataFrame(rows_list)
             self.save_iv_data()
+        else:
+            # Show pop_up that asks to shut down the lamp after the measurement
+            # was done
+            self.pause = "True"
+            self.pause_thread_pl.emit("off")
 
-        self.save_spectrum_data()
-        self.hide_progress_bar.emit()
-        self.reset_start_button.emit(False)
+            while self.pause == "True":
+                time.sleep(0.1)
+                if self.pause == "break":
+                    break
+                elif self.pause == "return":
+                    return
 
     def save_iv_data(self):
         """
