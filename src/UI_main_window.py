@@ -3,9 +3,12 @@
 # Initial gui design with QtCreator then translated into python code and adjusted
 
 # from UI_settings_window import Ui_Settings
-from UI_goniometer_animation import Ui_GoniometerAnimation
-from UI_toggle_switch import ToggleSwitch
-from humble_spinbox import HumbleDoubleSpinBox, HumbleSpinBox
+from costum_widgets import (
+    HumbleDoubleSpinBox,
+    HumbleSpinBox,
+    ToggleSwitch,
+    Ui_GoniometerAnimation,
+)
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
