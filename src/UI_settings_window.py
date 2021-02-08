@@ -162,29 +162,29 @@ class Ui_Settings(object):
         self.gridLayout.addWidget(self.oled_on_time_lineEdit, 8, 1, 1, 1)
 
         # # Global Software Settings
-        # self.global_settings_header_label = QtWidgets.QLabel(Settings)
-        # self.global_settings_header_label.setMinimumSize(QtCore.QSize(0, 20))
-        # self.global_settings_header_label.setStyleSheet(
-        #     'font: 75 bold 10pt "Segoe UI";'
-        # )
-        # self.global_settings_header_label.setObjectName("global_settings_header_label")
-        # self.gridLayout.addWidget(self.global_settings_header_label, 9, 0, 1, 2)
+        self.global_settings_header_label = QtWidgets.QLabel(Settings)
+        self.global_settings_header_label.setMinimumSize(QtCore.QSize(0, 20))
+        self.global_settings_header_label.setStyleSheet(
+            'font: 75 bold 10pt "Segoe UI";'
+        )
+        self.global_settings_header_label.setObjectName("global_settings_header_label")
+        self.gridLayout.addWidget(self.global_settings_header_label, 9, 0, 1, 2)
 
-        # self.header_line_3 = QtWidgets.QFrame()
-        # self.header_line_3.setFrameShape(QtWidgets.QFrame.HLine)
-        # self.header_line_3.setFrameShadow(QtWidgets.QFrame.Sunken)
-        # self.gridLayout.addWidget(self.header_line_3, 10, 0, 1, 2)
-        # self.header_line_3.setStyleSheet(
-        #     "QFrame {\n" "            border: 2px solid rgb(52, 59, 72);\n" "}\n"
-        # )
+        self.header_line_3 = QtWidgets.QFrame()
+        self.header_line_3.setFrameShape(QtWidgets.QFrame.HLine)
+        self.header_line_3.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.gridLayout.addWidget(self.header_line_3, 10, 0, 1, 2)
+        self.header_line_3.setStyleSheet(
+            "QFrame {\n" "            border: 2px solid rgb(52, 59, 72);\n" "}\n"
+        )
 
         # # Standard Saving Path
-        # self.default_saving_path_label = QtWidgets.QLabel(Settings)
-        # self.default_saving_path_label.setObjectName("default_saving_path_label")
-        # self.gridLayout.addWidget(self.default_saving_path_label, 11, 0, 1, 1)
-        # self.default_saving_path_lineEdit = QtWidgets.QLineEdit(Settings)
-        # self.default_saving_path_lineEdit.setObjectName("default_saving_path_lineEdit")
-        # self.gridLayout.addWidget(self.default_saving_path_lineEdit, 11, 1, 1, 1)
+        self.default_saving_path_label = QtWidgets.QLabel(Settings)
+        self.default_saving_path_label.setObjectName("default_saving_path_label")
+        self.gridLayout.addWidget(self.default_saving_path_label, 11, 0, 1, 1)
+        self.default_saving_path_lineEdit = QtWidgets.QLineEdit(Settings)
+        self.default_saving_path_lineEdit.setObjectName("default_saving_path_lineEdit")
+        self.gridLayout.addWidget(self.default_saving_path_lineEdit, 11, 1, 1, 1)
 
         # # Data Evaluation Settings
         # self.data_evaluation_header_label = QtWidgets.QLabel(Settings)
@@ -304,13 +304,13 @@ class Ui_Settings(object):
 
         self.oled_on_time_label.setText(_translate("Settings", "OLED On Time (s)"))
 
-        # self.global_settings_header_label.setText(
-        #     _translate("Settings", "Software Settings")
-        # )
+        self.global_settings_header_label.setText(
+            _translate("Settings", "Software Settings")
+        )
 
-        # self.default_saving_path_label.setText(
-        #     _translate("Settings", "Default Saving Path")
-        # )
+        self.default_saving_path_label.setText(
+            _translate("Settings", "Default Saving Path")
+        )
 
         # self.data_evaluation_header_label.setText(
         #     _translate("Settings", "Settings for Data Evaluation")

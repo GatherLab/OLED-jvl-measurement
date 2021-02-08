@@ -25,37 +25,40 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         default_settings = cf.read_global_settings()
 
         self.keithley_source_address_lineEdit.setText(
-            default_settings["keithley_source_address"]
+            str(default_settings["keithley_source_address"])
         )
         self.keithley_multimeter_address_lineEdit.setText(
-            default_settings["keithley_multimeter_address"]
+            str(default_settings["keithley_multimeter_address"])
         )
         self.arduino_com_address_lineEdit.setText(
-            default_settings["arduino_com_address"]
+            str(default_settings["arduino_com_address"])
         )
-        self.motor_number_lineEdit.setText(default_settings["motor_number"])
-        self.motor_offset_lineEdit.setText(default_settings["motor_offset"])
+        self.motor_number_lineEdit.setText(str(default_settings["motor_number"]))
+        self.motor_offset_lineEdit.setText(str(default_settings["motor_offset"]))
         self.spectrum_integration_time_lineEdit.setText(
-            default_settings["spectrum_integration_time"]
+            str(default_settings["spectrum_integration_time"])
         )
-        self.photodiode_cutoff_lineEdit.setText(default_settings["photodiode_cutoff"])
+        # self.photodiode_cutoff_lineEdit.setText(
+        # str(default_settings["photodiode_cutoff"])
+        # )
         self.photodiode_saturation_lineEdit.setText(
-            default_settings["photodiode_saturation"]
+            str(default_settings["photodiode_saturation"])
         )
+        self.oled_on_time_lineEdit.setText(str(default_settings["oled_on_time"]))
 
-        self.photodiode_area_lineEdit.setText(default_settings["photodiode_area"])
-        self.photodiode_peak_response_lineEdit.setText(
-            default_settings["photodiode_peak_response"]
-        )
-        self.amplifier_resistance_lineEdit.setText(
-            default_settings["amplifier_resistance"]
-        )
-        self.oled_area_lineEdit.setText(default_settings["oled_area"])
-        self.distance_photodiode_oled_lineEdit.setText(
-            default_settings["distance_photodiode_oled"]
-        )
+        # self.photodiode_area_lineEdit.setText(str(default_settings["photodiode_area"]))
+        # self.photodiode_peak_response_lineEdit.setText(
+        #     str(default_settings["photodiode_peak_response"])
+        # )
+        # self.amplifier_resistance_lineEdit.setText(
+        #     str(default_settings["amplifier_resistance"])
+        # )
+        # self.oled_area_lineEdit.setText(str(default_settings["oled_area"]))
+        # self.distance_photodiode_oled_lineEdit.setText(
+        #     str(default_settings["distance_photodiode_oled"])
+        # )
         self.default_saving_path_lineEdit.setText(
-            default_settings["default_saving_path"]
+            str(default_settings["default_saving_path"])
         )
 
         # Connect buttons to functions
@@ -78,13 +81,14 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
                 "motor_number": self.motor_number_lineEdit.text(),
                 "motor_offset": self.motor_offset_lineEdit.text(),
                 "spectrum_integration_time": self.spectrum_integration_time_lineEdit.text(),
-                "photodiode_cutoff": self.photodiode_cutoff_lineEdit.text(),
+                # "photodiode_cutoff": self.photodiode_cutoff_lineEdit.text(),
                 "photodiode_saturation": self.photodiode_saturation_lineEdit.text(),
-                "photodiode_area": self.photodiode_area_lineEdit.text(),
-                "photodiode_peak_response": self.photodiode_peak_response_lineEdit.text(),
-                "amplifier_resistance": self.amplifier_resistance_lineEdit.text(),
-                "oled_area": self.oled_area_lineEdit.text(),
-                "distance_photodiode_oled": self.distance_photodiode_oled_lineEdit.text(),
+                "oled_on_time": self.oled_on_time_lineEdit.text(),
+                # "photodiode_area": self.photodiode_area_lineEdit.text(),
+                # "photodiode_peak_response": self.photodiode_peak_response_lineEdit.text(),
+                # "amplifier_resistance": self.amplifier_resistance_lineEdit.text(),
+                # "oled_area": self.oled_area_lineEdit.text(),
+                # "distance_photodiode_oled": self.distance_photodiode_oled_lineEdit.text(),
                 "default_saving_path": self.default_saving_path_lineEdit.text(),
             }
         )
@@ -131,34 +135,37 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
 
         default_settings = data["default"][0]
         self.keithley_source_address_lineEdit.setText(
-            default_settings["keithley_source_address"]
+            str(default_settings["keithley_source_address"])
         )
         self.keithley_multimeter_address_lineEdit.setText(
-            default_settings["keithley_multimeter_address"]
+            str(default_settings["keithley_multimeter_address"])
         )
         self.arduino_com_address_lineEdit.setText(
-            default_settings["arduino_com_address"]
+            str(default_settings["arduino_com_address"])
         )
-        self.motor_number_lineEdit.setText(default_settings["motor_number"])
-        self.motor_offset_lineEdit.setText(default_settings["motor_offset"])
+        self.motor_number_lineEdit.setText(str(default_settings["motor_number"]))
+        self.motor_offset_lineEdit.setText(str(default_settings["motor_offset"]))
         self.spectrum_integration_time_lineEdit.setText(
-            default_settings["spectrum_integration_time"]
+            str(default_settings["spectrum_integration_time"])
         )
-        self.photodiode_cutoff_lineEdit.setText(default_settings["photodiode_cutoff"])
+        # self.photodiode_cutoff_lineEdit.setText(
+        # str(default_settings["photodiode_cutoff"])
+        # )
         self.photodiode_saturation_lineEdit.setText(
-            default_settings["photodiode_saturation"]
+            str(default_settings["photodiode_saturation"])
         )
-        self.photodiode_area_lineEdit.setText(default_settings["photodiode_area"])
-        self.photodiode_peak_response_lineEdit.setText(
-            default_settings["photodiode_peak_response"]
-        )
-        self.amplifier_resistance_lineEdit.setText(
-            default_settings["amplifier_resistance"]
-        )
-        self.oled_area_lineEdit.setText(default_settings["oled_area"])
-        self.distance_photodiode_oled_lineEdit.setText(
-            default_settings["distance_photodiode_oled"]
-        )
+        self.oled_on_time_lineEdit.setText(str(default_settings["oled_on_time"]))
+        # self.photodiode_area_lineEdit.setText(default_settings["photodiode_area"])
+        # self.photodiode_peak_response_lineEdit.setText(
+        #     default_settings["photodiode_peak_response"]
+        # )
+        # self.amplifier_resistance_lineEdit.setText(
+        #     default_settings["amplifier_resistance"]
+        # )
+        # self.oled_area_lineEdit.setText(default_settings["oled_area"])
+        # self.distance_photodiode_oled_lineEdit.setText(
+        #     default_settings["distance_photodiode_oled"]
+        # )
         self.default_saving_path_lineEdit.setText(
             default_settings["default_saving_path"]
         )
