@@ -239,7 +239,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # Initial processing time in seconds
         # I am not quite sure why this is done and if there is no better way of doing it
-        processing_time = 0.5
+        # processing_time = 0.5
 
         # Empty list, stores the data as multiple dicts to later generate a pd dataframe
         rows_list = []
