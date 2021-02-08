@@ -292,7 +292,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_integration_time_spinBox.setValue(300)
         # self.gw_homing_time_spinBox.setValue(30)
         # self.gw_moving_time_spinBox.setValue(1)
-        self.gw_pulse_duration_spinBox.setValue(2)
+        # self.gw_oled_on_time_spinBox.setValue(2)
         self.gw_vc_value_spinBox.setValue(5)
         self.gw_vc_compliance_spinBox.setValue(1.05)
 
@@ -1084,6 +1084,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         Function to read out the current fields entered in the goniometer tab
         """
+
+        global_parameters = cf.read_global_settings()
         pixels = [
             self.gw_pixel1_pushButton.isChecked(),
             self.gw_pixel2_pushButton.isChecked(),
@@ -1102,7 +1104,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "integration_time": self.gw_integration_time_spinBox.value(),
             # "homing_time": self.gw_homing_time_spinBox.value(),
             # "moving_time": self.gw_moving_time_spinBox.value(),
-            "pulse_duration": self.gw_pulse_duration_spinBox.value(),
+            "oled_on_time": global_parameters["oled_on_time"],
             "voltage_or_current": self.gw_voltage_or_current_toggleSwitch.isChecked(),
             "voltage_scan": self.gw_voltage_scan_toggleSwitch.isChecked(),
             "degradation_check": self.gw_degradation_check_toggleSwitch.isChecked(),
@@ -1338,7 +1340,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Disable all non-relevant options
             self.gw_voltage_scan_toggleSwitch.setEnabled(False)
             self.gw_voltage_or_current_toggleSwitch.setEnabled(False)
-            self.gw_pulse_duration_spinBox.setEnabled(False)
+            # self.gw_oled_on_time_spinBox.setEnabled(False)
             self.gw_vc_value_spinBox.setEnabled(False)
             self.gw_vc_compliance_spinBox.setEnabled(False)
 
@@ -1355,7 +1357,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Enable all options that are only relevant for EL measurements
             self.gw_voltage_scan_toggleSwitch.setEnabled(True)
             self.gw_voltage_or_current_toggleSwitch.setEnabled(True)
-            self.gw_pulse_duration_spinBox.setEnabled(True)
+            # self.gw_oled_on_time_spinBox.setEnabled(True)
             self.gw_vc_value_spinBox.setEnabled(True)
             self.gw_vc_compliance_spinBox.setEnabled(True)
 

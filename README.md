@@ -142,5 +142,5 @@ The settings tab is not yet clearly defined although it shall link to the docume
 
 #### Parameters for global settings
 
-- Keithley and arduino addresses
-- photodiode gain
+- Pulse duration --> OLED on time in global settings necessary for OLED to have stable emission
+

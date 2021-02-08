@@ -1036,7 +1036,7 @@ class Ui_MainWindow(object):
         self.gw_start_measurement_pushButton.setObjectName(
             "gw_start_measurement_pushButton"
         )
-        self.gridLayout_9.addWidget(self.gw_start_measurement_pushButton, 33, 0, 1, 1)
+        self.gridLayout_9.addWidget(self.gw_start_measurement_pushButton, 31, 0, 1, 1)
 
         # Stage position
         self.gw_stage_position_label = QtWidgets.QLabel(
@@ -1078,38 +1078,36 @@ class Ui_MainWindow(object):
         # "gw_voltage_or_current_pushButton"
         # )
         # Pulse duration
-        self.gw_pulse_duration_label = QtWidgets.QLabel(
-            self.gw_scrollAreaWidgetContents
-        )
-        self.gw_pulse_duration_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
-        self.gw_pulse_duration_label.setObjectName("gw_pulse_duration_label")
-        self.gridLayout_9.addWidget(self.gw_pulse_duration_label, 26, 0, 1, 1)
+        # self.gw_oled_on_time_label = QtWidgets.QLabel(self.gw_scrollAreaWidgetContents)
+        # self.gw_oled_on_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        # self.gw_oled_on_time_label.setObjectName("gw_oled_on_time_label")
+        # self.gridLayout_9.addWidget(self.gw_oled_on_time_label, 26, 0, 1, 1)
 
-        self.gw_pulse_duration_spinBox = HumbleDoubleSpinBox(
-            self.gw_scrollAreaWidgetContents
-        )
-        self.gw_pulse_duration_spinBox.setObjectName("gw_pulse_duration_spinBox")
-        self.gridLayout_9.addWidget(self.gw_pulse_duration_spinBox, 27, 0, 1, 1)
+        # self.gw_oled_on_time_spinBox = HumbleDoubleSpinBox(
+        #     self.gw_scrollAreaWidgetContents
+        # )
+        # self.gw_oled_on_time_spinBox.setObjectName("gw_oled_on_time_spinBox")
+        # self.gridLayout_9.addWidget(self.gw_oled_on_time_spinBox, 27, 0, 1, 1)
 
         # Set voltage or current value
         self.gw_vc_value_label = QtWidgets.QLabel(self.gw_scrollAreaWidgetContents)
         self.gw_vc_value_label.setStyleSheet('font: 75 bold 10pt "Noto Sans";')
         self.gw_vc_value_label.setObjectName("gw_vc_value_label")
-        self.gridLayout_9.addWidget(self.gw_vc_value_label, 28, 0, 1, 1)
+        self.gridLayout_9.addWidget(self.gw_vc_value_label, 26, 0, 1, 1)
         self.gw_vc_value_spinBox = HumbleDoubleSpinBox(self.gw_scrollAreaWidgetContents)
         self.gw_vc_value_spinBox.setObjectName("gw_vc_value_spinBox")
-        self.gridLayout_9.addWidget(self.gw_vc_value_spinBox, 29, 0, 1, 1)
+        self.gridLayout_9.addWidget(self.gw_vc_value_spinBox, 27, 0, 1, 1)
 
         # Set voltage or current compliance
         self.gw_vc_compliance_label = QtWidgets.QLabel(self.gw_scrollAreaWidgetContents)
         self.gw_vc_compliance_label.setStyleSheet('font: 75 bold 10pt "Noto Sans";')
         self.gw_vc_compliance_label.setObjectName("gw_vc_compliance_label")
-        self.gridLayout_9.addWidget(self.gw_vc_compliance_label, 30, 0, 1, 1)
+        self.gridLayout_9.addWidget(self.gw_vc_compliance_label, 28, 0, 1, 1)
         self.gw_vc_compliance_spinBox = HumbleDoubleSpinBox(
             self.gw_scrollAreaWidgetContents
         )
         self.gw_vc_compliance_spinBox.setObjectName("gw_vc_compliance_spinBox")
-        self.gridLayout_9.addWidget(self.gw_vc_compliance_spinBox, 31, 0, 1, 1)
+        self.gridLayout_9.addWidget(self.gw_vc_compliance_spinBox, 29, 0, 1, 1)
 
         # ------------------------ Pixel selection --------------------------- #
         self.widget_7 = QtWidgets.QWidget(self.gw_scrollAreaWidgetContents)
@@ -1193,7 +1191,7 @@ class Ui_MainWindow(object):
         self.gw_pixel5_pushButton.setChecked(False)
         self.gw_pixel5_pushButton.setObjectName("gw_pixel5_pushButton")
         self.gridLayout_10.addWidget(self.gw_pixel5_pushButton, 0, 1, 1, 1)
-        self.gridLayout_9.addWidget(self.widget_7, 32, 0, 1, 1, QtCore.Qt.AlignHCenter)
+        self.gridLayout_9.addWidget(self.widget_7, 30, 0, 1, 1, QtCore.Qt.AlignHCenter)
 
         # Degradation check
         self.gw_degradation_check_HLayout = QtWidgets.QHBoxLayout()
@@ -1546,9 +1544,9 @@ class Ui_MainWindow(object):
         )
 
         self.gw_header2.setText(_translate("MainWindow", "Measurement Parameters"))
-        self.gw_pulse_duration_label.setText(
-            _translate("MainWindow", "Pulse duration (s)")
-        )
+        # self.gw_oled_on_time_label.setText(
+        # _translate("MainWindow", "Pulse duration (s)")
+        # )
         # self.gw_voltage_scan_checkBox.setToolTip(
         # _translate(
         # "MainWindow",

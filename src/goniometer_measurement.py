@@ -319,11 +319,11 @@ class GoniometerMeasurement(QtCore.QThread):
                 # The pulse duration is a valid parameter for the EL
                 # measurements but hinders fast scans for PL measurements
                 time.sleep(
-                    self.goniometer_measurement_parameters["pulse_duration"]
-                    - processing_time
+                    self.goniometer_measurement_parameters["oled_on_time"]
+                    # - processing_time
                 )
 
-            start_process = time.process_time()
+            # start_process = time.process_time()
 
             # These measurements are only taken for el measurements
             if not self.goniometer_measurement_parameters["el_or_pl"]:
@@ -361,8 +361,8 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.keithley_source.deactivate_output()
 
             # Calculate the processing time it took
-            end_process = time.process_time()
-            processing_time = end_process - start_process
+            # end_process = time.process_time()
+            # processing_time = end_process - start_process
 
             progress += 1
 
@@ -469,8 +469,8 @@ class GoniometerMeasurement(QtCore.QThread):
             "Integration time:   "
             + str(self.goniometer_measurement_parameters["integration_time"])
             + " ms    "
-            + "Pulse duration:   "
-            + str(self.goniometer_measurement_parameters["pulse_duration"])
+            + "OLED on time:   "
+            + str(self.goniometer_measurement_parameters["oled_on_time"])
             + " s    "
         )
         if self.goniometer_measurement_parameters["voltage_or_current"]:
@@ -566,8 +566,8 @@ class GoniometerMeasurement(QtCore.QThread):
             "Integration time:   "
             + str(self.goniometer_measurement_parameters["integration_time"])
             + " micro s    "
-            + "Pulse duration:   "
-            + str(self.goniometer_measurement_parameters["pulse_duration"])
+            + "OLED on time:   "
+            + str(self.goniometer_measurement_parameters["oled_on_time"])
             + " s    "
         )
         if self.goniometer_measurement_parameters["voltage_or_current"]:
