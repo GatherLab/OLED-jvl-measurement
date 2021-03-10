@@ -210,9 +210,9 @@ class AutotubeMeasurement(QtCore.QThread):
 
             # Update the plot
             self.update_plot.emit(
-                self.df_data["voltage"],
-                self.df_data["current"],
-                self.df_data["pd_voltage"],
+                self.df_data["voltage"].to_numpy(dtype=float),
+                self.df_data["current"].to_numpy(dtype=float),
+                self.df_data["pd_voltage"].to_numpy(dtype=float),
             )
 
             # Update progress bar

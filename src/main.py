@@ -844,6 +844,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.aw_fig.figure()
 
         # Clear axis
+        # try:
+        #     del self.aw_ax.lines
+        #     del self.aw_ax2.lines
+        # except AttributeError:
+        #     print("Start Plotting")
         self.aw_ax.cla()
         self.aw_ax2.cla()
 
