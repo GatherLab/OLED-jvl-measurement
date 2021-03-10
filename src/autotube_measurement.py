@@ -139,6 +139,9 @@ class AutotubeMeasurement(QtCore.QThread):
                 # Set voltage to source_value
                 self.keithley_source.set_voltage(str(voltage))
 
+                # Keithley has a latency
+                time.sleep(0.2)
+
                 # Take PD voltage reading from Multimeter
                 diode_voltage = self.keithley_multimeter.measure_voltage()
                 # Take OLED current reading from Sourcemeter
