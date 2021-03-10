@@ -261,19 +261,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # -------------------------------------------------------------------- #
 
         # Set standard parameters for autotube measurement
-        self.aw_min_voltage_spinBox.setValue(-2)
         self.aw_min_voltage_spinBox.setMinimum(-50)
-        self.aw_max_voltage_spinBox.setValue(5)
+        self.aw_min_voltage_spinBox.setValue(-2)
         self.aw_max_voltage_spinBox.setMaximum(50)
-        self.aw_changeover_voltage_spinBox.setValue(2)
+        self.aw_max_voltage_spinBox.setValue(4)
         self.aw_changeover_voltage_spinBox.setSingleStep(0.1)
-        self.aw_low_voltage_step_spinBox.setValue(0.5)
+        self.aw_changeover_voltage_spinBox.setValue(2)
         self.aw_low_voltage_step_spinBox.setSingleStep(0.1)
-        self.aw_high_voltage_step_spinBox.setValue(0.1)
+        self.aw_low_voltage_step_spinBox.setValue(0.5)
         self.aw_high_voltage_step_spinBox.setSingleStep(0.1)
-        self.aw_scan_compliance_spinBox.setValue(1.05)
+        self.aw_high_voltage_step_spinBox.setValue(0.1)
         self.aw_scan_compliance_spinBox.setMaximum(1.05)
         self.aw_scan_compliance_spinBox.setSingleStep(0.05)
+        self.aw_scan_compliance_spinBox.setValue(1.05)
 
         # Set standard parameters for Goniometer
         self.gw_offset_angle_spinBox.setMaximum(180)
@@ -811,7 +811,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "low_voltage_step": self.aw_low_voltage_step_spinBox.value(),
             "high_voltage_step": self.aw_high_voltage_step_spinBox.value(),
             "scan_compliance": self.aw_scan_compliance_spinBox.value(),
-            "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
+            # "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
             "photodiode_saturation": float(global_parameters["photodiode_saturation"]),
             # "check_pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
         }

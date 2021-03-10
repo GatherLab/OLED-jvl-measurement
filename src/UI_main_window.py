@@ -678,12 +678,12 @@ class Ui_MainWindow(object):
         # self.gridLayout_3.addLayout(self.aw_pd_saturation_HLayout, 14, 0, 1, 1)
 
         # Check for bad contacts
-        self.aw_bad_contacts_HLayout = QtWidgets.QHBoxLayout()
-        self.aw_bad_contacts_toggleSwitch = ToggleSwitch()
-        self.aw_bad_contacts_label = QtWidgets.QLabel("Check Bad Contacts")
-        self.aw_bad_contacts_HLayout.addWidget(self.aw_bad_contacts_toggleSwitch)
-        self.aw_bad_contacts_HLayout.addWidget(self.aw_bad_contacts_label)
-        self.gridLayout_3.addLayout(self.aw_bad_contacts_HLayout, 13, 0, 1, 1)
+        # self.aw_bad_contacts_HLayout = QtWidgets.QHBoxLayout()
+        # self.aw_bad_contacts_toggleSwitch = ToggleSwitch()
+        # self.aw_bad_contacts_label = QtWidgets.QLabel("Check Bad Contacts")
+        # self.aw_bad_contacts_HLayout.addWidget(self.aw_bad_contacts_toggleSwitch)
+        # self.aw_bad_contacts_HLayout.addWidget(self.aw_bad_contacts_label)
+        # self.gridLayout_3.addLayout(self.aw_bad_contacts_HLayout, 13, 0, 1, 1)
 
         # Start measurement button
         self.aw_start_measurement_pushButton = QtWidgets.QPushButton(

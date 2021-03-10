@@ -150,29 +150,29 @@ class AutotubeMeasurement(QtCore.QThread):
                     self.log_message("Current compliance reached")
                     break
 
-                # check for a bad contact
-                bad_contact = False
+                # # check for a bad contact
+                # bad_contact = False
 
-                if self.measurement_parameters["check_bad_contacts"] == True and (
-                    voltage > 0 and voltage < 2
-                ):
-                    # If the OLED shows for a small voltage (lower 2 V) already
-                    # 50 % of the compliance, it is regarded as being shorted
-                    if (
-                        abs(oled_current)
-                        >= 0.5 * self.measurement_parameters["scan_compliance"]
-                    ):
-                        self.keithley_source.deactivate_output()  # Turn power off
-                        cf.log_message(
-                            "Pixel "
-                            + str(pixel)
-                            + " probably has a bad contact. Measurement aborted."
-                        )
+                # if self.measurement_parameters["check_bad_contacts"] == True and (
+                #     voltage > 0 and voltage < 2
+                # ):
+                #     # If the OLED shows for a small voltage (lower 2 V) already
+                #     # 50 % of the compliance, it is regarded as being shorted
+                #     if (
+                #         abs(oled_current)
+                #         >= 0.5 * self.measurement_parameters["scan_compliance"]
+                #     ):
+                #         self.keithley_source.deactivate_output()  # Turn power off
+                #         cf.log_message(
+                #             "Pixel "
+                #             + str(pixel)
+                #             + " probably has a bad contact. Measurement aborted."
+                #         )
 
-                        # Wait a second so that the user can read the message
-                        time.sleep(1)
-                        bad_contact = True
-                        break
+                #         # Wait a second so that the user can read the message
+                #         time.sleep(1)
+                #         bad_contact = True
+                #         break
 
                 if (
                     diode_voltage
@@ -196,8 +196,8 @@ class AutotubeMeasurement(QtCore.QThread):
                 i += 1
 
             # If a bad contact was detected, jump this iteration (no saving etc.)
-            if bad_contact == True:
-                continue
+            # if bad_contact == True:
+            #     continue
 
             # Turn keithley off
             self.keithley_source.deactivate_output()
