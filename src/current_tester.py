@@ -51,6 +51,9 @@ class CurrentTester(QtCore.QThread):
         classes to allow for threading. It is started with the .start()
         method from the QThread class
         """
+        import pydevd
+
+        pydevd.settrace(suspend=False)
         while True:
             current_reading = self.keithley_source.read_current()
             self.update_ammeter_signal.emit(current_reading)

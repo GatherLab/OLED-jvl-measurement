@@ -109,6 +109,11 @@ class GoniometerMeasurement(QtCore.QThread):
         measurement routine that is triggered when the measure button is
         pressed
         """
+
+        import pydevd
+
+        pydevd.settrace(suspend=False)
+
         # Move to initial position which is the offset position
         self.motor.move_to(0)
 

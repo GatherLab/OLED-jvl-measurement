@@ -87,6 +87,10 @@ class AutotubeMeasurement(QtCore.QThread):
         done in this function!
         """
 
+        import pydevd
+
+        pydevd.settrace(suspend=False)
+
         # Define voltage steps
         # Voltage points for low OLED voltage
         low_vlt = np.arange(

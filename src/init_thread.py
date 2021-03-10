@@ -53,6 +53,10 @@ class InitThread(QtCore.QThread):
         """
         Function that initialises the parameters before the main program is called
         """
+        import pydevd
+
+        pydevd.settrace(suspend=False)
+
         # self.update_loading_dialog.emit("Test")
         # Read global settings first (what if they are not correct yet?)
 
