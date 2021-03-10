@@ -22,7 +22,7 @@ class ArduinoUno:
 
     def __init__(self, com_address):
         # Define a mutex
-        self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
+        self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
 
         # Check for devices on the pc
         rm = pyvisa.ResourceManager()
@@ -163,7 +163,7 @@ class KeithleySource:
         For the time being it is probably alright.
         """
         # Define a mutex
-        self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
+        self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
 
         # Keithley Finding Device
         rm = pyvisa.ResourceManager()
