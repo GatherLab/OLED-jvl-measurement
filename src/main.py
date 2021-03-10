@@ -730,7 +730,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Define voltage steps (in the future this could be settings in the
         # global settings as well)
-        voltage_range = np.linspace(2, 7, 26)
+        voltage_range = np.linspace(2, 4, 26)
         biasing_time = 0.05
 
         # Unselect all pixels first (in case some have been selected before)
