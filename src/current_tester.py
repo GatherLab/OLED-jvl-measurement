@@ -54,6 +54,7 @@ class CurrentTester(QtCore.QThread):
         import pydevd
 
         pydevd.settrace(suspend=False)
+
         while True:
             current_reading = self.keithley_source.read_current()
             self.update_ammeter_signal.emit(current_reading)

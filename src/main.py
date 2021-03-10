@@ -261,9 +261,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # -------------------------------------------------------------------- #
 
         # Set standard parameters for autotube measurement
-        self.aw_min_voltage_spinBox.setMinimum(-50)
+        self.aw_min_voltage_spinBox.setMinimum(-200)
         self.aw_min_voltage_spinBox.setValue(-2)
-        self.aw_max_voltage_spinBox.setMaximum(50)
+        self.aw_max_voltage_spinBox.setMaximum(200)
         self.aw_max_voltage_spinBox.setValue(4)
         self.aw_changeover_voltage_spinBox.setSingleStep(0.1)
         self.aw_changeover_voltage_spinBox.setValue(2)
@@ -297,16 +297,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_vc_compliance_spinBox.setValue(1.05)
 
         # Set standard parameters for Spectral Measurement
-        self.specw_voltage_spinBox.setMinimum(-5.0)
-        self.specw_voltage_spinBox.setMaximum(50.0)
+        self.specw_voltage_spinBox.setMinimum(-200.0)
+        self.specw_voltage_spinBox.setMaximum(200.0)
         self.specw_voltage_spinBox.setSingleStep(0.1)
         self.specw_voltage_spinBox.setValue(0)
+        self.specw_voltage_spinBox.setKeyboardTracking(False)
 
-        # Set standard parameters for Spectral Measurement
-        self.sw_ct_voltage_spinBox.setMinimum(-5.0)
-        self.sw_ct_voltage_spinBox.setMaximum(50.0)
+        # Set standard parameters for Current Tester Measurement
+        self.sw_ct_voltage_spinBox.setMinimum(-200.0)
+        self.sw_ct_voltage_spinBox.setMaximum(200.0)
         self.sw_ct_voltage_spinBox.setSingleStep(0.1)
         self.sw_ct_voltage_spinBox.setValue(0)
+        self.sw_ct_voltage_spinBox.setKeyboardTracking(False)
 
         # Update statusbar
         cf.log_message("Program ready")
