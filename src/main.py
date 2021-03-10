@@ -1480,6 +1480,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             cf.log_message("Spectrometer could not be turned off savely")
             cf.log_message(e)
 
+        # Turn off all outputs etc of Keithley source
+        try:
+            self.keithley_source.deactivate_output()
+        except Exception as e:
+            cf.log_message("Keithley source output could not be deactivated")
+            cf.log_message(e)
+
         # Kill connection to Keithleys
         try:
             pyvisa.ResourceManager().close()
