@@ -74,7 +74,7 @@ The different OLED pixels are activated with and Arduino UNO and a relay shield.
 | Keithley Multimeter | Keithley | ?                 |
 | Thorlab Motor       | Thorlab  | ? # Documentation |
 
-## Documentation
+## User Journey
 
 ### Setup (Current Tester)
 
@@ -143,4 +143,3 @@ The settings tab is not yet clearly defined although it shall link to the docume
 #### Parameters for global settings
 
 - Pulse duration --> OLED on time in global settings necessary for OLED to have stable emission
-

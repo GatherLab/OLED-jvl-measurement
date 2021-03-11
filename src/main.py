@@ -1539,8 +1539,9 @@ if __name__ == "__main__":
     # Icon (see https://stackoverflow.com/questions/1551605/how-to-set-applications-taskbar-icon-in-windows-7/1552105#1552105)
     import ctypes
 
-    # myappid = u"mycompan.myproduct.subproduct.version"  # arbitrary string
-    # ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    if not sys.platform.startswith("linux"):
+        myappid = u"mycompan.myproduct.subproduct.version"  # arbitrary string
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
     app_icon = QtGui.QIcon()
     app_icon.addFile("./icons/program_icon.png", QtCore.QSize(256, 256))
