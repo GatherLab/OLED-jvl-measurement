@@ -320,7 +320,7 @@ class AutotubeMeasurement(QtCore.QThread):
             lambda x: "{0:.2f}".format(x)
         )
         self.df_data["current"] = self.df_data["current"].map(
-            lambda x: "{0:.5f}".format(x)
+            lambda x: "{0:.6f}".format(x)
         )
         self.df_data["pd_voltage"] = self.df_data["pd_voltage"].map(
             lambda x: "{0:.7f}".format(x)
