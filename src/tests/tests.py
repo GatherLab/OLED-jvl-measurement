@@ -73,6 +73,12 @@ class MockKeithleyMultimeter:
     def reset(self):
         print("Multimeter resetted")
 
+    def set_fixed_range(self, value):
+        print("Fixed range set")
+
+    def set_auto_range(self):
+        print("Auto range set")
+
     def measure_voltage(self):
         print("Voltage read")
         return float(psutil.cpu_percent() / 100)

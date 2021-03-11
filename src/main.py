@@ -596,7 +596,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Function that is continuously evoked when the current is updated by
         current_tester thread.
         """
-        self.sw_current_lcdNumber.display(current_reading)
+        # This has to be checked again not sure if the conversion is correct
+        self.sw_current_lcdNumber.display(current_reading * 1e3)
 
     def voltage_changed(self, tab, voltage):
         """
@@ -668,7 +669,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # This should be in the global settings later on (probably not
         # necessary to change every time but sometimes)
-        pre_bias_voltage = -2  # in V
+        pre_bias_voltage = cf.read_global_settings()["pre_bias_voltage"]
         biasing_time = 0.5  # in s
         set_voltage = self.sw_ct_voltage_spinBox.value()
 
@@ -717,9 +718,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def autotest_pixels(self):
         """
-        Automatic testing of all pixels. The first very simple idea is as follows:
+        Automatic testing of all pixels. The first very simple idea is as following:
             - The voltage for one pixel is slowly increased (maybe steps of
-            0.2) only until a certain current is reached. As soon as it is
+            0.5) only until a certain current is reached. As soon as it is
             reached, the pixel is marked as a working pixel
             - If the current is too high for a low voltage (the threshold has
             to be defined carefully), the pixel is thrown out and not marked
@@ -732,7 +733,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Define voltage steps (in the future this could be settings in the
         # global settings as well)
-        voltage_range = np.linspace(2, 4, 26)
+        global_settings = cf.read_global_settings()
+        voltage_range = np.linspace(
+            global_settings["auto_test_minimum_voltage"],
+            global_settings["auto_test_maximum_voltage"] + 0.5,
+            5,
+            endpoint=True,
+        )
+        # voltage_range = np.linspace(2, 4, 26)
         biasing_time = 0.05
 
         # Unselect all pixels first (in case some have been selected before)
@@ -814,6 +822,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "high_voltage_step": self.aw_high_voltage_step_spinBox.value(),
             "scan_compliance": self.aw_scan_compliance_spinBox.value(),
             # "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
+            "fixed_multimeter_range": self.aw_set_fixed_multimeter_range_toggleSwitch.isChecked(),
             "photodiode_saturation": float(global_parameters["photodiode_saturation"]),
             # "check_pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
         }

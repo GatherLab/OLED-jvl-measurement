@@ -60,6 +60,15 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         self.default_saving_path_lineEdit.setText(
             str(default_settings["default_saving_path"])
         )
+        self.auto_test_minimum_voltage_lineEdit.setText(
+            str(default_settings["auto_test_minimum_voltage"])
+        )
+        self.auto_test_maximum_voltage_lineEdit.setText(
+            str(default_settings["auto_test_maximum_voltage"])
+        )
+        self.auto_test_prebias_voltage_lineEdit.setText(
+            str(default_settings["pre_bias_voltage"])
+        )
 
         # Connect buttons to functions
         self.load_defaults_pushButton.clicked.connect(self.load_defaults)
@@ -90,6 +99,9 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
                 # "oled_area": self.oled_area_lineEdit.text(),
                 # "distance_photodiode_oled": self.distance_photodiode_oled_lineEdit.text(),
                 "default_saving_path": self.default_saving_path_lineEdit.text(),
+                "auto_test_minimum_voltage": self.auto_test_minimum_voltage_lineEdit.text(),
+                "auto_test_maximum_voltage": self.auto_test_maximum_voltage_lineEdit.text(),
+                "pre_bias_voltage": self.auto_test_prebias_voltage_lineEdit.text(),
             }
         )
 
@@ -168,4 +180,13 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         # )
         self.default_saving_path_lineEdit.setText(
             default_settings["default_saving_path"]
+        )
+        self.auto_test_minimum_voltage_lineEdit.setText(
+            str(default_settings["auto_test_minimum_voltage"])
+        )
+        self.auto_test_maximum_voltage_lineEdit.setText(
+            str(default_settings["auto_test_maximum_voltage"])
+        )
+        self.auto_test_prebias_voltage_lineEdit.setText(
+            str(default_settings["pre_bias_voltage"])
         )

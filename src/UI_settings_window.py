@@ -260,6 +260,58 @@ class Ui_Settings(object):
         #     "distance_photodiode_oled_lineEdit"
         # )
         # self.gridLayout.addWidget(self.distance_photodiode_oled_lineEdit, 19, 1, 1, 1)
+        # Pixel autotester settings
+        self.auto_test_pixel_header_label = QtWidgets.QLabel(Settings)
+        self.auto_test_pixel_header_label.setMinimumSize(QtCore.QSize(0, 20))
+        self.auto_test_pixel_header_label.setStyleSheet(
+            'font: 75 bold 10pt "Segoe UI";'
+        )
+        self.auto_test_pixel_header_label.setObjectName("auto_test_pixel_header_label")
+        self.gridLayout.addWidget(self.auto_test_pixel_header_label, 12, 0, 1, 2)
+
+        self.header_line_4 = QtWidgets.QFrame()
+        self.header_line_4.setFrameShape(QtWidgets.QFrame.HLine)
+        self.header_line_4.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.gridLayout.addWidget(self.header_line_4, 13, 0, 1, 2)
+        self.header_line_4.setStyleSheet(
+            "QFrame {\n" "            border: 2px solid rgb(52, 59, 72);\n" "}\n"
+        )
+
+        # Minimum Voltage
+        self.auto_test_minimum_voltage_label = QtWidgets.QLabel(Settings)
+        self.auto_test_minimum_voltage_label.setObjectName(
+            "auto_test_minimum_voltage_label"
+        )
+        self.gridLayout.addWidget(self.auto_test_minimum_voltage_label, 14, 0, 1, 1)
+        self.auto_test_minimum_voltage_lineEdit = QtWidgets.QLineEdit(Settings)
+        self.auto_test_minimum_voltage_lineEdit.setObjectName(
+            "auto_test_minimum_voltage_lineEdit"
+        )
+        self.gridLayout.addWidget(self.auto_test_minimum_voltage_lineEdit, 14, 1, 1, 1)
+
+        # Maximum Voltage
+        self.auto_test_maximum_voltage_label = QtWidgets.QLabel(Settings)
+        self.auto_test_maximum_voltage_label.setObjectName(
+            "auto_test_maximum_voltage_label"
+        )
+        self.gridLayout.addWidget(self.auto_test_maximum_voltage_label, 15, 0, 1, 1)
+        self.auto_test_maximum_voltage_lineEdit = QtWidgets.QLineEdit(Settings)
+        self.auto_test_maximum_voltage_lineEdit.setObjectName(
+            "auto_test_maximum_voltage_lineEdit"
+        )
+        self.gridLayout.addWidget(self.auto_test_maximum_voltage_lineEdit, 15, 1, 1, 1)
+
+        # Pre-bias Voltage
+        self.auto_test_prebias_voltage_label = QtWidgets.QLabel(Settings)
+        self.auto_test_prebias_voltage_label.setObjectName(
+            "auto_test_prebias_voltage_label"
+        )
+        self.gridLayout.addWidget(self.auto_test_prebias_voltage_label, 16, 0, 1, 1)
+        self.auto_test_prebias_voltage_lineEdit = QtWidgets.QLineEdit(Settings)
+        self.auto_test_prebias_voltage_lineEdit.setObjectName(
+            "auto_test_prebias_voltage_lineEdit"
+        )
+        self.gridLayout.addWidget(self.auto_test_prebias_voltage_lineEdit, 16, 1, 1, 1)
 
         # Push Buttons
         self.buttons_HBoxLayout = QtWidgets.QHBoxLayout()
@@ -306,6 +358,18 @@ class Ui_Settings(object):
 
         self.global_settings_header_label.setText(
             _translate("Settings", "Software Settings")
+        )
+        self.auto_test_pixel_header_label.setText(
+            _translate("Settings", "Pixel Autotester Settings")
+        )
+        self.auto_test_minimum_voltage_label.setText(
+            _translate("Settings", "Minimum Testing Voltage (V)")
+        )
+        self.auto_test_maximum_voltage_label.setText(
+            _translate("Settings", "Maximum Testing Voltage (V)")
+        )
+        self.auto_test_prebias_voltage_label.setText(
+            _translate("Settings", "Prebias Voltage (V)")
         )
 
         self.default_saving_path_label.setText(

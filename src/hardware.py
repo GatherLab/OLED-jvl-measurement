@@ -373,6 +373,22 @@ class KeithleyMultimeter:
         self.keithmulti.write("INITiate")
         self.mutex.unlock()
 
+    def set_fixed_range(self, value):
+        """
+        Sets a fixed voltage range if the user selected so
+        """
+        # Turn off the auto range function of the multimeter
+        self.keithmulti.write("SENSe:VOLTage:DC:RANGe:AUTO OFF")
+        # Set the range of the multimeter to a fixed value
+        self.keithmulti.write("SENSe:VOLTage:DC:RANGe " + str(value))
+
+    def set_auto_range(self):
+        """
+        Sets automatic detection of the multimeter range
+        """
+        # Turn on the auto range function of the multimeter
+        self.keithmulti.write("SENSe:VOLTage:DC:RANGe:AUTO ON")
+
     def measure_voltage(self):
         """
         Returns an actual voltage reading on the keithley multimeter

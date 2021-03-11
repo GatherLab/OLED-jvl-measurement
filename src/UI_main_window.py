@@ -685,6 +685,20 @@ class Ui_MainWindow(object):
         # self.aw_bad_contacts_HLayout.addWidget(self.aw_bad_contacts_label)
         # self.gridLayout_3.addLayout(self.aw_bad_contacts_HLayout, 13, 0, 1, 1)
 
+        # Check for bad contacts
+        self.aw_set_fixed_multimeter_range_HLayout = QtWidgets.QHBoxLayout()
+        self.aw_set_fixed_multimeter_range_toggleSwitch = ToggleSwitch()
+        self.aw_set_fixed_multimeter_range_label = QtWidgets.QLabel("Set Fixed Range")
+        self.aw_set_fixed_multimeter_range_HLayout.addWidget(
+            self.aw_set_fixed_multimeter_range_toggleSwitch
+        )
+        self.aw_set_fixed_multimeter_range_HLayout.addWidget(
+            self.aw_set_fixed_multimeter_range_label
+        )
+        self.gridLayout_3.addLayout(
+            self.aw_set_fixed_multimeter_range_HLayout, 13, 0, 1, 1
+        )
+
         # Start measurement button
         self.aw_start_measurement_pushButton = QtWidgets.QPushButton(
             self.aw_scrollAreaWidgetContents
