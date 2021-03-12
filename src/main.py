@@ -31,6 +31,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 import matplotlib.pylab as plt
+import matplotlib as mpl
 import numpy as np
 import pandas as pd
 import math
@@ -168,6 +169,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_start_measurement_pushButton.clicked.connect(
             self.start_autotube_measurement
         )
+
+        self.aw_pushbutton_array = [
+            self.aw_pixel1_pushButton,
+            self.aw_pixel2_pushButton,
+            self.aw_pixel3_pushButton,
+            self.aw_pixel4_pushButton,
+            self.aw_pixel5_pushButton,
+            self.aw_pixel6_pushButton,
+            self.aw_pixel7_pushButton,
+            self.aw_pixel8_pushButton,
+        ]
 
         # -------------------------------------------------------------------- #
         # ---------------------- Spectrum Measurement  ----------------------- #
@@ -588,7 +600,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.sw_pushbutton_array[pixel_number - 1].setChecked(False)
 
             # print("Pixel " + str(pixel_number) + " turned off")
-        self.keithley_source.activate_output()
+
+        # Read the voltage value to decide if the output should be turned on or not
+        voltage = self.sw_ct_voltage_spinBox.value()
+
+        if math.isclose(float(voltage), 0):
+            self.keithley_source.deactivate_output()
+        else:
+            self.keithley_source.activate_output()
 
     @QtCore.Slot(float)
     def update_ammeter(self, current_reading):
@@ -597,7 +616,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         current_tester thread.
         """
         # This has to be checked again not sure if the conversion is correct
-        self.sw_current_lcdNumber.display(current_reading * 1e3)
+        self.sw_current_lcdNumber.display(round(current_reading * 1e3, 4))
 
     def voltage_changed(self, tab, voltage):
         """
@@ -613,6 +632,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.specw_voltage_spinBox.blockSignals(True)
             self.specw_voltage_spinBox.setValue(voltage)
             self.specw_voltage_spinBox.blockSignals(False)
+
         elif tab == "specw":
             voltage = self.specw_voltage_spinBox.value()
 
@@ -621,9 +641,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.sw_ct_voltage_spinBox.setValue(voltage)
             self.sw_ct_voltage_spinBox.blockSignals(False)
 
-        # Activate output and set voltage
-        self.current_tester.keithley_source.activate_output()
+        # Set voltage
         self.current_tester.keithley_source.set_voltage(voltage)
+
+        # If the voltage is set to zero, deactivate the output otherwise, activate it
+        if math.isclose(float(voltage), 0):
+            self.keithley_source.deactivate_output()
+        else:
+            self.current_tester.keithley_source.activate_output()
 
         # Update statusbar
         cf.log_message("Voltage Changed to " + str(round(voltage, 2)) + " V")
@@ -741,7 +766,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             endpoint=True,
         )
         # voltage_range = np.linspace(2, 4, 26)
-        biasing_time = 0.1
+        biasing_time = 0.05
 
         # Reset Keithley multimeter
         self.keithley_multimeter.reset()
@@ -763,6 +788,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Set push button to checked and open relay of the pixel
             self.sw_pushbutton_array[pixel].setChecked(True)
             self.specw_pushbutton_array[pixel].setChecked(True)
+            self.aw_pushbutton_array[pixel].setChecked(True)
             self.arduino_uno.trigger_relay(pixel + 1)
 
             # Measure baseline pd_voltage to compare value with
@@ -786,15 +812,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 print(current)
 
                 # A pixel is an open-circuit when the measured current is terribly low
-                if current < 1e-8:
-                    break
+                if voltage > voltage_range[0]:
+                    if current < 1e-8:
+                        break
 
                 pd_voltage = self.keithley_multimeter.measure_voltage()
                 print(pd_voltage)
 
                 # A pixel is only working when it shows a high enough change in
                 # PD voltage compared to the measured value before
-                if pd_voltage - pd_voltage_baseline >= 0.002:
+                if pd_voltage - pd_voltage_baseline >= 0.001:
                     working_pixels.append(pixel + 1)
                     break
                 else:
@@ -803,6 +830,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Deactivate the pixel again
             self.sw_pushbutton_array[pixel].setChecked(False)
             self.specw_pushbutton_array[pixel].setChecked(False)
+            self.aw_pushbutton_array[pixel].setChecked(False)
             self.arduino_uno.trigger_relay(pixel + 1)
 
             # Turn off the voltage
@@ -814,6 +842,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for pixel in working_pixels:
             self.sw_pushbutton_array[pixel - 1].setChecked(True)
             self.specw_pushbutton_array[pixel - 1].setChecked(True)
+            self.aw_pushbutton_array[pixel - 1].setChecked(True)
+
             self.toggle_pixel(pixel, "sw")
             pixel += 1
 
@@ -879,6 +909,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         #     del self.aw_ax2.lines
         # except AttributeError:
         #     print("Start Plotting")
+        ax1_scale = self.aw_ax.get_yaxis().get_scale()
+        ax2_scale = self.aw_ax2.get_yaxis().get_scale()
+
         self.aw_ax.cla()
         self.aw_ax2.cla()
 
@@ -909,6 +942,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             fontsize=14,
         )
 
+        # If the axis was previously a log, keep it as a log
+        self.aw_ax.set_yscale(ax1_scale)
+        self.aw_ax2.set_yscale(ax2_scale)
+
         self.aw_fig.draw()
 
         # Update statusbar
@@ -920,6 +957,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         stored in autotube_measurement.py). Iteration over the selected
         pixels as well as a call for the plotting happens here.
         """
+        # If the measurement was already started and the button is clicked
+        # again, stop the measurement
+        if not self.aw_start_measurement_pushButton.isChecked():
+            self.autotube_measurement.stop = True
+            return
 
         # Save read setup parameters
         setup_parameters = self.safe_read_setup_parameters()

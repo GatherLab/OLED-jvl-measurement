@@ -193,9 +193,29 @@ class InitThread(QtCore.QThread):
             or keithley_source_init == False
             or keithley_multimeter_init == False
         ):
+            device_not_loading_message = []
+            if arduino_init == False:
+                device_not_loading_message.append("Arduino")
+            if motor_init == False:
+                device_not_loading_message.append("Motor")
+            if spectrometer_init == False:
+                device_not_loading_message.append("Spectrometer")
+            if keithley_source_init == False:
+                device_not_loading_message.append("Source")
+            if keithley_multimeter_init == False:
+                device_not_loading_message.append("Multimeter")
+
+            if len(device_not_loading_message) > 1:
+                a = ", ".join(device_not_loading_message[:-1])
+                b = a + " and " + device_not_loading_message[-1]
+            elif len(device_not_loading_message) == 1:
+                b = device_not_loading_message[0]
+
+            c = b + " could not be initialised."
+
             self.update_loading_dialog.emit(
                 100,
-                "Some of the devices could not be initialised.",
+                c,
             )
             self.ask_retry.emit()
 

@@ -373,27 +373,32 @@ class KeithleyMultimeter:
         self.keithmulti.write("INITiate")
         self.mutex.unlock()
 
-    def set_fixed_range(self, value):
-        """
-        Sets a fixed voltage range if the user selected so
-        """
-        # Turn off the auto range function of the multimeter
-        self.keithmulti.write("SENSe:VOLTage:DC:RANGe:AUTO OFF")
-        # Set the range of the multimeter to a fixed value
-        self.keithmulti.write("SENSe:VOLTage:DC:RANGe " + str(value))
+    # def set_fixed_range(self, value):
+    #     """
+    #     Sets a fixed voltage range if the user selected so
+    #     """
+    #     # Turn off the auto range function of the multimeter
+    #     self.keithmulti.write("SENSe:VOLTage:DC:RANGe:AUTO OFF")
+    #     # Set the range of the multimeter to a fixed value
+    #     self.keithmulti.write("CONF:VOLTage:DC:RANGe " + str(value))
 
-    def set_auto_range(self):
-        """
-        Sets automatic detection of the multimeter range
-        """
-        # Turn on the auto range function of the multimeter
-        self.keithmulti.write("SENSe:VOLTage:DC:RANGe:AUTO ON")
+    # def set_auto_range(self):
+    #     """
+    #     Sets automatic detection of the multimeter range
+    #     """
+    #     # Turn on the auto range function of the multimeter
+    #     self.keithmulti.write("SENSe:VOLTage:DC:RANGe:AUTO ON")
 
-    def measure_voltage(self):
+    def measure_voltage(self, multimeter_range=0):
         """
         Returns an actual voltage reading on the keithley multimeter
         """
-        return float(self.keithmulti.query("MEASure:VOLTage:DC?"))
+        if multimeter_range == 0:
+            return float(self.keithmulti.query("MEASure:VOLTage:DC?"))
+        else:
+            return float(
+                self.keithmulti.query("MEASure:VOLTage:DC? " + str(multimeter_range))
+            )
 
 
 class OceanSpectrometer:

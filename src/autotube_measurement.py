@@ -69,10 +69,6 @@ class AutotubeMeasurement(QtCore.QThread):
         # programming is uglier), only one pixel is scanned at a time
         self.df_data = pd.DataFrame(columns=["voltage", "current", "pd_voltage"])
 
-        # If selected by the user, set the multimeter range to a fixed value
-        if self.measurement_parameters["fixed_multimeter_range"]:
-            self.keithley_multimeter.set_fixed_range(1)
-
         # Connect the signals
         self.update_plot.connect(parent.plot_autotube_measurement)
         self.update_progress_bar.connect(parent.progressBar.setProperty)
@@ -80,6 +76,9 @@ class AutotubeMeasurement(QtCore.QThread):
         self.reset_start_button.connect(
             parent.aw_start_measurement_pushButton.setChecked
         )
+
+        # Variable that stops the measurement
+        self.stop = False
 
     def run(self):
         """
@@ -151,7 +150,10 @@ class AutotubeMeasurement(QtCore.QThread):
                     time.sleep(0.5)
 
                 # Take PD voltage reading from Multimeter
-                diode_voltage = self.keithley_multimeter.measure_voltage()
+                if self.measurement_parameters["fixed_multimeter_range"]:
+                    diode_voltage = self.keithley_multimeter.measure_voltage(1)
+                else:
+                    diode_voltage = self.keithley_multimeter.measure_voltage()
                 # Take OLED current reading from Sourcemeter
                 oled_current = self.keithley_source.read_current()
 
@@ -206,6 +208,10 @@ class AutotubeMeasurement(QtCore.QThread):
 
                 i += 1
 
+                # Breaks out of the voltage loop
+                if self.stop == True:
+                    break
+
             # If a bad contact was detected, jump this iteration (no saving etc.)
             # if bad_contact == True:
             #     continue
@@ -237,12 +243,12 @@ class AutotubeMeasurement(QtCore.QThread):
             # separate threads but for now this is the easiest way
             # app.processEvents()
 
-            # Wait a few seconds so that the user can have a look at the graph
-            time.sleep(2)
+            # Breaks the pixel loop so that only the output is deactivated etc.
+            if self.stop == True:
+                break
 
-        # After the measurement, if selected by the user, set back the auto range
-        if self.measurement_parameters["fixed_multimeter_range"]:
-            self.keithley_multimeter.set_auto_range()
+            # Wait a few seconds so that the user can have a look at the graph
+            time.sleep(1)
 
         # Untoggle the pushbutton
         self.reset_start_button.emit(False)

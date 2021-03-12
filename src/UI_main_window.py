@@ -553,7 +553,7 @@ class Ui_MainWindow(object):
         self.aw_pixel1_pushButton.setSizePolicy(sizePolicy)
         self.aw_pixel1_pushButton.setMinimumSize(QtCore.QSize(0, 0))
         self.aw_pixel1_pushButton.setCheckable(True)
-        self.aw_pixel1_pushButton.setChecked(True)
+        # self.aw_pixel1_pushButton.setChecked(True)
         self.aw_pixel1_pushButton.setAutoRepeat(False)
         self.aw_pixel1_pushButton.setObjectName("aw_pixel1_pushButton")
         self.gridLayout_4.addWidget(self.aw_pixel1_pushButton, 0, 0, 1, 1)
@@ -561,28 +561,28 @@ class Ui_MainWindow(object):
         # Pixel 2
         self.aw_pixel2_pushButton = QtWidgets.QPushButton(self.aw_select_pixel_widget)
         self.aw_pixel2_pushButton.setCheckable(True)
-        self.aw_pixel2_pushButton.setChecked(True)
+        # self.aw_pixel2_pushButton.setChecked(True)
         self.aw_pixel2_pushButton.setObjectName("aw_pixel2_pushButton")
         self.gridLayout_4.addWidget(self.aw_pixel2_pushButton, 2, 0, 1, 1)
 
         # Pixel 3
         self.aw_pixel3_pushButton = QtWidgets.QPushButton(self.aw_select_pixel_widget)
         self.aw_pixel3_pushButton.setCheckable(True)
-        self.aw_pixel3_pushButton.setChecked(True)
+        # self.aw_pixel3_pushButton.setChecked(True)
         self.aw_pixel3_pushButton.setObjectName("aw_pixel3_pushButton")
         self.gridLayout_4.addWidget(self.aw_pixel3_pushButton, 3, 0, 1, 1)
 
         # Pixel 4
         self.aw_pixel4_pushButton = QtWidgets.QPushButton(self.aw_select_pixel_widget)
         self.aw_pixel4_pushButton.setCheckable(True)
-        self.aw_pixel4_pushButton.setChecked(True)
+        # self.aw_pixel4_pushButton.setChecked(True)
         self.aw_pixel4_pushButton.setObjectName("aw_pixel4_pushButton")
         self.gridLayout_4.addWidget(self.aw_pixel4_pushButton, 4, 0, 1, 1)
 
         # Pixel 5
         self.aw_pixel5_pushButton = QtWidgets.QPushButton(self.aw_select_pixel_widget)
         self.aw_pixel5_pushButton.setCheckable(True)
-        self.aw_pixel5_pushButton.setChecked(True)
+        # self.aw_pixel5_pushButton.setChecked(True)
         self.aw_pixel5_pushButton.setObjectName("aw_pixel5_pushButton")
         self.gridLayout_4.addWidget(self.aw_pixel5_pushButton, 0, 1, 1, 1)
 
@@ -590,21 +590,21 @@ class Ui_MainWindow(object):
         self.aw_pixel6_pushButton = QtWidgets.QPushButton(self.aw_select_pixel_widget)
         self.aw_pixel6_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.aw_pixel6_pushButton.setCheckable(True)
-        self.aw_pixel6_pushButton.setChecked(True)
+        # self.aw_pixel6_pushButton.setChecked(True)
         self.aw_pixel6_pushButton.setObjectName("aw_pixel6_pushButton")
         self.gridLayout_4.addWidget(self.aw_pixel6_pushButton, 2, 1, 1, 1)
 
         # Pixel 7
         self.aw_pixel7_pushButton = QtWidgets.QPushButton(self.aw_select_pixel_widget)
         self.aw_pixel7_pushButton.setCheckable(True)
-        self.aw_pixel7_pushButton.setChecked(True)
+        # self.aw_pixel7_pushButton.setChecked(True)
         self.aw_pixel7_pushButton.setObjectName("aw_pixel7_pushButton")
         self.gridLayout_4.addWidget(self.aw_pixel7_pushButton, 3, 1, 1, 1)
 
         # Pixel 8
         self.aw_pixel8_pushButton = QtWidgets.QPushButton(self.aw_select_pixel_widget)
         self.aw_pixel8_pushButton.setCheckable(True)
-        self.aw_pixel8_pushButton.setChecked(True)
+        # self.aw_pixel8_pushButton.setChecked(True)
         self.aw_pixel8_pushButton.setObjectName("aw_pixel8_pushButton")
         self.gridLayout_4.addWidget(self.aw_pixel8_pushButton, 4, 1, 1, 1)
 
@@ -1440,7 +1440,7 @@ class Ui_MainWindow(object):
         self.sw_activate_local_mode_pushButton.setText(
             _translate("MainWindow", "Reset Hardware")
         )
-        self.sw_pixel_label.setText(_translate("MainWindow", "Select Pixels"))
+        self.sw_pixel_label.setText(_translate("MainWindow", "Select Pixel"))
         self.sw_pixel2_pushButton.setText(_translate("MainWindow", "2"))
         self.sw_pixel1_pushButton.setText(_translate("MainWindow", "1"))
         self.sw_pixel3_pushButton.setText(_translate("MainWindow", "3"))
@@ -1449,8 +1449,8 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Unselect All")
         )
         self.sw_pixel4_pushButton.setText(_translate("MainWindow", "4"))
-        self.sw_prebias_pushButton.setText(_translate("MainWindow", "Pre-Bias All"))
-        self.sw_auto_test_pushButton.setText(_translate("MainWindow", "Auto Test All"))
+        self.sw_prebias_pushButton.setText(_translate("MainWindow", "Pre-Bias"))
+        self.sw_auto_test_pushButton.setText(_translate("MainWindow", "Auto Test"))
         self.sw_pixel8_pushButton.setText(_translate("MainWindow", "8"))
         self.sw_pixel7_pushButton.setText(_translate("MainWindow", "7"))
         self.sw_pixel6_pushButton.setText(_translate("MainWindow", "6"))
