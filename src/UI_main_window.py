@@ -623,33 +623,33 @@ class Ui_MainWindow(object):
         self.aw_min_voltage_spinBox.setObjectName("aw_min_voltage_spinBox")
         self.gridLayout_3.addWidget(self.aw_min_voltage_spinBox, 2, 0, 1, 1)
 
-        # Changeover voltage
-        self.aw_changeover_voltage_label = QtWidgets.QLabel(
-            self.aw_scrollAreaWidgetContents
-        )
-        self.aw_changeover_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
-        self.aw_changeover_voltage_label.setObjectName("aw_changeover_voltage_label")
-        self.gridLayout_3.addWidget(self.aw_changeover_voltage_label, 5, 0, 1, 1)
-        self.aw_changeover_voltage_spinBox = HumbleDoubleSpinBox(
-            self.aw_scrollAreaWidgetContents
-        )
-        self.aw_changeover_voltage_spinBox.setObjectName(
-            "aw_changeover_voltage_spinBox"
-        )
-        self.gridLayout_3.addWidget(self.aw_changeover_voltage_spinBox, 6, 0, 1, 1)
-
         # Low voltage step
         self.aw_low_voltage_step_label = QtWidgets.QLabel(
             self.aw_scrollAreaWidgetContents
         )
         self.aw_low_voltage_step_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.aw_low_voltage_step_label.setObjectName("aw_low_voltage_step_label")
-        self.gridLayout_3.addWidget(self.aw_low_voltage_step_label, 7, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.aw_low_voltage_step_label, 5, 0, 1, 1)
         self.aw_low_voltage_step_spinBox = HumbleDoubleSpinBox(
             self.aw_scrollAreaWidgetContents
         )
         self.aw_low_voltage_step_spinBox.setObjectName("aw_low_voltage_step_spinBox")
-        self.gridLayout_3.addWidget(self.aw_low_voltage_step_spinBox, 8, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.aw_low_voltage_step_spinBox, 6, 0, 1, 1)
+
+        # Changeover voltage
+        self.aw_changeover_voltage_label = QtWidgets.QLabel(
+            self.aw_scrollAreaWidgetContents
+        )
+        self.aw_changeover_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.aw_changeover_voltage_label.setObjectName("aw_changeover_voltage_label")
+        self.gridLayout_3.addWidget(self.aw_changeover_voltage_label, 7, 0, 1, 1)
+        self.aw_changeover_voltage_spinBox = HumbleDoubleSpinBox(
+            self.aw_scrollAreaWidgetContents
+        )
+        self.aw_changeover_voltage_spinBox.setObjectName(
+            "aw_changeover_voltage_spinBox"
+        )
+        self.gridLayout_3.addWidget(self.aw_changeover_voltage_spinBox, 8, 0, 1, 1)
 
         # Scan compliance
         self.aw_scan_compliance_spinBox = HumbleDoubleSpinBox(
@@ -685,19 +685,19 @@ class Ui_MainWindow(object):
         # self.aw_bad_contacts_HLayout.addWidget(self.aw_bad_contacts_label)
         # self.gridLayout_3.addLayout(self.aw_bad_contacts_HLayout, 13, 0, 1, 1)
 
-        # Check for bad contacts
-        self.aw_set_fixed_multimeter_range_HLayout = QtWidgets.QHBoxLayout()
-        self.aw_set_fixed_multimeter_range_toggleSwitch = ToggleSwitch()
-        self.aw_set_fixed_multimeter_range_label = QtWidgets.QLabel("Set Fixed Range")
-        self.aw_set_fixed_multimeter_range_HLayout.addWidget(
-            self.aw_set_fixed_multimeter_range_toggleSwitch
-        )
-        self.aw_set_fixed_multimeter_range_HLayout.addWidget(
-            self.aw_set_fixed_multimeter_range_label
-        )
-        self.gridLayout_3.addLayout(
-            self.aw_set_fixed_multimeter_range_HLayout, 13, 0, 1, 1
-        )
+        # Manually set multimeter range
+        # self.aw_set_fixed_multimeter_range_HLayout = QtWidgets.QHBoxLayout()
+        # self.aw_set_fixed_multimeter_range_toggleSwitch = ToggleSwitch()
+        # self.aw_set_fixed_multimeter_range_label = QtWidgets.QLabel("Set Fixed Range")
+        # self.aw_set_fixed_multimeter_range_HLayout.addWidget(
+        # self.aw_set_fixed_multimeter_range_toggleSwitch
+        # )
+        # self.aw_set_fixed_multimeter_range_HLayout.addWidget(
+        # self.aw_set_fixed_multimeter_range_label
+        # )
+        # self.gridLayout_3.addLayout(
+        # self.aw_set_fixed_multimeter_range_HLayout, 13, 0, 1, 1
+        # )
 
         # Start measurement button
         self.aw_start_measurement_pushButton = QtWidgets.QPushButton(
@@ -1493,7 +1493,7 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Low Voltage Step (V)")
         )
         self.aw_scan_compliance_label.setText(
-            _translate("MainWindow", "Scan Compliance (A)")
+            _translate("MainWindow", "Max Allowed Current (A)")
         )
         # self.aw_pd_saturation_checkBox.setText(
         # _translate("MainWindow", "Check for PD Saturation")

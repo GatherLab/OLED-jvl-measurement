@@ -871,7 +871,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "high_voltage_step": self.aw_high_voltage_step_spinBox.value(),
             "scan_compliance": self.aw_scan_compliance_spinBox.value(),
             # "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
-            "fixed_multimeter_range": self.aw_set_fixed_multimeter_range_toggleSwitch.isChecked(),
+            # "fixed_multimeter_range": self.aw_set_fixed_multimeter_range_toggleSwitch.isChecked(),
             "photodiode_saturation": float(global_parameters["photodiode_saturation"]),
             # "check_pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
         }
@@ -966,6 +966,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Save read setup parameters
         setup_parameters = self.safe_read_setup_parameters()
 
+        # Read global parameters
+        global_settings = cf.read_global_settings()
+
         # Update statusbar
         cf.log_message("Autotube measurement started")
 
@@ -985,6 +988,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.arduino_uno,
             measurement_parameters,
             setup_parameters,
+            global_settings["multimeter_latency"],
             selected_pixels,
             False,
             self,

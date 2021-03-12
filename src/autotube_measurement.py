@@ -39,6 +39,7 @@ class AutotubeMeasurement(QtCore.QThread):
         arduino,
         measurement_parameters,
         setup_parameters,
+        multimeter_latency,
         selected_pixels,
         devices_already_initialised=False,
         parent=None,
@@ -57,6 +58,7 @@ class AutotubeMeasurement(QtCore.QThread):
         )
         self.keithley_multimeter = keithley_multimeter
         self.keithley_multimeter.reset()
+        self.multimeter_latency = multimeter_latency
 
         # Now set the input parameters as parameters of the datastructure
         self.measurement_parameters = measurement_parameters
@@ -144,16 +146,16 @@ class AutotubeMeasurement(QtCore.QThread):
 
                 # Keithley has a latency. This value is higher if we consider
                 # the range change of the automatic function of our multimeter
-                if self.measurement_parameters["fixed_multimeter_range"]:
-                    time.sleep(0.1)
-                else:
-                    time.sleep(0.5)
+                # if self.measurement_parameters["fixed_multimeter_range"]:
+                # time.sleep(0.1)
+                # else:
+                time.sleep(self.multimeter_latency)
 
                 # Take PD voltage reading from Multimeter
-                if self.measurement_parameters["fixed_multimeter_range"]:
-                    diode_voltage = self.keithley_multimeter.measure_voltage(1)
-                else:
-                    diode_voltage = self.keithley_multimeter.measure_voltage()
+                # if self.measurement_parameters["fixed_multimeter_range"]:
+                # diode_voltage = self.keithley_multimeter.measure_voltage(1)
+                # else:
+                diode_voltage = self.keithley_multimeter.measure_voltage()
                 # Take OLED current reading from Sourcemeter
                 oled_current = self.keithley_source.read_current()
 

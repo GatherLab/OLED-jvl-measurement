@@ -45,6 +45,9 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
             str(default_settings["photodiode_saturation"])
         )
         self.oled_on_time_lineEdit.setText(str(default_settings["oled_on_time"]))
+        self.multimeter_latency_lineEdit.setText(
+            str(default_settings["multimeter_latency"])
+        )
 
         # self.photodiode_area_lineEdit.setText(str(default_settings["photodiode_area"]))
         # self.photodiode_peak_response_lineEdit.setText(
@@ -93,6 +96,7 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
                 # "photodiode_cutoff": self.photodiode_cutoff_lineEdit.text(),
                 "photodiode_saturation": self.photodiode_saturation_lineEdit.text(),
                 "oled_on_time": self.oled_on_time_lineEdit.text(),
+                "multimeter_latency": self.multimeter_latency_lineEdit.text(),
                 # "photodiode_area": self.photodiode_area_lineEdit.text(),
                 # "photodiode_peak_response": self.photodiode_peak_response_lineEdit.text(),
                 # "amplifier_resistance": self.amplifier_resistance_lineEdit.text(),
@@ -167,6 +171,9 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
             str(default_settings["photodiode_saturation"])
         )
         self.oled_on_time_lineEdit.setText(str(default_settings["oled_on_time"]))
+        self.multimeter_latency_lineEdit.setText(
+            str(default_settings["multimeter_latency"])
+        )
         # self.photodiode_area_lineEdit.setText(default_settings["photodiode_area"])
         # self.photodiode_peak_response_lineEdit.setText(
         #     default_settings["photodiode_peak_response"]
