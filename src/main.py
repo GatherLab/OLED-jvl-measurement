@@ -736,12 +736,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         global_settings = cf.read_global_settings()
         voltage_range = np.linspace(
             global_settings["auto_test_minimum_voltage"],
-            global_settings["auto_test_maximum_voltage"] + 0.5,
+            global_settings["auto_test_maximum_voltage"],
             5,
             endpoint=True,
         )
         # voltage_range = np.linspace(2, 4, 26)
-        biasing_time = 0.05
+        biasing_time = 0.1
+
+        # Reset Keithley multimeter
+        self.keithley_multimeter.reset()
 
         # Unselect all pixels first (in case some have been selected before)
         self.unselect_all_pixels()
@@ -752,14 +755,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Go over all pixels
         working_pixels = []
 
+        # Close all relays
+        self.arduino_uno.trigger_relay(0)
+
         for pixel in range(len(self.sw_pushbutton_array)):
-            # Close all relays
-            self.arduino_uno.trigger_relay(0)
 
             # Set push button to checked and open relay of the pixel
             self.sw_pushbutton_array[pixel].setChecked(True)
             self.specw_pushbutton_array[pixel].setChecked(True)
             self.arduino_uno.trigger_relay(pixel + 1)
+
+            # Measure baseline pd_voltage to compare value with
+            pd_voltage_baseline = self.keithley_multimeter.measure_voltage()
 
             for voltage in voltage_range:
                 # Turn on the voltage at the value "voltage"
@@ -776,10 +783,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
                 # Now read the current
                 current = self.keithley_source.read_current()
+                print(current)
 
-                if current >= 0.02 and current <= 5:
+                # A pixel is an open-circuit when the measured current is terribly low
+                if current < 1e-8:
+                    break
+
+                pd_voltage = self.keithley_multimeter.measure_voltage()
+                print(pd_voltage)
+
+                # A pixel is only working when it shows a high enough change in
+                # PD voltage compared to the measured value before
+                if pd_voltage - pd_voltage_baseline >= 0.002:
                     working_pixels.append(pixel + 1)
                     break
+                else:
+                    pd_voltage_baseline = pd_voltage
 
             # Deactivate the pixel again
             self.sw_pushbutton_array[pixel].setChecked(False)
@@ -798,8 +817,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.toggle_pixel(pixel, "sw")
             pixel += 1
 
-        # Set voltage to prebias voltage
-        self.keithley_source.activate_output()
+        # Deactivate output again (since pixels were triggered)
+        self.keithley_source.deactivate_output()
 
         # Update statusbar
         cf.log_message("Finished auto testing pixels")
