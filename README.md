@@ -66,13 +66,14 @@ python3 main.py
 
 The different OLED pixels are activated with and Arduino UNO and a relay shield. Power is provided by a Keithley source unit that also allows the simultaneous measurement of applied voltage and drawn current. Photodiode voltage is measured with a Keithley Multimeter. Spectra are measured with an Ocean Spectrometer. For the goniometer setup, the rotation of the sample is done with a Thorlab motor. All items needed for the setup are listed below.
 
-| Item                | Brand    | Model Number      |
-| ------------------- | -------- | ----------------- |
-| Ocean Spectrometer  | Ocean    | ?                 |
-| Arduino UNO         | Arduino  | ?                 |
-| Keithley Source     | Keithley | ?                 |
-| Keithley Multimeter | Keithley | ?                 |
-| Thorlab Motor       | Thorlab  | ? # Documentation |
+| Item                | Brand         | Model Number                                       |
+| ------------------- | ------------- | -------------------------------------------------- |
+| Ocean Spectrometer  | Ocean Insight | QE Pro                                             |
+| Arduino UNO         | Arduino       | Arduino UNO                                        |
+| Keithley Source     | Keithley      | Sourcemeter, Keithley 2450                         |
+| Keithley Multimeter | Keithley      | Multimeter, Keithley 2100                          |
+| Photodiode          | Thorlabs      | Photodiode, ThorLabs Part PDA100A2                 |
+| Thorlab Motor       | Thorlab       | Motorised Rotational Stage, ThorLabs Part K10CR1/M |
 
 ## User Journey
 
