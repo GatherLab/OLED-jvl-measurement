@@ -108,7 +108,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.current_tester.start()
 
         # Connect buttons
-        self.sw_activate_local_mode_pushButton.clicked.connect(self.activate_local_mode)
+        self.sw_reset_hardware_pushButton.clicked.connect(self.reset_hardware)
         self.sw_browse_pushButton.clicked.connect(self.browse_folder)
 
         # Connect sw pixel to toggle function
@@ -588,7 +588,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return setup_parameters
 
-    def activate_local_mode(self):
+    def reset_hardware(self):
         """
         Function to reset the devices and toggle local mode to be able to
         activate pixel. I am not really sure if that is how to terminate a qthread correctly but it works.
