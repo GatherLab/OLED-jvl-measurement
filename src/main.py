@@ -161,6 +161,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sw_prebias_pushButton.clicked.connect(self.prebias_pixels)
         self.sw_auto_test_pushButton.clicked.connect(self.autotest_pixels)
 
+        # Assign shortcuts to the pushbuttons
+        self.sw_pixel1_pushButton.setShortcut("1")
+        self.sw_pixel2_pushButton.setShortcut("2")
+        self.sw_pixel3_pushButton.setShortcut("3")
+        self.sw_pixel4_pushButton.setShortcut("4")
+        self.sw_pixel5_pushButton.setShortcut("5")
+        self.sw_pixel6_pushButton.setShortcut("6")
+        self.sw_pixel7_pushButton.setShortcut("7")
+        self.sw_pixel8_pushButton.setShortcut("8")
+
+        self.sw_select_all_pushButton.setShortcut("9")
+        self.sw_unselect_all_push_button.setShortcut("0")
+
         # -------------------------------------------------------------------- #
         # ---------------------- Autotube Measurement  ----------------------- #
         # -------------------------------------------------------------------- #
@@ -180,6 +193,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.aw_pixel7_pushButton,
             self.aw_pixel8_pushButton,
         ]
+
+        # Assign shortcuts to the pushbuttons
+        self.aw_pixel1_pushButton.setShortcut("1")
+        self.aw_pixel2_pushButton.setShortcut("2")
+        self.aw_pixel3_pushButton.setShortcut("3")
+        self.aw_pixel4_pushButton.setShortcut("4")
+        self.aw_pixel5_pushButton.setShortcut("5")
+        self.aw_pixel6_pushButton.setShortcut("6")
+        self.aw_pixel7_pushButton.setShortcut("7")
+        self.aw_pixel8_pushButton.setShortcut("8")
 
         # -------------------------------------------------------------------- #
         # ---------------------- Spectrum Measurement  ----------------------- #
@@ -241,6 +264,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Save spectrum button
         self.specw_save_spectrum_pushButton.clicked.connect(self.save_spectrum)
 
+        # Assign shortcuts to the pushbuttons
+        self.specw_pixel1_pushButton.setShortcut("1")
+        self.specw_pixel2_pushButton.setShortcut("2")
+        self.specw_pixel3_pushButton.setShortcut("3")
+        self.specw_pixel4_pushButton.setShortcut("4")
+        self.specw_pixel5_pushButton.setShortcut("5")
+        self.specw_pixel6_pushButton.setShortcut("6")
+        self.specw_pixel7_pushButton.setShortcut("7")
+        self.specw_pixel8_pushButton.setShortcut("8")
+
         # -------------------------------------------------------------------- #
         # --------------------- Goniometer Measurement  ---------------------- #
         # -------------------------------------------------------------------- #
@@ -251,6 +284,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_move_pushButton.clicked.connect(self.move_motor)
 
         self.gw_el_or_pl_toggleSwitch.clicked.connect(self.disable_el_options)
+
+        # Assign shortcuts to the pushbuttons
+        self.gw_pixel1_pushButton.setShortcut("1")
+        self.gw_pixel2_pushButton.setShortcut("2")
+        self.gw_pixel3_pushButton.setShortcut("3")
+        self.gw_pixel4_pushButton.setShortcut("4")
+        self.gw_pixel5_pushButton.setShortcut("5")
+        self.gw_pixel6_pushButton.setShortcut("6")
+        self.gw_pixel7_pushButton.setShortcut("7")
+        self.gw_pixel8_pushButton.setShortcut("8")
 
         # -------------------------------------------------------------------- #
         # --------------------------- Menubar -------------------------------- #
