@@ -1317,8 +1317,8 @@ class Ui_MainWindow(object):
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 973, 31))
         self.menubar.setObjectName("menubar")
-        self.menudfg = QtWidgets.QMenu(self.menubar)
-        self.menudfg.setObjectName("menudfg")
+        # self.menudfg = QtWidgets.QMenu(self.menubar)
+        # self.menudfg.setObjectName("menudfg")
         self.menuSettings = QtWidgets.QMenu(self.menubar)
         self.menuSettings.setObjectName("menuSettings")
         MainWindow.setMenuBar(self.menubar)
@@ -1350,12 +1350,12 @@ class Ui_MainWindow(object):
         )
         self.actionOpen_Log = QtWidgets.QAction(MainWindow)
         self.actionOpen_Log.setObjectName("actionOpen_Log")
-        self.menudfg.addAction(self.actionLoad_Measurement_Parameters)
-        self.menudfg.addAction(self.actionSave_Measurement_Parameters)
+        # self.menudfg.addAction(self.actionLoad_Measurement_Parameters)
+        # self.menudfg.addAction(self.actionSave_Measurement_Parameters)
         self.menuSettings.addAction(self.actionOptions)
         self.menuSettings.addAction(self.actionDocumentation)
         self.menuSettings.addAction(self.actionOpen_Log)
-        self.menubar.addAction(self.menudfg.menuAction())
+        # self.menubar.addAction(self.menudfg.menuAction())
         self.menubar.addAction(self.menuSettings.menuAction())
 
         # -------------------------------------------------------------------- #
@@ -1471,7 +1471,8 @@ class Ui_MainWindow(object):
         # self.sw_documentation_label.setText(_translate("MainWindow", "Documentation"))
         self.sw_folder_path_label.setText(_translate("MainWindow", "Folder Path"))
         self.tabWidget.setTabText(
-            self.tabWidget.indexOf(self.setup_widget), _translate("MainWindow", "Setup")
+            self.tabWidget.indexOf(self.setup_widget),
+            _translate("MainWindow", "Pixel Tester"),
         )
         self.aw_high_voltage_step_label.setText(
             _translate("MainWindow", "High Voltage Step (V)")
@@ -1510,7 +1511,7 @@ class Ui_MainWindow(object):
         )
         self.tabWidget.setTabText(
             self.tabWidget.indexOf(self.autotube_widget),
-            _translate("MainWindow", "Autotube JVL"),
+            _translate("MainWindow", "JVL Characterisation"),
         )
 
         # self.specw_high_voltage_step_label.setText(
@@ -1613,7 +1614,7 @@ class Ui_MainWindow(object):
             self.tabWidget.indexOf(self.goniometer_widget),
             _translate("MainWindow", "Goniometer"),
         )
-        self.menudfg.setTitle(_translate("MainWindow", "File"))
+        # self.menudfg.setTitle(_translate("MainWindow", "File"))
         self.menuSettings.setTitle(_translate("MainWindow", "Settings"))
 
         # self.actionOpen_Logs.setText(_translate("MainWindow", "Open Logs"))
