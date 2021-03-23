@@ -205,11 +205,16 @@ class InitThread(QtCore.QThread):
             if keithley_multimeter_init == False:
                 device_not_loading_message.append("Multimeter")
 
-            if len(device_not_loading_message) > 1:
+            if (
+                len(device_not_loading_message) > 1
+                and len(device_not_loading_message) < 5
+            ):
                 a = ", ".join(device_not_loading_message[:-1])
                 b = a + " and " + device_not_loading_message[-1]
             elif len(device_not_loading_message) == 1:
                 b = device_not_loading_message[0]
+            elif len(device_not_loading_message) == 5:
+                b = "All devices"
 
             c = b + " could not be initialised."
 
