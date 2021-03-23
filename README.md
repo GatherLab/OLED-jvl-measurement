@@ -77,7 +77,42 @@ The different OLED pixels are activated with and Arduino UNO and a relay shield.
 
 ## User Journey
 
-### Setup (Current Tester)
+### Loading Window
+
+To start the program execute main.py in your virtual environment setup as
+described above. The start screen that appears should look something like
+this. It will guide you through the initialisation of all different hardware
+components.
+
+<img src="docs/initial_loading.png" style="display: block; margin-left: auto; margin-right: auto; width: 30%;"/>
+
+In case everything went well and all hardware could be initialised the screen
+will directly disappear. However, if the program had a problem initialising
+any of the component it will indicate that in the following dialog. You can
+either select to continue anyways if the device that could not be initialised
+is not necessary for your measurements or you can troubleshoot your device
+and retry the initialisation again. In case the device address is not
+correct, either continue and modify it in the settings as described below or
+directly modify it in the /usr/global_settings.json file.
+
+<img src="docs/continue_anyways.png" style="display: block; margin-left: auto; margin-right: auto; width: 30%;"/>
+
+In case everything went well or the user decided to continue anyways she will end up with the following window.
+
+<img src="docs/start_screen.png" style="display: block; margin-left: auto; margin-right: auto; width: 50%;"/>
+
+This main window gives you several options that can be selected from the top tabs and are
+
+- Pixel Tester
+- JVL Characterisation
+- Spectrum
+- Goniometer
+
+Additionally, the user can select Settings from the top menubar. The
+different tabs as well as the settings are described in more detail in the
+following.
+
+### Pixel Tester
 
 Here the basic information about the measured batch must be provided that are
 
@@ -104,7 +139,7 @@ Below that the user is asked to provide some short of brief documentation of the
 
 This shall be optional but may facilitate future error tracking and improvement of the software as well as tracking down problems with the OLEDs or the sample holder.
 
-### Autotube JVL
+### JVL Characterisation
 
 Measurement parameters can be selected on the right side. Pixels that worked in the Setup section are automatically selected. The user still has the possibility to exclude those pixels. The measurement is started using the "Start Measurement" button. A progress bar in the bottom status bar shows the progress of the measurement. The measured current and PD voltage are plotted directly on the center graph. Any problem messages are displayed in the bottom statusbar (that by default say "Ready")
 
@@ -125,7 +160,7 @@ Again the pixel of interest can be selected. However, only one because only one 
 
 The progress of the measurement can be seen via the progress bar in the status bar, on the plot on the left (the nature of which is not clearly defined yet) or by looking at the current stage position at the top.
 
-### Additional/Global Settings
+### Settings
 
 In the top menubar there is are two options:
 
@@ -140,7 +175,3 @@ In the top menubar there is are two options:
 The idea is that measurement parameters can be saved and loaded for later measurements and so that not all the parameters have to be entered again all the time (although standard parameters shall be provided).
 
 The settings tab is not yet clearly defined although it shall link to the documentation of the software (via Help) and allow to open the log file that logs possible errors occurring with the program. I don't know yet what the options tab contains but this might contain some global options that are only seldomly touched. If it is not necessary after all we can just delete it.
-
-#### Parameters for global settings
-
-- Pulse duration --> OLED on time in global settings necessary for OLED to have stable emission
