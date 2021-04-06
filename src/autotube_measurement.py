@@ -41,7 +41,6 @@ class AutotubeMeasurement(QtCore.QThread):
         setup_parameters,
         multimeter_latency,
         selected_pixels,
-        devices_already_initialised=False,
         parent=None,
     ):
         """

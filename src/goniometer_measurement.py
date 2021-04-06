@@ -140,14 +140,16 @@ class GoniometerMeasurement(QtCore.QThread):
         # The following is only needed for EL measurement
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             if self.goniometer_measurement_parameters["voltage_scan"]:
+                multimeter_latency = cf.read_global_settings()["multimeter_latency"]
+
                 autotube_measurement = AutotubeMeasurement(
                     self.keithley_source,
                     self.keithley_multimeter,
                     self.uno,
                     self.autotube_measurement_parameters,
                     self.setup_parameters,
+                    multimeter_latency,
                     self.pixel,
-                    devices_already_initialised=True,
                     parent=self.parent,
                 )
 
