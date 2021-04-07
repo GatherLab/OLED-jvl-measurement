@@ -16,7 +16,7 @@ def log_message(message):
     print(message)
 
 
-def read_global_settings():
+def read_global_settings(default=False):
     """
     Read in global settings from file. The file can be changed using the
     settings window.
@@ -26,24 +26,27 @@ def read_global_settings():
         os.path.join(Path(__file__).parent.parent, "usr", "global_settings.json")
     ) as json_file:
         data = json.load(json_file)
-    try:
-        settings = data["overwrite"]
+    if default == False:
+        try:
+            settings = data["overwrite"]
 
-        # Update statusbar
-        log_message("Global Settings Read from File")
-    except:
+            # Update statusbar
+            log_message("Global Settings Read from File")
+        except:
+            settings = data["default"]
+
+            # Update statusbar
+            log_message("Default device parameters taken")
+    else:
         settings = data["default"]
 
-        # Update statusbar
-        log_message("Default device parameters taken")
-
-    for key in settings[0].keys():
+    for key in settings.keys():
         try:
-            settings[0][key] = float(settings[0][key])
+            settings[key] = float(settings[key])
         except:
-            print("Entry not a float value")
+            settings[key] = str(settings[key])
 
-    return settings[0]
+    return settings
 
 
 def save_file(df, file_path, header_lines, save_header=False):

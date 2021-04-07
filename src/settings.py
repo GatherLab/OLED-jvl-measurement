@@ -85,39 +85,34 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         # Gather the new settings
         settings_data = {}
         settings_data["overwrite"] = []
-        settings_data["overwrite"].append(
-            {
-                "keithley_source_address": self.keithley_source_address_lineEdit.text(),
-                "keithley_multimeter_address": self.keithley_multimeter_address_lineEdit.text(),
-                "arduino_com_address": self.arduino_com_address_lineEdit.text(),
-                "motor_number": self.motor_number_lineEdit.text(),
-                "motor_offset": self.motor_offset_lineEdit.text(),
-                "spectrum_integration_time": self.spectrum_integration_time_lineEdit.text(),
-                # "photodiode_cutoff": self.photodiode_cutoff_lineEdit.text(),
-                "photodiode_saturation": self.photodiode_saturation_lineEdit.text(),
-                "oled_on_time": self.oled_on_time_lineEdit.text(),
-                "multimeter_latency": self.multimeter_latency_lineEdit.text(),
-                # "photodiode_area": self.photodiode_area_lineEdit.text(),
-                # "photodiode_peak_response": self.photodiode_peak_response_lineEdit.text(),
-                # "amplifier_resistance": self.amplifier_resistance_lineEdit.text(),
-                # "oled_area": self.oled_area_lineEdit.text(),
-                # "distance_photodiode_oled": self.distance_photodiode_oled_lineEdit.text(),
-                "default_saving_path": self.default_saving_path_lineEdit.text(),
-                "auto_test_minimum_voltage": self.auto_test_minimum_voltage_lineEdit.text(),
-                "auto_test_maximum_voltage": self.auto_test_maximum_voltage_lineEdit.text(),
-                "pre_bias_voltage": self.auto_test_prebias_voltage_lineEdit.text(),
-            }
-        )
+        settings_data["overwrite"] = {
+            "keithley_source_address": self.keithley_source_address_lineEdit.text(),
+            "keithley_multimeter_address": self.keithley_multimeter_address_lineEdit.text(),
+            "arduino_com_address": self.arduino_com_address_lineEdit.text(),
+            "motor_number": self.motor_number_lineEdit.text(),
+            "motor_offset": self.motor_offset_lineEdit.text(),
+            "spectrum_integration_time": self.spectrum_integration_time_lineEdit.text(),
+            # "photodiode_cutoff": self.photodiode_cutoff_lineEdit.text(),
+            "photodiode_saturation": self.photodiode_saturation_lineEdit.text(),
+            "oled_on_time": self.oled_on_time_lineEdit.text(),
+            "multimeter_latency": self.multimeter_latency_lineEdit.text(),
+            # "photodiode_area": self.photodiode_area_lineEdit.text(),
+            # "photodiode_peak_response": self.photodiode_peak_response_lineEdit.text(),
+            # "amplifier_resistance": self.amplifier_resistance_lineEdit.text(),
+            # "oled_area": self.oled_area_lineEdit.text(),
+            # "distance_photodiode_oled": self.distance_photodiode_oled_lineEdit.text(),
+            "default_saving_path": self.default_saving_path_lineEdit.text(),
+            "auto_test_minimum_voltage": self.auto_test_minimum_voltage_lineEdit.text(),
+            "auto_test_maximum_voltage": self.auto_test_maximum_voltage_lineEdit.text(),
+            "pre_bias_voltage": self.auto_test_prebias_voltage_lineEdit.text(),
+        }
 
         # Load the default parameter settings
-        with open(
-            os.path.join(Path(__file__).parent.parent, "usr", "global_settings.json")
-        ) as json_file:
-            data = json.load(json_file)
+        default_settings = cf.read_global_settings(default=True)
 
         # Add the default parameters to the new settings json
         settings_data["default"] = []
-        settings_data["default"] = data["default"]
+        settings_data["default"] = default_settings
         print(settings_data)
 
         # Save the entire thing again to the settings.json file
@@ -144,12 +139,9 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         Load default settings (in case the user messed up the own settings)
         """
 
-        with open(
-            os.path.join(Path(__file__).parent.parent, "usr", "global_settings.json")
-        ) as json_file:
-            data = json.load(json_file)
+        # Read default settings
+        default_settings = cf.read_global_settings(default=True)
 
-        default_settings = data["default"][0]
         self.keithley_source_address_lineEdit.setText(
             str(default_settings["keithley_source_address"])
         )

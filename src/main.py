@@ -26,6 +26,7 @@ import os
 import json
 import sys
 import functools
+from pathlib import Path
 from datetime import date
 import logging
 from logging.handlers import RotatingFileHandler
@@ -91,6 +92,28 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Hide by default and only show if a process is running
         self.progressBar.hide()
+
+        # -------------------------------------------------------------------- #
+        # ------------------------- Default Values --------------------------- #
+        # -------------------------------------------------------------------- #
+
+        # Automatically overwrite the overwrite values with the defaults when
+        # the program is started to ensure that defaults are defaults by default
+        default_settings = cf.read_global_settings(default=True)
+        settings_data = {}
+        settings_data["overwrite"] = []
+        settings_data["overwrite"] = default_settings
+        settings_data["default"] = []
+        settings_data["default"] = default_settings
+
+        # Save the entire thing again to the settings.json file
+        with open(
+            os.path.join(Path(__file__).parent.parent, "usr", "global_settings.json"),
+            "w",
+        ) as json_file:
+            json.dump(settings_data, json_file, indent=4)
+
+        cf.log_message("Overwrite Settings set to Default")
 
         # -------------------------------------------------------------------- #
         # -------------------------- Current Tester -------------------------- #
