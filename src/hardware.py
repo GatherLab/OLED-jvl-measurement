@@ -468,7 +468,7 @@ class ThorlabMotor:
 
         # Set the motor to the number
         self.motor = apt.Motor(int(motor_number))
-        time.sleep(0.5)
+        time.sleep(1)
         # velocity MUST be set to avoid the motor moving slowly
         self.motor.set_velocity_parameters(0, 9, 5)
         # ensures that the motor homes properly - home in reverse with reverse lim switches

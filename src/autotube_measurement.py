@@ -223,6 +223,10 @@ class AutotubeMeasurement(QtCore.QThread):
             # Turn off all relays
             self.uno.trigger_relay(pixel)
 
+            # Breaks the pixel loop so that only the output is deactivated etc.
+            if self.stop == True:
+                break
+
             # Save data
             self.save_data(pixel)
 
@@ -243,10 +247,6 @@ class AutotubeMeasurement(QtCore.QThread):
             # Update GUI while being in a loop. It would be better to use
             # separate threads but for now this is the easiest way
             # app.processEvents()
-
-            # Breaks the pixel loop so that only the output is deactivated etc.
-            if self.stop == True:
-                break
 
             # Wait a few seconds so that the user can have a look at the graph
             time.sleep(1)
