@@ -148,6 +148,7 @@ class ArduinoUno:
         """
         self.mutex.lock()
         self.trigger_relay(0)
+        time.sleep(1)
         self.close_serial_connection()
         self.mutex.unlock()
 

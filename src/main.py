@@ -55,15 +55,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # For some odd reason this is necessary in the main thread already.
         # Otherwise the motor won't initialise and the program crash without an error...
-        try:
-            global_settings = cf.read_global_settings()
-            ThorlabMotor(
-                global_settings["motor_number"], global_settings["motor_offset"]
-            )
-        except:
-            cf.log_message(
-                "Motor can probably not be initialised. Reconnect the motor or change the serial number in the global settings."
-            )
+        # try:
+        #     global_settings = cf.read_global_settings()
+        #     ThorlabMotor(
+        #         global_settings["motor_number"], global_settings["motor_offset"]
+        #     )
+        # except:
+        #     cf.log_message(
+        #         "Motor can probably not be initialised. Reconnect the motor or change the serial number in the global settings."
+        #     )
 
         # -------------------------------------------------------------------- #
         # -------------------------- Hardware Setup -------------------------- #

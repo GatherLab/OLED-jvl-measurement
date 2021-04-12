@@ -72,10 +72,11 @@ class InitThread(QtCore.QThread):
             except:
                 # In the case that there was already a connection established,
                 # it could happen that the arduino does not allow to establish
-                # a new one. Therefore, close the old one first.
-                self.widget.parent.arduino_uno.close()
-                uno = ArduinoUno(global_settings["arduino_com_address"])
-                cf.log_message("Arduino UNO successfully initialised")
+                # a new one. Therefore, only return the already existing object.
+                uno = self.widget.parent.arduino_uno
+                # self.widget.parent.arduino_uno.close()
+                # uno = ArduinoUno(global_settings["arduino_com_address"])
+                # cf.log_message("Arduio UNO successfully initialised")
                 arduino_init = True
 
             # motor.move_to(-45)
