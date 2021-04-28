@@ -6,6 +6,8 @@ import core_functions as cf
 
 from loading_window import LoadingWindow
 
+from costum_widgets import ToggleSwitch
+
 
 class Ui_Settings(object):
     def setupUi(self, Settings, parent=None):
@@ -143,31 +145,46 @@ class Ui_Settings(object):
         )
         self.gridLayout.addWidget(self.spectrum_integration_time_lineEdit, 7, 1, 1, 1)
 
+        # Non-linearity correction for spectrum
+        self.non_linearity_correction_label = QtWidgets.QLabel(Settings)
+        self.non_linearity_correction_label.setObjectName(
+            "non_linearity_correction_label"
+        )
+        self.gridLayout.addWidget(self.non_linearity_correction_label, 8, 0, 1, 1)
+        self.non_linearity_correction_toggleSwitch = ToggleSwitch(Settings)
+        # self.spectrum_integration_time_lineEdit = QtWidgets.QLineEdit(Settings)
+        self.non_linearity_correction_toggleSwitch.setObjectName(
+            "non_linearity_correction_toggleSwitch"
+        )
+        self.gridLayout.addWidget(
+            self.non_linearity_correction_toggleSwitch, 8, 1, 1, 1
+        )
+
         # Photodiode Saturation Voltage
         self.photodiode_saturation_label = QtWidgets.QLabel(Settings)
         self.photodiode_saturation_label.setObjectName("photodiode_saturation_label")
-        self.gridLayout.addWidget(self.photodiode_saturation_label, 8, 0, 1, 1)
+        self.gridLayout.addWidget(self.photodiode_saturation_label, 9, 0, 1, 1)
         self.photodiode_saturation_lineEdit = QtWidgets.QLineEdit(Settings)
         self.photodiode_saturation_lineEdit.setObjectName(
             "photodiode_saturation_lineEdit"
         )
-        self.gridLayout.addWidget(self.photodiode_saturation_lineEdit, 8, 1, 1, 1)
+        self.gridLayout.addWidget(self.photodiode_saturation_lineEdit, 9, 1, 1, 1)
 
         # OLED on time
         self.oled_on_time_label = QtWidgets.QLabel(Settings)
         self.oled_on_time_label.setObjectName("oled_on_time_label")
-        self.gridLayout.addWidget(self.oled_on_time_label, 8, 0, 1, 1)
+        self.gridLayout.addWidget(self.oled_on_time_label, 10, 0, 1, 1)
         self.oled_on_time_lineEdit = QtWidgets.QLineEdit(Settings)
         self.oled_on_time_lineEdit.setObjectName("oled_on_time_lineEdit")
-        self.gridLayout.addWidget(self.oled_on_time_lineEdit, 8, 1, 1, 1)
+        self.gridLayout.addWidget(self.oled_on_time_lineEdit, 10, 1, 1, 1)
 
         # Multimeter latency
         self.multimeter_latency_label = QtWidgets.QLabel(Settings)
         self.multimeter_latency_label.setObjectName("multimeter_latency_label")
-        self.gridLayout.addWidget(self.multimeter_latency_label, 9, 0, 1, 1)
+        self.gridLayout.addWidget(self.multimeter_latency_label, 11, 0, 1, 1)
         self.multimeter_latency_lineEdit = QtWidgets.QLineEdit(Settings)
         self.multimeter_latency_lineEdit.setObjectName("multimeter_latency_lineEdit")
-        self.gridLayout.addWidget(self.multimeter_latency_lineEdit, 9, 1, 1, 1)
+        self.gridLayout.addWidget(self.multimeter_latency_lineEdit, 11, 1, 1, 1)
 
         # # Global Software Settings
         self.global_settings_header_label = QtWidgets.QLabel(Settings)
@@ -176,12 +193,12 @@ class Ui_Settings(object):
             'font: 75 bold 10pt "Segoe UI";'
         )
         self.global_settings_header_label.setObjectName("global_settings_header_label")
-        self.gridLayout.addWidget(self.global_settings_header_label, 10, 0, 1, 2)
+        self.gridLayout.addWidget(self.global_settings_header_label, 12, 0, 1, 2)
 
         self.header_line_3 = QtWidgets.QFrame()
         self.header_line_3.setFrameShape(QtWidgets.QFrame.HLine)
         self.header_line_3.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.gridLayout.addWidget(self.header_line_3, 11, 0, 1, 2)
+        self.gridLayout.addWidget(self.header_line_3, 13, 0, 1, 2)
         self.header_line_3.setStyleSheet(
             "QFrame {\n" "            border: 2px solid rgb(52, 59, 72);\n" "}\n"
         )
@@ -189,10 +206,10 @@ class Ui_Settings(object):
         # # Standard Saving Path
         self.default_saving_path_label = QtWidgets.QLabel(Settings)
         self.default_saving_path_label.setObjectName("default_saving_path_label")
-        self.gridLayout.addWidget(self.default_saving_path_label, 12, 0, 1, 1)
+        self.gridLayout.addWidget(self.default_saving_path_label, 14, 0, 1, 1)
         self.default_saving_path_lineEdit = QtWidgets.QLineEdit(Settings)
         self.default_saving_path_lineEdit.setObjectName("default_saving_path_lineEdit")
-        self.gridLayout.addWidget(self.default_saving_path_lineEdit, 12, 1, 1, 1)
+        self.gridLayout.addWidget(self.default_saving_path_lineEdit, 14, 1, 1, 1)
 
         # # Data Evaluation Settings
         # self.data_evaluation_header_label = QtWidgets.QLabel(Settings)
@@ -275,12 +292,12 @@ class Ui_Settings(object):
             'font: 75 bold 10pt "Segoe UI";'
         )
         self.auto_test_pixel_header_label.setObjectName("auto_test_pixel_header_label")
-        self.gridLayout.addWidget(self.auto_test_pixel_header_label, 13, 0, 1, 2)
+        self.gridLayout.addWidget(self.auto_test_pixel_header_label, 15, 0, 1, 2)
 
         self.header_line_4 = QtWidgets.QFrame()
         self.header_line_4.setFrameShape(QtWidgets.QFrame.HLine)
         self.header_line_4.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.gridLayout.addWidget(self.header_line_4, 14, 0, 1, 2)
+        self.gridLayout.addWidget(self.header_line_4, 16, 0, 1, 2)
         self.header_line_4.setStyleSheet(
             "QFrame {\n" "            border: 2px solid rgb(52, 59, 72);\n" "}\n"
         )
@@ -290,36 +307,36 @@ class Ui_Settings(object):
         self.auto_test_minimum_voltage_label.setObjectName(
             "auto_test_minimum_voltage_label"
         )
-        self.gridLayout.addWidget(self.auto_test_minimum_voltage_label, 15, 0, 1, 1)
+        self.gridLayout.addWidget(self.auto_test_minimum_voltage_label, 17, 0, 1, 1)
         self.auto_test_minimum_voltage_lineEdit = QtWidgets.QLineEdit(Settings)
         self.auto_test_minimum_voltage_lineEdit.setObjectName(
             "auto_test_minimum_voltage_lineEdit"
         )
-        self.gridLayout.addWidget(self.auto_test_minimum_voltage_lineEdit, 15, 1, 1, 1)
+        self.gridLayout.addWidget(self.auto_test_minimum_voltage_lineEdit, 17, 1, 1, 1)
 
         # Maximum Voltage
         self.auto_test_maximum_voltage_label = QtWidgets.QLabel(Settings)
         self.auto_test_maximum_voltage_label.setObjectName(
             "auto_test_maximum_voltage_label"
         )
-        self.gridLayout.addWidget(self.auto_test_maximum_voltage_label, 16, 0, 1, 1)
+        self.gridLayout.addWidget(self.auto_test_maximum_voltage_label, 18, 0, 1, 1)
         self.auto_test_maximum_voltage_lineEdit = QtWidgets.QLineEdit(Settings)
         self.auto_test_maximum_voltage_lineEdit.setObjectName(
             "auto_test_maximum_voltage_lineEdit"
         )
-        self.gridLayout.addWidget(self.auto_test_maximum_voltage_lineEdit, 16, 1, 1, 1)
+        self.gridLayout.addWidget(self.auto_test_maximum_voltage_lineEdit, 18, 1, 1, 1)
 
         # Pre-bias Voltage
         self.auto_test_prebias_voltage_label = QtWidgets.QLabel(Settings)
         self.auto_test_prebias_voltage_label.setObjectName(
             "auto_test_prebias_voltage_label"
         )
-        self.gridLayout.addWidget(self.auto_test_prebias_voltage_label, 17, 0, 1, 1)
+        self.gridLayout.addWidget(self.auto_test_prebias_voltage_label, 19, 0, 1, 1)
         self.auto_test_prebias_voltage_lineEdit = QtWidgets.QLineEdit(Settings)
         self.auto_test_prebias_voltage_lineEdit.setObjectName(
             "auto_test_prebias_voltage_lineEdit"
         )
-        self.gridLayout.addWidget(self.auto_test_prebias_voltage_lineEdit, 17, 1, 1, 1)
+        self.gridLayout.addWidget(self.auto_test_prebias_voltage_lineEdit, 19, 1, 1, 1)
 
         # Push Buttons
         self.buttons_HBoxLayout = QtWidgets.QHBoxLayout()
@@ -331,7 +348,7 @@ class Ui_Settings(object):
         self.save_settings_pushButton.setObjectName("save_settings_pushButton")
         self.buttons_HBoxLayout.addWidget(self.save_settings_pushButton)
 
-        self.gridLayout.addLayout(self.buttons_HBoxLayout, 18, 0, 1, 2)
+        self.gridLayout.addLayout(self.buttons_HBoxLayout, 20, 0, 1, 2)
 
         self.retranslateUi(Settings)
         QtCore.QMetaObject.connectSlotsByName(Settings)
@@ -357,6 +374,9 @@ class Ui_Settings(object):
         )
         self.spectrum_integration_time_label.setText(
             _translate("Settings", "Spetrometer Integration Time (ms)")
+        )
+        self.non_linearity_correction_label.setText(
+            _translate("Settings", "Spectrometer Non-Linearity Correction")
         )
         self.photodiode_saturation_label.setText(
             _translate("Settings", "Photodiode Saturation (V)")

@@ -407,7 +407,7 @@ class OceanSpectrometer:
     Class to deal with the ocean spectrometer
     """
 
-    def __init__(self, integration_time):
+    def __init__(self, integration_time, non_linearity_correction):
         # Define a mutex
         self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
         # List all spectrometers
@@ -419,6 +419,9 @@ class OceanSpectrometer:
         # Set integration time of spectrometer
         self.set_integration_time_ms(integration_time)
 
+        # Check if one shall correct for non-linearity
+        self.non_linearity_correction = non_linearity_correction
+
     def measure(self):
         """
         Function to measure spectrum. The data structure might be already
@@ -428,7 +431,9 @@ class OceanSpectrometer:
         # wavelength = self.spec.wavelengths()
         # intensity = self.spec.intensities()
 
-        return self.spectrometer.spectrum()
+        return self.spectrometer.spectrum(
+            correct_nonlinearity=self.non_linearity_correction
+        )
 
     def set_integration_time_ms(self, integration_time):
         """

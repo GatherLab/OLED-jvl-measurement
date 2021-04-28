@@ -38,6 +38,11 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         self.spectrum_integration_time_lineEdit.setText(
             str(default_settings["spectrum_integration_time"])
         )
+
+        self.non_linearity_correction_toggleSwitch.setChecked(
+            default_settings["spectrometer_non_linearity_correction"]
+        )
+
         # self.photodiode_cutoff_lineEdit.setText(
         # str(default_settings["photodiode_cutoff"])
         # )
@@ -92,6 +97,9 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
             "motor_number": self.motor_number_lineEdit.text(),
             "motor_offset": self.motor_offset_lineEdit.text(),
             "spectrum_integration_time": self.spectrum_integration_time_lineEdit.text(),
+            "spectrometer_non_linearity_correction": str(
+                self.non_linearity_correction_toggleSwitch.isChecked()
+            ),
             # "photodiode_cutoff": self.photodiode_cutoff_lineEdit.text(),
             "photodiode_saturation": self.photodiode_saturation_lineEdit.text(),
             "oled_on_time": self.oled_on_time_lineEdit.text(),
@@ -155,6 +163,10 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         self.motor_offset_lineEdit.setText(str(default_settings["motor_offset"]))
         self.spectrum_integration_time_lineEdit.setText(
             str(default_settings["spectrum_integration_time"])
+        )
+
+        self.non_linearity_correction_toggleSwitch.setChecked(
+            default_settings["spectrometer_non_linearity_correction"]
         )
         # self.photodiode_cutoff_lineEdit.setText(
         # str(default_settings["photodiode_cutoff"])

@@ -121,7 +121,8 @@ class InitThread(QtCore.QThread):
         # Try if the spectrometer is present
         try:
             spectrometer = OceanSpectrometer(
-                global_settings["spectrum_integration_time"]
+                global_settings["spectrum_integration_time"],
+                global_settings["spectrometer_non_linearity_correction"],
             )
             cf.log_message("Spectrometer successfully initialised")
             spectrometer_init = True

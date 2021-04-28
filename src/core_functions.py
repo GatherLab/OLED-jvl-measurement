@@ -46,6 +46,11 @@ def read_global_settings(default=False):
         except:
             settings[key] = str(settings[key])
 
+        if settings[key] == "True":
+            settings[key] = True
+        elif settings[key] == "False":
+            settings[key] = False
+
     return settings
 
 
