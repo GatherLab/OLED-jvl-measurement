@@ -471,6 +471,14 @@ class ThorlabMotor:
         # Define a mutex
         self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
 
+        # First cleanup before we can work with things (otherwise there might be
+        # an open connection somewhere)
+        self.clean_up()
+        time.sleep(5)
+
+        # from stage.motor_ini.core import find_stages
+
+        # s = list(find_stages())
         # Set the motor to the number
         self.motor = apt.Motor(int(motor_number))
         time.sleep(1)
@@ -551,4 +559,5 @@ class ThorlabMotor:
 
         if lib is not None:
             lib.APTCleanUp()
+            lib.APTInit()
         self.mutex.unlock()
