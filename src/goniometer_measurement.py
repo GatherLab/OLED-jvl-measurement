@@ -103,6 +103,9 @@ class GoniometerMeasurement(QtCore.QThread):
         # Introduce a pause variable
         self.pause = "False"
 
+        self.elapsed_time_maximum_angle = 0
+        self.elapsed_time_degradation_check = 0
+
     def run(self):
         """
         Function that runs when the thread is started. It contains the
@@ -353,6 +356,19 @@ class GoniometerMeasurement(QtCore.QThread):
                 rows_list.append(data_dict)
 
             # Now measure spectrum (wavelength and intensity) (done for EL and pl)
+            if math.isclose(
+                angle, self.goniometer_measurement_parameters["minimum_angle"]
+            ):
+                starting_time = time.time()
+            elif math.isclose(
+                angle, self.goniometer_measurement_parameters["maximum_angle"]
+            ):
+                self.elapsed_time_maximum_angle = round(time.time() - starting_time, 2)
+                cf.log_message(
+                    str(self.elapsed_time_maximum_angle)
+                    + " s passed since the minimum angle measurement."
+                )
+
             self.spectrum_data[str(angle)] = self.spectrometer.measure()[1]
 
             # Emit a signal to update the plot (unfortunately with python 3.9
@@ -385,7 +401,6 @@ class GoniometerMeasurement(QtCore.QThread):
                 )
                 * 100,
             )
-
         # If the user wants it, move again back to the minimum angle and take
         # another spectrum to see if the device degraded already
         if self.goniometer_measurement_parameters["degradation_check"]:
@@ -407,6 +422,12 @@ class GoniometerMeasurement(QtCore.QThread):
             # Update animation once more since the position might be 0.9 at this
             # point (int comparison in the above while loop)
             self.update_animation.emit(motor_position)
+
+            self.elapsed_time_degradation_check = round(time.time() - starting_time, 2)
+            cf.log_message(
+                str(self.elapsed_time_degradation_check)
+                + " s passed since the minimum angle measurement."
+            )
 
             self.spectrum_data[
                 str(float(self.goniometer_measurement_parameters["minimum_angle"]))
@@ -595,14 +616,29 @@ class GoniometerMeasurement(QtCore.QThread):
                 + str(self.goniometer_measurement_parameters["vc_compliance"])
                 + " V"
             )
+        if math.isclose(self.elapsed_time_degradation_check, 0):
+            line03 = (
+                "Time between min. and max. angle measurement: "
+                + str(self.elapsed_time_maximum_angle)
+                + " s"
+            )
+        else:
+            line03 = (
+                "Time between min. and max. angle measurement: "
+                + str(self.elapsed_time_maximum_angle)
+                + ", Time between min. angle and degr. check measurement "
+                + str(self.elapsed_time_degradation_check)
+                + " s"
+            )
 
         # Save the specific oled and photodiode data
-        line03 = "### Measurement data ###\n"
+        line04 = "### Measurement data ###\n"
 
         header_lines = [
             line01,
             line02,
             line03,
+            line04,
         ]
 
         # Depending on if EL or PL was selected make the pixel and device
