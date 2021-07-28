@@ -649,6 +649,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         elif tab == "specw":
             selected_pixels = self.read_spectrum_parameters()["selected_pixel"]
 
+        # Set keithley source to the value of the change voltage field
+        self.keithley_source.set_voltage(self.sw_ct_voltage_spinBox.value())
+
         # Turn pixel on
         self.current_tester.uno.trigger_relay(pixel_number)
 

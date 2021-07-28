@@ -467,9 +467,9 @@ class GoniometerMeasurement(QtCore.QThread):
         cf.log_message("Measurement finished")
 
         if not self.goniometer_measurement_parameters["el_or_pl"]:
-            # Close relay and serial connection as well
+            # Close relay only
             self.uno.trigger_relay(relay=0)
-            self.uno.close_serial_connection()  # close COM port
+            # self.uno.close_serial_connection()  # close COM port
 
             # Only save iv data for el measurement, because it otherwise does not exist
             self.iv_data = pd.DataFrame(rows_list)

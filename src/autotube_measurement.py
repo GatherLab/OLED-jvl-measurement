@@ -261,7 +261,7 @@ class AutotubeMeasurement(QtCore.QThread):
         self.hide_progress_bar.emit()
 
         # close COM port
-        self.uno.close_serial_connection()
+        # self.uno.close_serial_connection()
 
     def save_data(self, pixel):
         """
