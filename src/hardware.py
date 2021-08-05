@@ -1,5 +1,7 @@
 import pyvisa  # Keithley Module
 import serial  # Arduino Module
+import seabreeze
+seabreeze.use('pyseabreeze')
 import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
 import core_functions as cf
@@ -427,13 +429,15 @@ class OceanSpectrometer:
         Function to measure spectrum. The data structure might be already
         altered in this function (this I have to see on the hardware device)
         """
+        self.mutex.lock()
         # The following yields lists of wavelength and intensity
         # wavelength = self.spec.wavelengths()
         # intensity = self.spec.intensities()
+        data = self.spectrometer.spectrum( correct_nonlinearity=self.non_linearity_correction)
 
-        return self.spectrometer.spectrum(
-            correct_nonlinearity=self.non_linearity_correction
-        )
+        self.mutex.unlock()
+
+        return data 
 
     def set_integration_time_ms(self, integration_time):
         """
