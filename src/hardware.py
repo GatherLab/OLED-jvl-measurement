@@ -421,7 +421,7 @@ class OceanSpectrometer:
 
         # Set integration time of spectrometer, doesn't really matter since it
         # is changed in the software on the fly anyways
-        self.set_integration_time_ms(200)
+        self.set_integration_time_ms(100)
 
         # Check if one shall correct for non-linearity
         self.non_linearity_correction = non_linearity_correction
