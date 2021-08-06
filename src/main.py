@@ -948,6 +948,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "low_voltage_step": self.aw_low_voltage_step_spinBox.value(),
             "high_voltage_step": self.aw_high_voltage_step_spinBox.value(),
             "scan_compliance": self.aw_scan_compliance_spinBox.value(),
+            "auto_spectrum": self.aw_auto_measure_toggleSwitch.isChecked(),
             # "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
             # "fixed_multimeter_range": self.aw_set_fixed_multimeter_range_toggleSwitch.isChecked(),
             "photodiode_saturation": float(global_parameters["photodiode_saturation"]),
@@ -996,7 +997,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Plot current
         self.aw_ax.plot(
             voltage,
-            current,
+            np.abs(current),
             color=(68 / 255, 188 / 255, 65 / 255),
             marker="o",
         )
@@ -1012,7 +1013,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_ax.grid(True)
         self.aw_ax.set_xlabel("Voltage (V)", fontsize=14)
         self.aw_ax.set_ylabel(
-            "Current (mA)", color=(68 / 255, 188 / 255, 65 / 255), fontsize=14
+            "Abs. Current (mA)", color=(68 / 255, 188 / 255, 65 / 255), fontsize=14
         )
         self.aw_ax2.set_ylabel(
             "Photodiode Voltage (V)",

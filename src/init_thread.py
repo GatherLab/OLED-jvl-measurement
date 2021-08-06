@@ -126,8 +126,7 @@ class InitThread(QtCore.QThread):
             cf.log_message("Spectrometer successfully initialised")
             spectrometer_init = True
         except Exception as e:
-            spectrometer = MockOceanSpectrometer(
-            )
+            spectrometer = MockOceanSpectrometer()
             cf.log_message(
                 "The spectrometer could not be initialised! Please reconnect the device!"
             )

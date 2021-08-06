@@ -20,6 +20,7 @@ import os
 
 import pandas as pd
 import numpy as np
+import math
 
 
 class AutotubeMeasurement(QtCore.QThread):
@@ -81,6 +82,8 @@ class AutotubeMeasurement(QtCore.QThread):
         # Variable that stops the measurement
         self.stop = False
 
+        self.parent = parent
+
     def run(self):
         """
         Function that does the actual measurement. I am not sure yet, if I
@@ -94,6 +97,30 @@ class AutotubeMeasurement(QtCore.QThread):
         import pydevd
 
         pydevd.settrace(suspend=False)
+        if self.measurement_parameters["auto_spectrum"]:
+            cf.log_message("Motor is moving to Photodiode Position")
+            pd_position = 90
+            self.parent.motor.move_to(pd_position)
+
+            motor_position = self.parent.motor.read_position()
+            motor_position_initial = self.parent.motor.read_position()
+
+            while not math.isclose(pd_position, motor_position, abs_tol=0.01):
+                motor_position = self.parent.motor.read_position()
+
+                self.update_progress_bar.emit(
+                    "value",
+                    int(
+                        abs(motor_position - motor_position_initial)
+                        / abs(pd_position - motor_position_initial)
+                        * 100
+                    ),
+                )
+                time.sleep(0.05)
+
+            self.parent.gw_animation.move(motor_position)
+
+        cf.log_message("Motor arrived at Photodiode Position")
 
         # Define voltage steps
         # Voltage points for low OLED voltage
@@ -121,7 +148,11 @@ class AutotubeMeasurement(QtCore.QThread):
         # Turn all pixels off at the beginning
         self.uno.trigger_relay(0)
 
+        self.update_progress_bar.emit("value", 0)
+
         # Iterate over all selected pixels
+        max_luminances = []
+
         for pixel in self.selected_pixels:
             # self.keithley_source.empty_buffer("OLEDbuffer")
 
@@ -237,6 +268,9 @@ class AutotubeMeasurement(QtCore.QThread):
                 self.df_data["pd_voltage"].to_numpy(dtype=float),
             )
 
+            # Append the last luminance measured for automatic spectrum measurement
+            max_luminances.append(float(self.df_data["pd_voltage"].to_numpy()[-1]))
+
             # Update progress bar
             progress += 1
 
@@ -250,6 +284,148 @@ class AutotubeMeasurement(QtCore.QThread):
 
             # Wait a few seconds so that the user can have a look at the graph
             time.sleep(1)
+
+        # Breaks the pixel loop so that only the output is deactivated etc.
+        if self.stop == True:
+            cf.log_message("Autotube measurement interrupted by user")
+            self.hide_progress_bar.emit()
+            return
+
+        if self.measurement_parameters["auto_spectrum"]:
+            cf.log_message("Motor is moving to Spectrometer Position")
+            spectrometer_position = 0
+            self.parent.motor.move_to(spectrometer_position)
+
+            motor_position = self.parent.motor.read_position()
+            motor_position_initial = self.parent.motor.read_position()
+
+            while not math.isclose(0, motor_position, abs_tol=0.01):
+                motor_position = self.parent.motor.read_position()
+
+                self.update_progress_bar.emit(
+                    "value",
+                    int(
+                        abs(motor_position - motor_position_initial)
+                        / abs(spectrometer_position - motor_position_initial)
+                        * 100
+                    ),
+                )
+
+                time.sleep(0.05)
+
+            self.parent.gw_animation.move(motor_position)
+
+            cf.log_message("Motor finished moving to Spectrometer Position")
+
+            # Select the pixel to measure according to the highest luminance at maximum tested voltage
+            pixel_with_highest_luminance = self.selected_pixels[
+                np.argmax(np.array(max_luminances))
+            ]
+
+            self.parent.specw_pushbutton_array[
+                pixel_with_highest_luminance - 1
+            ].setChecked(True)
+            self.parent.toggle_pixel(pixel_with_highest_luminance, "specw")
+            # self.keithley_source.set_voltage(str(voltages_to_scan[-1]))
+            # self.keithley_source.activate_output()
+            self.parent.specw_voltage_spinBox.setValue(voltages_to_scan[-1])
+            self.parent.tabWidget.setCurrentIndex(2)
+
+            # # self.progressBar.setProperty("value", 0)
+            # self.update_progress_bar.emit("value", 0)
+
+            # # Activate the relay of the selected pixel
+            # self.uno.trigger_relay(pixel_with_highest_luminance)
+
+            # # Set voltage to source_value
+            # self.keithley_source.set_voltage(str(voltages_to_scan[-1]))
+
+            # # Turn on the voltage
+            # self.keithley_source.activate_output()
+
+            # # Store data in pd dataframe
+            # df_spectrum_data = pd.DataFrame(
+            #     columns=["wavelength", "background", "intensity"]
+            # )
+
+            # # Get wavelength and intensity of spectrum under light conditions
+            # (
+            #     df_spectrum_data["wavelength"],
+            #     df_spectrum_data["intensity"],
+            # ) = self.parent.spectrometer.measure()
+
+            # self.update_progress_bar.emit("value", 50)
+
+            # # Turn off all pixels wait two seconds to ensure that there is no light left and measure again
+            # # self.unselect_all_pixels()
+            # self.uno.trigger_relay(pixel_with_highest_luminance)
+            # self.keithley_source.deactivate_output()
+            # time.sleep(2)
+            # (
+            #     wavelength,
+            #     df_spectrum_data["background"],
+            # ) = self.parent.spectrometer.measure()
+
+            # # Save data
+            # file_path = (
+            #     self.setup_parameters["folder_path"]
+            #     + dt.date.today().strftime("%Y-%m-%d_")
+            #     + self.setup_parameters["batch_name"]
+            #     + "_d"
+            #     + str(self.setup_parameters["device_number"])
+            #     + "_p"
+            #     + str(pixel)
+            #     + "_spec"
+            #     + ".csv"
+            # )
+
+            # # Define header line with voltage and integration time
+            # # line01 = (
+            # #     "Voltage: "
+            # #     + str(self.specw_voltage_spinBox.value())
+            # #     + " V\t"
+            # #     + "Integration Time: "
+            # #     + str(self.spectrum_measurement.spectrometer.integration_time)
+            # #     + " ms"
+            # #     + "Non-linearity Correction: "
+            # #     + str(bool(global_settings["spectrometer_non_linearity_correction"]))
+            # # )
+
+            # line02 = "### Measurement data ###"
+            # line03 = "Wavelength\t Background\t Intensity"
+            # line04 = "nm\t counts\t counts\n"
+            # header_lines = [
+            #     # line01,
+            #     line02,
+            #     line03,
+            #     line04,
+            # ]
+
+            # # Format the dataframe for saving (no. of digits)
+            # df_spectrum_data["wavelength"] = df_spectrum_data["wavelength"].map(
+            #     lambda x: "{0:.2f}".format(x)
+            # )
+            # df_spectrum_data["background"] = df_spectrum_data["background"].map(
+            #     lambda x: "{0:.1f}".format(x)
+            # )
+            # df_spectrum_data["intensity"] = df_spectrum_data["intensity"].map(
+            #     lambda x: "{0:.1f}".format(x)
+            # )
+
+            # cf.save_file(df_spectrum_data, file_path, header_lines)
+
+            # # Write header lines to file
+            # with open(file_path, "a") as the_file:
+            #     the_file.write("\n".join(header_lines))
+
+            # # Now write pandas dataframe to file
+            # df_spectrum_data.to_csv(
+            #     file_path, index=False, mode="a", header=False, sep="\t"
+            # )
+
+            self.update_progress_bar.emit("value", 100)
+
+            # self.parent.save_spectrum()
 
         # Untoggle the pushbutton
         self.reset_start_button.emit(False)
