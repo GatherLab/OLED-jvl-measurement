@@ -387,7 +387,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_integration_time_spinBox.setMinimum(6)
         self.specw_integration_time_spinBox.setMaximum(10000)
         self.specw_integration_time_spinBox.setSingleStep(50)
-        self.specw_integration_time_spinBox.setValue(300)
+        self.specw_integration_time_spinBox.setValue(200)
         self.specw_integration_time_spinBox.setKeyboardTracking(False)
 
         # Set standard parameters for Current Tester Measurement
