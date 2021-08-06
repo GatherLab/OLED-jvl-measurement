@@ -438,6 +438,7 @@ class Ui_MainWindow(object):
         self.aw_ax = self.aw_fig.figure.subplots()
         self.aw_ax.set_facecolor("#E0E0E0")
         self.aw_ax.grid(True)
+        self.aw_ax.set_yscale("logit")
         self.aw_ax.set_xlabel("Voltage (V)", fontsize=14)
         self.aw_ax.set_ylabel(
             "Current (mA)", color=(68 / 255, 188 / 255, 65 / 255), fontsize=14
@@ -445,6 +446,7 @@ class Ui_MainWindow(object):
         self.aw_ax.axhline(linewidth=1, color="black")
         self.aw_ax.axvline(linewidth=1, color="black")
         self.aw_ax2 = self.aw_ax.twinx()
+        self.aw_ax2.set_yscale("logit")
         self.aw_ax2.set_ylabel(
             "Photodiode Voltage (V)",
             color=(85 / 255, 170 / 255, 255 / 255),
@@ -662,6 +664,16 @@ class Ui_MainWindow(object):
         self.aw_scan_compliance_label.setObjectName("aw_scan_compliance_label")
         self.gridLayout_3.addWidget(self.aw_scan_compliance_label, 11, 0, 1, 1)
 
+        # Auto measure spectrum 
+        self.aw_auto_measure_HLayout = QtWidgets.QHBoxLayout()
+        self.aw_auto_measure_toggleSwitch = ToggleSwitch()
+        self.aw_auto_measure_label = QtWidgets.QLabel("Auto Spectrum")
+        self.aw_auto_measure_HLayout.addWidget(
+            self.aw_auto_measure_toggleSwitch
+        )
+        self.aw_auto_measure_HLayout.addWidget(self.aw_auto_measure_label)
+        self.gridLayout_3.addLayout(self.aw_auto_measure_HLayout, 12, 0, 1, 1)
+
         # PD saturation checkbox
         # self.aw_pd_saturation_HLayout = QtWidgets.QHBoxLayout()
         # self.aw_pd_saturation_toggleSwitch = ToggleSwitch()
@@ -808,6 +820,19 @@ class Ui_MainWindow(object):
         self.specw_scrollArea_gridLayout.addWidget(
             self.specw_voltage_spinBox, 2, 0, 1, 1
         )
+        
+        # Integration time
+        self.specw_integration_time_label = QtWidgets.QLabel(
+            self.specw_scrollAreaWidgetContents
+        )
+        self.specw_integration_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.specw_integration_time_label.setObjectName("specw_integration_time_label")
+        self.specw_scrollArea_gridLayout.addWidget(self.specw_integration_time_label, 3, 0, 1, 1)
+        self.specw_integration_time_spinBox = HumbleDoubleSpinBox(
+            self.specw_scrollAreaWidgetContents
+        )
+        self.specw_integration_time_spinBox.setObjectName("specw_integration_time_spinBox")
+        self.specw_scrollArea_gridLayout.addWidget(self.specw_integration_time_spinBox, 4, 0, 1, 1)
 
         # ---------------------- Select pixel widget ------------------------- #
         self.specw_select_pixel_widget = QtWidgets.QWidget(
@@ -833,7 +858,7 @@ class Ui_MainWindow(object):
         self.specw_select_pixel_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.specw_select_pixel_label.setObjectName("specw_select_pixel_label")
         self.specw_scrollArea_gridLayout.addWidget(
-            self.specw_select_pixel_label, 3, 0, 1, 1
+            self.specw_select_pixel_label, 5, 0, 1, 1
         )
 
         # Pixel 1
@@ -921,7 +946,7 @@ class Ui_MainWindow(object):
         self.gridLayout_4.addWidget(self.specw_pixel8_pushButton, 4, 1, 1, 1)
 
         self.specw_scrollArea_gridLayout.addWidget(
-            self.specw_select_pixel_widget, 4, 0, 1, 1, QtCore.Qt.AlignHCenter
+            self.specw_select_pixel_widget, 6, 0, 1, 1, QtCore.Qt.AlignHCenter
         )
 
         # Save Spectrum button
@@ -932,7 +957,7 @@ class Ui_MainWindow(object):
             "specw_save_spectrum_pushButton"
         )
         self.specw_scrollArea_gridLayout.addWidget(
-            self.specw_save_spectrum_pushButton, 5, 0, 1, 1
+            self.specw_save_spectrum_pushButton, 7, 0, 1, 1
         )
 
         self.tabWidget.addTab(self.spectrum_widget, "")
@@ -1415,7 +1440,7 @@ class Ui_MainWindow(object):
         """
 
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "OLED Benchmarker"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "OLED Characterisation"))
         # self.gatherlab_label.setText(
         # _translate("MainWindow", "Gatherlab JVL Measurement")
         # )
@@ -1528,6 +1553,10 @@ class Ui_MainWindow(object):
         # )
         self.specw_voltage_label.setText(_translate("MainWindow", "Set Voltage (V)"))
         self.specw_voltage_spinBox.setSuffix(_translate("MainWindow", " V"))
+
+        self.specw_integration_time_label.setText(
+            _translate("MainWindow", "Integration Time (ms)")
+        )
         # self.specw_changeover_voltage_label.setText(
         # _translate("MainWindow", "Changeover Voltage (V)")
         # )

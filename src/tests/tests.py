@@ -89,9 +89,8 @@ class MockOceanSpectrometer:
     Mock class for testing
     """
 
-    def __init__(self, integration_time):
-        print(integration_time)
-        self.integration_time = integration_time
+    def __init__(self):
+        print("Mock spectrometer initialized")
 
     def measure(self):
         return np.arange(350, 830, 1), np.random.rand(480) * 100

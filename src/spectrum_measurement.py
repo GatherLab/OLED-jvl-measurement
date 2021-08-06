@@ -47,7 +47,7 @@ class SpectrumMeasurement(QtCore.QThread):
 
             # The sleep time here is very important because if it is chosen to
             # short, the program may crash. Currently 1 s seems to be save (one can at least go down to 0.5s)
-            time.sleep(1)
+            # time.sleep(1)
 
             if self.is_killed:
                 # Close the connection to the spectrometer

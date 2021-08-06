@@ -35,9 +35,9 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         )
         self.motor_number_lineEdit.setText(str(default_settings["motor_number"]))
         self.motor_offset_lineEdit.setText(str(default_settings["motor_offset"]))
-        self.spectrum_integration_time_lineEdit.setText(
-            str(default_settings["spectrum_integration_time"])
-        )
+        # self.spectrum_integration_time_lineEdit.setText(
+            # str(default_settings["spectrum_integration_time"])
+        # )
 
         self.non_linearity_correction_toggleSwitch.setChecked(
             default_settings["spectrometer_non_linearity_correction"]
@@ -96,7 +96,7 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
             "arduino_com_address": self.arduino_com_address_lineEdit.text(),
             "motor_number": self.motor_number_lineEdit.text(),
             "motor_offset": self.motor_offset_lineEdit.text(),
-            "spectrum_integration_time": self.spectrum_integration_time_lineEdit.text(),
+            # "spectrum_integration_time": self.spectrum_integration_time_lineEdit.text(),
             "spectrometer_non_linearity_correction": str(
                 self.non_linearity_correction_toggleSwitch.isChecked()
             ),
@@ -161,9 +161,9 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         )
         self.motor_number_lineEdit.setText(str(default_settings["motor_number"]))
         self.motor_offset_lineEdit.setText(str(default_settings["motor_offset"]))
-        self.spectrum_integration_time_lineEdit.setText(
-            str(default_settings["spectrum_integration_time"])
-        )
+        # self.spectrum_integration_time_lineEdit.setText(
+            # str(default_settings["spectrum_integration_time"])
+        # )
 
         self.non_linearity_correction_toggleSwitch.setChecked(
             default_settings["spectrometer_non_linearity_correction"]

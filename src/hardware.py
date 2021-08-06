@@ -1,7 +1,8 @@
 import pyvisa  # Keithley Module
 import serial  # Arduino Module
 import seabreeze
-seabreeze.use('pyseabreeze')
+
+seabreeze.use("pyseabreeze")
 import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
 import core_functions as cf
@@ -409,7 +410,7 @@ class OceanSpectrometer:
     Class to deal with the ocean spectrometer
     """
 
-    def __init__(self, integration_time, non_linearity_correction):
+    def __init__(self, non_linearity_correction):
         # Define a mutex
         self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
         # List all spectrometers
@@ -418,8 +419,8 @@ class OceanSpectrometer:
         # Select our spectrometer (probably only in the list)
         self.spectrometer = sb.Spectrometer(maya_devices[0])
 
-        # Set integration time of spectrometer
-        self.set_integration_time_ms(integration_time)
+        # Set integration time of spectrometer, doesn't really matter since it is changed in the software on the fly anyways
+        self.set_integration_time_ms(300)
 
         # Check if one shall correct for non-linearity
         self.non_linearity_correction = non_linearity_correction
@@ -433,11 +434,14 @@ class OceanSpectrometer:
         # The following yields lists of wavelength and intensity
         # wavelength = self.spec.wavelengths()
         # intensity = self.spec.intensities()
-        data = self.spectrometer.spectrum( correct_nonlinearity=self.non_linearity_correction)
+        data = self.spectrometer.spectrum(
+            correct_nonlinearity=self.non_linearity_correction
+        )
 
         self.mutex.unlock()
+        time.sleep(1)
 
-        return data 
+        return data
 
     def set_integration_time_ms(self, integration_time):
         """
@@ -496,18 +500,55 @@ class ThorlabMotor:
 
         self.offset_angle = offset_angle
 
-    def move_to(self, angle):
+    def move_to(self, angle, blocking=False):
         """
         Call the move_to function of the apt package
         """
         self.mutex.lock()
-        # The motor does not always choose the closest way. If we want that, it must be calculated first
-        if angle < self.motor.position:
-            self.motor.move_velocity(int(1))
-        elif angle > self.motor.position:
-            self.motor.move_velocity(int(2))
 
-        self.motor.move_to(angle - float(self.offset_angle))
+        # It seems like the "move_velocity" function of the thorlabs library is
+        # dead. Therefore, the following is a workaround that always moves to
+        # zero first in these cases (since the motor always # takes the shortest
+        # route but we don't want to allow for full rotations)
+        # if np.logical_or(
+        #     (
+        #         self.motor.position >= 270 + self.offset_angle
+        #         or self.motor.position <= 90 + self.offset_angle
+        #     )
+        #     and angle < 0,
+        #     (
+        #         self.motor.position < 270 + self.offset_angle
+        #         or self.motor.position > 90 + self.offset_angle
+        #     )
+        #     and angle > 0,
+        # ):
+        #     self.motor.move_to(0 + self.offset_angle, blocking=True)
+
+        # # The motor does not always choose the closest way. If we want that, it must be calculated first
+        # dict_direction = {"clockwise": 1, "counterclockwise": 2}
+        # direction = 1
+
+        # if angle < self.motor.position:
+        #     direction = dict_direction["clockwise"]
+        #     # self.motor.move_velocity(int(1))
+        # elif angle > self.motor.position:
+        #     direction = dict_direction["counterclockwise"]
+        #     # self.motor.move_velocity(int(2))
+
+        # # Ideally the motor shouldn't turn completely around not to break the
+        # # cable (turn around at 180°)
+        # # The numbers here result from the motor reading of the motor between 0
+        # # and 360 degrees whereas we have a 45° offset due to our current setup
+        # if (self.motor.position >= 270 + self.offset_angle or self.motor.position <= 90 + self.offset_angle) and angle < 0:
+        #     # self.motor.move_velocity(int(1))
+        #     direction = dict_direction["clockwise"]
+        # elif (self.motor.position < 270 + self.offset_angle or self.motor.position > 90 + self.offset_angle) and angle > 0:
+        #     # self.motor.move_velocity(int(2))
+        #     direction = dict_direction["counterclockwise"]
+
+        # self.motor.move_velocity(int(direction))
+
+        self.motor.move_to(angle - float(self.offset_angle), blocking)
         self.mutex.unlock()
 
     def read_position(self):

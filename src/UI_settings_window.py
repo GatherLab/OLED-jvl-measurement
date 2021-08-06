@@ -133,17 +133,17 @@ class Ui_Settings(object):
         self.motor_offset_lineEdit.setObjectName("motor_offset_lineEdit")
         self.gridLayout.addWidget(self.motor_offset_lineEdit, 6, 1, 1, 1)
 
-        # Spectrum integration time for goniometer measurement
-        self.spectrum_integration_time_label = QtWidgets.QLabel(Settings)
-        self.spectrum_integration_time_label.setObjectName(
-            "spectrum_integration_time_label"
-        )
-        self.gridLayout.addWidget(self.spectrum_integration_time_label, 7, 0, 1, 1)
-        self.spectrum_integration_time_lineEdit = QtWidgets.QLineEdit(Settings)
-        self.spectrum_integration_time_lineEdit.setObjectName(
-            "spectrum_integration_time_lineEdit"
-        )
-        self.gridLayout.addWidget(self.spectrum_integration_time_lineEdit, 7, 1, 1, 1)
+        # # Spectrum integration time for goniometer measurement
+        # self.spectrum_integration_time_label = QtWidgets.QLabel(Settings)
+        # self.spectrum_integration_time_label.setObjectName(
+        #     "spectrum_integration_time_label"
+        # )
+        # self.gridLayout.addWidget(self.spectrum_integration_time_label, 7, 0, 1, 1)
+        # self.spectrum_integration_time_lineEdit = QtWidgets.QLineEdit(Settings)
+        # self.spectrum_integration_time_lineEdit.setObjectName(
+        #     "spectrum_integration_time_lineEdit"
+        # )
+        # self.gridLayout.addWidget(self.spectrum_integration_time_lineEdit, 7, 1, 1, 1)
 
         # Non-linearity correction for spectrum
         self.non_linearity_correction_label = QtWidgets.QLabel(Settings)
@@ -372,9 +372,9 @@ class Ui_Settings(object):
         self.motor_offset_label.setText(
             _translate("Settings", "Motor Offset Angle (°)")
         )
-        self.spectrum_integration_time_label.setText(
-            _translate("Settings", "Spetrometer Integration Time (ms)")
-        )
+        # self.spectrum_integration_time_label.setText(
+        #     _translate("Settings", "Spetrometer Integration Time (ms)")
+        # )
         self.non_linearity_correction_label.setText(
             _translate("Settings", "Spectrometer Non-Linearity Correction")
         )

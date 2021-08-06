@@ -244,6 +244,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_voltage_spinBox.valueChanged.connect(
             functools.partial(self.voltage_changed, "specw")
         )
+        self.specw_integration_time_spinBox.valueChanged.connect(
+            self.integration_time_changed
+        )
 
         # Connect specw pixel to toggle function
         self.specw_pixel1_pushButton.clicked.connect(
@@ -380,6 +383,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_voltage_spinBox.setSingleStep(0.1)
         self.specw_voltage_spinBox.setValue(0)
         self.specw_voltage_spinBox.setKeyboardTracking(False)
+
+        self.specw_integration_time_spinBox.setMinimum(6)
+        self.specw_integration_time_spinBox.setMaximum(10000)
+        self.specw_integration_time_spinBox.setSingleStep(50)
+        self.specw_integration_time_spinBox.setValue(300)
+        self.specw_integration_time_spinBox.setKeyboardTracking(False)
 
         # Set standard parameters for Current Tester Measurement
         self.sw_ct_voltage_spinBox.setMinimum(-200.0)
@@ -1068,12 +1077,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # -------------------------------------------------------------------- #
     # ---------------------- Spectrum Measurement  ----------------------- #
     # -------------------------------------------------------------------- #
+    def integration_time_changed(self):
+        """
+        Function that changes the real voltage when the voltage was changed
+        in the UI
+        """
+        # Read in integration time from spinBox
+        integration_time = self.specw_integration_time_spinBox.value()
+
+        # Set integration_time
+        self.spectrometer.set_integration_time_ms(integration_time)
+
     def read_spectrum_parameters(self):
         """
         Function to read out the current fields entered in the spectrum tab
         """
         spectrum_parameters = {
             "test_voltage": self.specw_voltage_spinBox.value(),
+            "integration_time": self.specw_integration_time_spinBox.value(),
             "selected_pixel": [
                 self.specw_pixel1_pushButton.isChecked(),
                 self.specw_pixel2_pushButton.isChecked(),
@@ -1099,6 +1120,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Load in setup parameters and make sure that the parameters make sense
+        global_settings = cf.read_global_settings()
         setup_parameters = self.safe_read_setup_parameters()
         spectrum_parameters = self.read_spectrum_parameters()
 
@@ -1168,6 +1190,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             + "Integration Time: "
             + str(self.spectrum_measurement.spectrometer.integration_time)
             + " ms"
+            + "Non-linearity Correction: "
+            + str(bool(global_settings["spectrometer_non_linearity_correction"]))
         )
 
         line02 = "### Measurement data ###"
@@ -1453,10 +1477,51 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         cf.log_message("Motor is moving")
 
-        # Move the motor and change the animation
+        # Here are some tweaks to ensure that the motor always moves in the
+        # right direction and does not break the cable
+        helper_move = False
+        helper_angle = 0
+        if math.isclose(self.motor.read_position(), 0, abs_tol=0.01) and math.isclose(
+            angle, 180, abs_tol=0.01
+        ):
+            helper_angle = 2
+            helper_move = True
+        elif math.isclose(
+            self.motor.read_position(), 180, abs_tol=0.01
+        ) and math.isclose(angle, 0, abs_tol=0.01):
+            helper_angle = 170
+            helper_move = True
+        elif np.sign(self.motor.read_position()) != np.sign(angle):
+            helper_angle = 0
+            helper_move = True
+
+        if helper_move:
+            self.motor.move_to(helper_angle)
+
+            # I decided to read the motor position instead of doing a virtual
+            # animation. The animation shall always show the true motor position (if
+            # the hardware allows that). The
+            motor_position = self.motor.read_position()
+            self.gw_animation.move(motor_position)
+            app.processEvents()
+            time.sleep(0.05)
+
+            while not math.isclose(0, motor_position, abs_tol=1):
+                motor_position = self.motor.read_position()
+                self.gw_animation.move(motor_position)
+                app.processEvents()
+                time.sleep(0.05)
+
+            # Update animation once more since the position might be 0.9 at this
+            # point (int comparison in the above while loop)
+            self.gw_animation.move(motor_position)
+            app.processEvents()
+
         self.motor.move_to(angle)
 
-        # I decided to read the motor position instead of doing a virtual animation. The animation shall always show the true motor position (if the hardware allows that). The
+        # I decided to read the motor position instead of doing a virtual
+        # animation. The animation shall always show the true motor position (if
+        # the hardware allows that). The
         motor_position = self.motor.read_position()
         self.gw_animation.move(motor_position)
         app.processEvents()
@@ -1603,14 +1668,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # only start the measurement when the motor is at the right position
             motor_position = self.motor.read_position()
 
-            while not math.isclose(motor_position, 45, abs_tol=0.01):
-                motor_position = self.motor.read_position()
-                self.update_animation.emit(motor_position)
-                time.sleep(0.05)
+            # while not math.isclose(motor_position, 45, abs_tol=0.01):
+            #     motor_position = self.motor.read_position()
+            #     self.update_animation.emit(motor_position)
+            #     time.sleep(0.05)
 
-            # Update animation once more since the position might be 0.9 at this
-            # point (int comparison in the above while loop)
-            self.update_animation.emit(motor_position)
+            # # Update animation once more since the position might be 0.9 at this
+            # # point (int comparison in the above while loop)
+            # self.update_animation.emit(motor_position)
             self.motor.clean_up()
 
         except Exception as e:
