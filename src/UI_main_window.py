@@ -221,14 +221,6 @@ class Ui_MainWindow(object):
         self.sw_folder_path_label.setObjectName("sw_folder_path_label")
         self.gridLayout_7.addWidget(self.sw_folder_path_label, 1, 0, 1, 1)
 
-        # Setup widget current tester voltage
-        self.sw_ct_voltage_spinBox = HumbleDoubleSpinBox(self.setup_widget)
-        self.sw_ct_voltage_spinBox.setObjectName("sw_ct_voltage_spinBox")
-        self.gridLayout_7.addWidget(self.sw_ct_voltage_spinBox, 8, 1, 1, 1)
-        self.sw_change_voltage_label = QtWidgets.QLabel(self.setup_widget)
-        self.sw_change_voltage_label.setObjectName("sw_change_voltage_label")
-        self.gridLayout_7.addWidget(self.sw_change_voltage_label, 8, 0, 1, 1)
-
         # Setup widget batch name
         self.sw_batch_name_label = QtWidgets.QLabel(self.setup_widget)
         self.sw_batch_name_label.setObjectName("sw_batch_name_label")
@@ -276,10 +268,22 @@ class Ui_MainWindow(object):
         self.sw_select_pixel_widget.setObjectName("sw_select_pixel_widget")
         self.gridLayout_6 = QtWidgets.QGridLayout(self.sw_select_pixel_widget)
         self.gridLayout_6.setObjectName("gridLayout_6")
-        self.sw_pixel_label = QtWidgets.QLabel(self.sw_select_pixel_widget)
-        self.sw_pixel_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
-        self.sw_pixel_label.setObjectName("sw_pixel_label")
-        self.gridLayout_6.addWidget(self.sw_pixel_label, 1, 0, 1, 1)
+
+        # Top or bottom emitting
+        self.sw_top_emitting_HLayout = QtWidgets.QHBoxLayout()
+        self.sw_top_emitting_toggleSwitch = ToggleSwitch()
+        self.sw_top_emitting_label = QtWidgets.QLabel("Top Emitting")
+        self.sw_top_emitting_HLayout.addWidget(self.sw_top_emitting_toggleSwitch)
+        self.sw_top_emitting_HLayout.addWidget(self.sw_top_emitting_label)
+        self.gridLayout_6.addLayout(self.sw_top_emitting_HLayout, 0, 0, 1, 2)
+
+        # pin or nip
+        self.sw_nip_HLayout = QtWidgets.QHBoxLayout()
+        self.sw_nip_toggleSwitch = ToggleSwitch()
+        self.sw_nip_label = QtWidgets.QLabel("nip configuration")
+        self.sw_nip_HLayout.addWidget(self.sw_nip_toggleSwitch)
+        self.sw_nip_HLayout.addWidget(self.sw_nip_label)
+        self.gridLayout_6.addLayout(self.sw_nip_HLayout, 1, 0, 1, 2)
 
         # Activate local mode button
         self.sw_reset_hardware_pushButton = QtWidgets.QPushButton(
@@ -287,7 +291,13 @@ class Ui_MainWindow(object):
         )
         self.sw_reset_hardware_pushButton.setObjectName("sw_reset_hardware_pushButton")
         # self.sw_reset_hardware_horizontalLayout.addWidget(self.sw_browse_pushButton)
-        self.gridLayout_6.addWidget(self.sw_reset_hardware_pushButton, 0, 0, 1, 2)
+        self.gridLayout_6.addWidget(self.sw_reset_hardware_pushButton, 2, 0, 1, 2)
+
+        # Select pixel label
+        self.sw_pixel_label = QtWidgets.QLabel(self.sw_select_pixel_widget)
+        self.sw_pixel_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.sw_pixel_label.setObjectName("sw_pixel_label")
+        self.gridLayout_6.addWidget(self.sw_pixel_label, 3, 0, 1, 1)
 
         # Pixel 1
         self.sw_pixel1_pushButton = QtWidgets.QPushButton(self.sw_select_pixel_widget)
@@ -305,35 +315,35 @@ class Ui_MainWindow(object):
         self.sw_pixel1_pushButton.setChecked(False)
         self.sw_pixel1_pushButton.setAutoRepeat(False)
         self.sw_pixel1_pushButton.setObjectName("sw_pixel1_pushButton")
-        self.gridLayout_6.addWidget(self.sw_pixel1_pushButton, 2, 0, 1, 1)
+        self.gridLayout_6.addWidget(self.sw_pixel1_pushButton, 4, 0, 1, 1)
 
         # Pixel 2
         self.sw_pixel2_pushButton = QtWidgets.QPushButton(self.sw_select_pixel_widget)
         self.sw_pixel2_pushButton.setCheckable(True)
         self.sw_pixel2_pushButton.setChecked(False)
         self.sw_pixel2_pushButton.setObjectName("sw_pixel2_pushButton")
-        self.gridLayout_6.addWidget(self.sw_pixel2_pushButton, 4, 0, 1, 1)
+        self.gridLayout_6.addWidget(self.sw_pixel2_pushButton, 5, 0, 1, 1)
 
         # Pixel 3
         self.sw_pixel3_pushButton = QtWidgets.QPushButton(self.sw_select_pixel_widget)
         self.sw_pixel3_pushButton.setCheckable(True)
         self.sw_pixel3_pushButton.setChecked(False)
         self.sw_pixel3_pushButton.setObjectName("sw_pixel3_pushButton")
-        self.gridLayout_6.addWidget(self.sw_pixel3_pushButton, 5, 0, 1, 1)
+        self.gridLayout_6.addWidget(self.sw_pixel3_pushButton, 6, 0, 1, 1)
 
         # Pixel 4
         self.sw_pixel4_pushButton = QtWidgets.QPushButton(self.sw_select_pixel_widget)
         self.sw_pixel4_pushButton.setCheckable(True)
         self.sw_pixel4_pushButton.setChecked(False)
         self.sw_pixel4_pushButton.setObjectName("sw_pixel4_pushButton")
-        self.gridLayout_6.addWidget(self.sw_pixel4_pushButton, 6, 0, 1, 1)
+        self.gridLayout_6.addWidget(self.sw_pixel4_pushButton, 7, 0, 1, 1)
 
         # Pixel 5
         self.sw_pixel5_pushButton = QtWidgets.QPushButton(self.sw_select_pixel_widget)
         self.sw_pixel5_pushButton.setCheckable(True)
         self.sw_pixel5_pushButton.setChecked(False)
         self.sw_pixel5_pushButton.setObjectName("sw_pixel5_pushButton")
-        self.gridLayout_6.addWidget(self.sw_pixel5_pushButton, 2, 1, 1, 1)
+        self.gridLayout_6.addWidget(self.sw_pixel5_pushButton, 4, 1, 1, 1)
 
         # Pixel 6
         self.sw_pixel6_pushButton = QtWidgets.QPushButton(self.sw_select_pixel_widget)
@@ -341,21 +351,21 @@ class Ui_MainWindow(object):
         self.sw_pixel6_pushButton.setCheckable(True)
         self.sw_pixel6_pushButton.setChecked(False)
         self.sw_pixel6_pushButton.setObjectName("sw_pixel6_pushButton")
-        self.gridLayout_6.addWidget(self.sw_pixel6_pushButton, 4, 1, 1, 1)
+        self.gridLayout_6.addWidget(self.sw_pixel6_pushButton, 5, 1, 1, 1)
 
         # Pixel 7
         self.sw_pixel7_pushButton = QtWidgets.QPushButton(self.sw_select_pixel_widget)
         self.sw_pixel7_pushButton.setCheckable(True)
         self.sw_pixel7_pushButton.setChecked(False)
         self.sw_pixel7_pushButton.setObjectName("sw_pixel7_pushButton")
-        self.gridLayout_6.addWidget(self.sw_pixel7_pushButton, 5, 1, 1, 1)
+        self.gridLayout_6.addWidget(self.sw_pixel7_pushButton, 6, 1, 1, 1)
 
         # Pixel 8
         self.sw_pixel8_pushButton = QtWidgets.QPushButton(self.sw_select_pixel_widget)
         self.sw_pixel8_pushButton.setCheckable(True)
         self.sw_pixel8_pushButton.setChecked(False)
         self.sw_pixel8_pushButton.setObjectName("sw_pixel8_pushButton")
-        self.gridLayout_6.addWidget(self.sw_pixel8_pushButton, 6, 1, 1, 1)
+        self.gridLayout_6.addWidget(self.sw_pixel8_pushButton, 7, 1, 1, 1)
 
         # Select all
         self.sw_select_all_pushButton = QtWidgets.QPushButton(
@@ -382,6 +392,15 @@ class Ui_MainWindow(object):
         )
         self.sw_auto_test_pushButton.setObjectName("sw_auto_test_pushButton")
         self.gridLayout_6.addWidget(self.sw_auto_test_pushButton, 9, 1, 1, 1)
+
+        # Setup widget current tester voltage
+
+        self.sw_change_voltage_label = QtWidgets.QLabel(self.setup_widget)
+        self.sw_change_voltage_label.setObjectName("sw_change_voltage_label")
+        self.gridLayout_6.addWidget(self.sw_change_voltage_label, 10, 0, 1, 2)
+        self.sw_ct_voltage_spinBox = HumbleDoubleSpinBox(self.setup_widget)
+        self.sw_ct_voltage_spinBox.setObjectName("sw_ct_voltage_spinBox")
+        self.gridLayout_6.addWidget(self.sw_ct_voltage_spinBox, 11, 0, 1, 2)
 
         self.gridLayout_7.addWidget(self.sw_select_pixel_widget, 5, 0, 1, 1)
 
@@ -1484,9 +1503,7 @@ class Ui_MainWindow(object):
         self.sw_pixel7_pushButton.setText(_translate("MainWindow", "7"))
         self.sw_pixel6_pushButton.setText(_translate("MainWindow", "6"))
         self.sw_pixel5_pushButton.setText(_translate("MainWindow", "5"))
-        self.sw_change_voltage_label.setText(
-            _translate("MainWindow", "Change Voltage (V)")
-        )
+        self.sw_change_voltage_label.setText(_translate("MainWindow", "Voltage (V)"))
         # self.sw_documentation_label.setToolTip(
         # _translate(
         # "MainWindow",

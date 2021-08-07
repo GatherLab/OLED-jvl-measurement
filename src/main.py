@@ -134,6 +134,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sw_reset_hardware_pushButton.clicked.connect(self.reset_hardware)
         self.sw_browse_pushButton.clicked.connect(self.browse_folder)
 
+        # Connect toggle switches
+        self.sw_top_emitting_toggleSwitch.clicked.connect(self.mirror_goniometer_angles)
+        self.sw_nip_toggleSwitch.clicked.connect(self.reverse_all_voltages)
+
         # Connect sw pixel to toggle function
         self.sw_pixel1_pushButton.clicked.connect(
             functools.partial(self.toggle_pixel, 1, "sw")
@@ -930,6 +934,33 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update statusbar
         cf.log_message("Finished auto testing pixels")
+
+    def mirror_goniometer_angles(self):
+        """
+        Function to mirror the goniometer angles for top emitting OLEDs
+        """
+        if self.sw_top_emitting_toggleSwitch.isChecked():
+            self.motor.offset_angle += 180
+            cf.log_message(
+                "Motor offset angle increased by 180° to account for top emitting device."
+            )
+        else:
+            self.motor.offset_angle -= 180
+            cf.log_message(
+                "Motor offset angle set back to original value for bottom emitting device."
+            )
+
+    def reverse_all_voltages(self):
+        """
+        Reverse all voltages to prevent the user from needing to swap the cables
+        of the source. However, keep the readings and entires positive.
+        """
+        if self.sw_nip_toggleSwitch.isChecked():
+            self.keithley_source.reverse = -1
+            cf.log_message("All voltages are reversed")
+        else:
+            self.keithley_source.reverse = 1
+            cf.log_message("Voltages are not reversed")
 
     # -------------------------------------------------------------------- #
     # ---------------------- Autotube Measurement  ----------------------- #

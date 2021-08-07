@@ -187,6 +187,9 @@ class KeithleySource:
         # Set voltage mode indicator
         self.mode = "voltage"
 
+        # Reverse voltages
+        self.reverse = 1
+
     def as_voltage_source(self, current_compliance):
         """
         Function that initalises the Keithley as a voltage source
@@ -291,13 +294,13 @@ class KeithleySource:
         """
         Read current on Keithley source meter
         """
-        return float(self.keith.query("MEASure:CURRent:DC?"))
+        return float(self.reverse * self.keith.query("MEASure:CURRent:DC?"))
 
     def read_voltage(self):
         """
         Read voltage on Keithley source meter
         """
-        return float(self.keith.query("MEASure:VOLTage:DC?"))
+        return float(self.reverse * self.keith.query("MEASure:VOLTage:DC?"))
 
     def read_buffer(self, buffer_name):
         return float(self.keith.query('Read? "' + buffer_name + '"')[:-1])
@@ -309,7 +312,7 @@ class KeithleySource:
 
         self.mutex.lock()
         if self.mode == "voltage":
-            self.keith.write("Source:Volt " + str(voltage))
+            self.keith.write("Source:Volt " + str(self.reverse * voltage))
         else:
             logging.warning(
                 "You can not set the voltage of the Keithley source in current mode"
@@ -323,7 +326,7 @@ class KeithleySource:
         self.mutex.lock()
         # set current to source_value
         if self.mode == "current":
-            self.keith.write("Source:Current " + str(current))
+            self.keith.write("Source:Current " + str(self.reverse * current))
         else:
             logging.warning(
                 "You can not set the current of the Keithley source in voltage mode"
