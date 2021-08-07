@@ -131,7 +131,7 @@ class Ui_LoadingWindow(object):
         _translate = QtCore.QCoreApplication.translate
         LoadingWindow.setWindowTitle(_translate("LoadingWindow", u"MainWindow", None))
         self.label_title.setText(
-            _translate("LoadingWindow", u"<strong>OLED</strong> Measurement", None)
+            _translate("LoadingWindow", u"<strong>OLED</strong> Characterisation", None)
         )
         self.label_description.setText(
             _translate("LoadingWindow", u"<strong>APP</strong> DESCRIPTION", None)
