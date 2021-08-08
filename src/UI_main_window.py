@@ -258,13 +258,13 @@ class Ui_MainWindow(object):
             QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
         )
         sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(
             self.sw_select_pixel_widget.sizePolicy().hasHeightForWidth()
         )
         self.sw_select_pixel_widget.setSizePolicy(sizePolicy)
-        self.sw_select_pixel_widget.setMinimumSize(QtCore.QSize(100, 0))
-        self.sw_select_pixel_widget.setMaximumSize(QtCore.QSize(171, 200))
+        # self.sw_select_pixel_widget.setMinimumSize(QtCore.QSize(150, 0))
+        # self.sw_select_pixel_widget.setMaximumSize(QtCore.QSize(250, 200))
         self.sw_select_pixel_widget.setObjectName("sw_select_pixel_widget")
         self.gridLayout_6 = QtWidgets.QGridLayout(self.sw_select_pixel_widget)
         self.gridLayout_6.setObjectName("gridLayout_6")
@@ -384,6 +384,7 @@ class Ui_MainWindow(object):
         # Prebias all
         self.sw_prebias_pushButton = QtWidgets.QPushButton(self.sw_select_pixel_widget)
         self.sw_prebias_pushButton.setObjectName("sw_prebias_pushButton")
+        self.sw_prebias_pushButton.setMinimumHeight(10)
         self.gridLayout_6.addWidget(self.sw_prebias_pushButton, 9, 0, 1, 1)
 
         # Autotest all
@@ -395,10 +396,10 @@ class Ui_MainWindow(object):
 
         # Setup widget current tester voltage
 
-        self.sw_change_voltage_label = QtWidgets.QLabel(self.setup_widget)
+        self.sw_change_voltage_label = QtWidgets.QLabel(self.sw_select_pixel_widget)
         self.sw_change_voltage_label.setObjectName("sw_change_voltage_label")
         self.gridLayout_6.addWidget(self.sw_change_voltage_label, 10, 0, 1, 2)
-        self.sw_ct_voltage_spinBox = HumbleDoubleSpinBox(self.setup_widget)
+        self.sw_ct_voltage_spinBox = HumbleDoubleSpinBox(self.sw_select_pixel_widget)
         self.sw_ct_voltage_spinBox.setObjectName("sw_ct_voltage_spinBox")
         self.gridLayout_6.addWidget(self.sw_ct_voltage_spinBox, 11, 0, 1, 2)
 
