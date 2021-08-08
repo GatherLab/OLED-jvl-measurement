@@ -102,23 +102,23 @@ class AutotubeMeasurement(QtCore.QThread):
             pd_position = 90
             self.parent.motor.move_to(pd_position)
 
-            motor_position = self.parent.motor.read_position()
-            motor_position_initial = self.parent.motor.read_position()
+            # motor_position = self.parent.motor.read_position()
+            # motor_position_initial = self.parent.motor.read_position()
 
-            while not math.isclose(pd_position, motor_position, abs_tol=0.01):
-                motor_position = self.parent.motor.read_position()
+            # while not math.isclose(pd_position, motor_position, abs_tol=0.01):
+            #     motor_position = self.parent.motor.read_position()
 
-                self.update_progress_bar.emit(
-                    "value",
-                    int(
-                        abs(motor_position - motor_position_initial)
-                        / abs(pd_position - motor_position_initial)
-                        * 100
-                    ),
-                )
-                time.sleep(0.05)
+            #     self.update_progress_bar.emit(
+            #         "value",
+            #         int(
+            #             abs(motor_position - motor_position_initial)
+            #             / abs(pd_position - motor_position_initial)
+            #             * 100
+            #         ),
+            #     )
+            #     time.sleep(0.05)
 
-            self.parent.gw_animation.move(motor_position)
+            # self.parent.gw_animation.move(motor_position)
 
         cf.log_message("Motor arrived at Photodiode Position")
 
@@ -296,24 +296,24 @@ class AutotubeMeasurement(QtCore.QThread):
             spectrometer_position = 0
             self.parent.motor.move_to(spectrometer_position)
 
-            motor_position = self.parent.motor.read_position()
-            motor_position_initial = self.parent.motor.read_position()
+            # motor_position = self.parent.motor.read_position()
+            # motor_position_initial = self.parent.motor.read_position()
 
-            while not math.isclose(0, motor_position, abs_tol=0.01):
-                motor_position = self.parent.motor.read_position()
+            # while not math.isclose(0, motor_position, abs_tol=0.01):
+            #     motor_position = self.parent.motor.read_position()
 
-                self.update_progress_bar.emit(
-                    "value",
-                    int(
-                        abs(motor_position - motor_position_initial)
-                        / abs(spectrometer_position - motor_position_initial)
-                        * 100
-                    ),
-                )
+            #     self.update_progress_bar.emit(
+            #         "value",
+            #         int(
+            #             abs(motor_position - motor_position_initial)
+            #             / abs(spectrometer_position - motor_position_initial)
+            #             * 100
+            #         ),
+            #     )
 
-                time.sleep(0.05)
+            #     time.sleep(0.05)
 
-            self.parent.gw_animation.move(motor_position)
+            # self.parent.gw_animation.move(motor_position)
 
             cf.log_message("Motor finished moving to Spectrometer Position")
 

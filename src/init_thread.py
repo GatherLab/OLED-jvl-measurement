@@ -97,14 +97,18 @@ class InitThread(QtCore.QThread):
         # Try if motor can be easily initialised
         try:
             motor = ThorlabMotor(
-                global_settings["motor_number"], global_settings["motor_offset"]
+                global_settings["motor_number"],
+                global_settings["motor_offset"],
+                self.widget.parent,
             )
             motor.motor.move_home(True)
             cf.log_message("Motor successfully initialised")
             motor_init = True
         except Exception as e:
             motor = MockThorlabMotor(
-                global_settings["motor_number"], global_settings["motor_offset"]
+                global_settings["motor_number"],
+                global_settings["motor_offset"],
+                self.widget.parent,
             )
             cf.log_message(
                 "Motor could not be initialised! Please reconnect the device and check the serial number in the settings file!"

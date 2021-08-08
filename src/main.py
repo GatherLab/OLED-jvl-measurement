@@ -941,13 +941,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         if self.sw_top_emitting_toggleSwitch.isChecked():
             self.motor.offset_angle += 180
+            self.motor.move_to(0)
             cf.log_message(
-                "Motor offset angle increased by 180° to account for top emitting device."
+                "Motor offset angle increased by 180° and motor is moving to new zero position to account for top emitting device."
             )
         else:
             self.motor.offset_angle -= 180
+            self.motor.move_to(0)
             cf.log_message(
-                "Motor offset angle set back to original value for bottom emitting device."
+                "Motor offset angle set back to original value and motor is moving to new zeor position to account for bottom emitting device."
             )
 
     def reverse_all_voltages(self):
@@ -1533,44 +1535,44 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # I decided to read the motor position instead of doing a virtual
             # animation. The animation shall always show the true motor position (if
             # the hardware allows that). The
-            motor_position = self.motor.read_position()
-            self.gw_animation.move(motor_position)
-            app.processEvents()
-            time.sleep(0.05)
+            # motor_position = self.motor.read_position()
+            # self.gw_animation.move(motor_position)
+            # app.processEvents()
+            # time.sleep(0.05)
 
-            while not math.isclose(0, motor_position, abs_tol=1):
-                motor_position = self.motor.read_position()
-                self.gw_animation.move(motor_position)
-                app.processEvents()
-                time.sleep(0.05)
+            # while not math.isclose(0, motor_position, abs_tol=1):
+            #     motor_position = self.motor.read_position()
+            #     self.gw_animation.move(motor_position)
+            #     app.processEvents()
+            #     time.sleep(0.05)
 
-            # Update animation once more since the position might be 0.9 at this
-            # point (int comparison in the above while loop)
-            self.gw_animation.move(motor_position)
-            app.processEvents()
+            # # Update animation once more since the position might be 0.9 at this
+            # # point (int comparison in the above while loop)
+            # self.gw_animation.move(motor_position)
+            # app.processEvents()
 
         self.motor.move_to(angle)
 
         # I decided to read the motor position instead of doing a virtual
         # animation. The animation shall always show the true motor position (if
         # the hardware allows that). The
-        motor_position = self.motor.read_position()
-        self.gw_animation.move(motor_position)
-        app.processEvents()
-        time.sleep(0.05)
+        # motor_position = self.motor.read_position()
+        # self.gw_animation.move(motor_position)
+        # app.processEvents()
+        # time.sleep(0.05)
 
-        while not math.isclose(angle, motor_position, abs_tol=0.01):
-            motor_position = self.motor.read_position()
-            self.gw_animation.move(motor_position)
-            app.processEvents()
-            time.sleep(0.05)
+        # while not math.isclose(angle, motor_position, abs_tol=0.01):
+        #     motor_position = self.motor.read_position()
+        #     self.gw_animation.move(motor_position)
+        #     app.processEvents()
+        #     time.sleep(0.05)
 
-        # Update animation once more since the position might be 0.9 at this
-        # point (int comparison in the above while loop)
-        self.gw_animation.move(motor_position)
-        app.processEvents()
+        # # Update animation once more since the position might be 0.9 at this
+        # # point (int comparison in the above while loop)
+        # self.gw_animation.move(motor_position)
+        # app.processEvents()
 
-        cf.log_message("Motor moved to " + str(angle) + " °")
+        # cf.log_message("Motor moved to " + str(angle) + " °")
 
     def disable_el_options(self):
         """
@@ -1694,11 +1696,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Kill motor savely
         try:
             # Move motor back go home position
-            self.motor.move_to(45)
+            self.motor.move_to(self.motor.offset_angle)
 
             # Instead of defining a moving time, just read the motor position and
             # only start the measurement when the motor is at the right position
-            motor_position = self.motor.read_position()
+            # motor_position = self.motor.read_position()
 
             # while not math.isclose(motor_position, 45, abs_tol=0.01):
             #     motor_position = self.motor.read_position()

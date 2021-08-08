@@ -33,7 +33,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
     update_goniometer_spectrum_signal = QtCore.Signal(list, list)
     update_simple_spectrum_signal = QtCore.Signal(list, list)
-    update_animation = QtCore.Signal(float)
+    # update_animation = QtCore.Signal(float)
     update_progress_bar = QtCore.Signal(str, float)
     hide_progress_bar = QtCore.Signal()
     pause_thread_pl = QtCore.Signal(str)
@@ -85,7 +85,7 @@ class GoniometerMeasurement(QtCore.QThread):
         self.update_simple_spectrum_signal.connect(
             parent.update_goniometer_simple_spectrum
         )
-        self.update_animation.connect(parent.gw_animation.move)
+        # self.update_animation.connect(parent.gw_animation.move)
         self.update_progress_bar.connect(parent.progressBar.setProperty)
         self.hide_progress_bar.connect(parent.progressBar.hide)
         self.pause_thread_pl.connect(parent.pause_goniometer_measurement)
@@ -120,18 +120,18 @@ class GoniometerMeasurement(QtCore.QThread):
         # Move to initial position which is the offset position
         self.motor.move_to(0)
 
-        # Instead of defining a homeing time, just read the motor position and
-        # only start the measurement when the motor is at the right position
-        motor_position = self.motor.read_position()
+        # # Instead of defining a homeing time, just read the motor position and
+        # # only start the measurement when the motor is at the right position
+        # motor_position = self.motor.read_position()
 
-        while not math.isclose(motor_position, 0, abs_tol=0.01):
-            motor_position = self.motor.read_position()
-            self.update_animation.emit(motor_position)
-            time.sleep(0.05)
+        # while not math.isclose(motor_position, 0, abs_tol=0.01):
+        #     motor_position = self.motor.read_position()
+        #     self.update_animation.emit(motor_position)
+        #     time.sleep(0.05)
 
-        # Update animation once more since the position might be 0.9 at this
-        # point (int comparison in the above while loop)
-        self.update_animation.emit(motor_position)
+        # # Update animation once more since the position might be 0.9 at this
+        # # point (int comparison in the above while loop)
+        # self.update_animation.emit(motor_position)
 
         # Wait one additional second (not really needed but only to be on the
         # save side)
@@ -207,30 +207,30 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # Instead of defining a homeing time, just read the motor position and
         # only start the measurement when the motor is at the right position
-        motor_position = self.motor.read_position()
+        # motor_position = self.motor.read_position()
 
-        while not math.isclose(
-            motor_position,
-            self.goniometer_measurement_parameters["minimum_angle"],
-            abs_tol=0.01,
-        ):
-            motor_position = self.motor.read_position()
-            self.update_animation.emit(motor_position)
-            time.sleep(0.05)
+        # while not math.isclose(
+        #     motor_position,
+        #     self.goniometer_measurement_parameters["minimum_angle"],
+        #     abs_tol=0.01,
+        # ):
+        #     motor_position = self.motor.read_position()
+        #     self.update_animation.emit(motor_position)
+        #     time.sleep(0.05)
 
         # Update animation once more since the position might be 0.9 at this
         # point (int comparison in the above while loop)
-        self.update_animation.emit(motor_position)
+        # self.update_animation.emit(motor_position)
 
         # Wait one additional second (not really needed but only to be on the
         # save side)
         time.sleep(1)
 
-        cf.log_message(
-            "Motor moved to minimum angle: "
-            + str(self.goniometer_measurement_parameters["minimum_angle"])
-            + " °"
-        )
+        # cf.log_message(
+        # "Motor moved to minimum angle: "
+        # + str(self.goniometer_measurement_parameters["minimum_angle"])
+        # + " °"
+        # )
         # time.sleep(self.goniometer_measurement_parameters["homing_time"])
 
         # Take calibration readings
@@ -304,23 +304,23 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # Instead of defining a moving time, just read the motor position and
             # only start the measurement when the motor is at the right position
-            motor_position = self.motor.read_position()
+            # motor_position = self.motor.read_position()
 
-            while not math.isclose(motor_position, angle, abs_tol=0.01):
-                motor_position = self.motor.read_position()
-                self.update_animation.emit(motor_position)
-                time.sleep(0.05)
+            # while not math.isclose(motor_position, angle, abs_tol=0.01):
+            #     motor_position = self.motor.read_position()
+            #     self.update_animation.emit(motor_position)
+            #     time.sleep(0.05)
 
-            # Update animation once more since the position might be 0.9 at this
-            # point (int comparison in the above while loop)
-            self.update_animation.emit(motor_position)
+            # # Update animation once more since the position might be 0.9 at this
+            # # point (int comparison in the above while loop)
+            # self.update_animation.emit(motor_position)
 
             # Wait an additional half a second (not really needed but only to be on the
             # save side)
             time.sleep(0.5)
 
             # time.sleep(self.goniometer_measurement_parameters["moving_time"])
-            cf.log_message("Moved to angle " + str(angle) + " °")
+            # cf.log_message("Moved to angle " + str(angle) + " °")
 
             # Only activate output for EL measurement
             if not self.goniometer_measurement_parameters["el_or_pl"]:
@@ -408,20 +408,20 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # Instead of defining a moving time, just read the motor position and
             # only start the measurement when the motor is at the right position
-            motor_position = self.motor.read_position()
+            # motor_position = self.motor.read_position()
 
-            while not math.isclose(
-                motor_position,
-                self.goniometer_measurement_parameters["minimum_angle"],
-                abs_tol=0.01,
-            ):
-                motor_position = self.motor.read_position()
-                self.update_animation.emit(motor_position)
-                time.sleep(0.05)
+            # while not math.isclose(
+            #     motor_position,
+            #     self.goniometer_measurement_parameters["minimum_angle"],
+            #     abs_tol=0.01,
+            # ):
+            #     motor_position = self.motor.read_position()
+            #     self.update_animation.emit(motor_position)
+            #     time.sleep(0.05)
 
-            # Update animation once more since the position might be 0.9 at this
-            # point (int comparison in the above while loop)
-            self.update_animation.emit(motor_position)
+            # # Update animation once more since the position might be 0.9 at this
+            # # point (int comparison in the above while loop)
+            # self.update_animation.emit(motor_position)
 
             self.elapsed_time_degradation_check = round(time.time() - starting_time, 2)
             cf.log_message(

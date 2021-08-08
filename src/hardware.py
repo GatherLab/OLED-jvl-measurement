@@ -14,6 +14,7 @@ import time
 import logging
 import re
 import numpy as np
+import math
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -479,7 +480,9 @@ class ThorlabMotor:
     Class to control the thorlab motors
     """
 
-    def __init__(self, motor_number, offset_angle):
+    update_animation = QtCore.Signal(float)
+
+    def __init__(self, motor_number, offset_angle, main_widget):
         # Define a mutex
         self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
 
@@ -501,6 +504,8 @@ class ThorlabMotor:
         self.motor.set_move_home_parameters(2, 1, 10, 3)
         # Move the motor home first, so that we can work with absolute positions
         # self.motor.move_home(True)
+
+        self.update_animation.connect(main_widget.gw_animation.move)
 
         self.offset_angle = offset_angle
 
@@ -553,6 +558,22 @@ class ThorlabMotor:
         # self.motor.move_velocity(int(direction))
 
         self.motor.move_to(angle - float(self.offset_angle), blocking)
+
+        # Instead of defining a homeing time, just read the motor position and
+        # only start the measurement when the motor is at the right position
+        motor_position = self.read_position()
+
+        while not math.isclose(motor_position, angle, abs_tol=0.01):
+            motor_position = self.read_position()
+            self.update_animation.emit(motor_position)
+            time.sleep(0.01)
+
+        # Update animation once more since the position might be 0.9 at this
+        # point (int comparison in the above while loop)
+        self.update_animation.emit(motor_position)
+
+        cf.log_message("Motor moved to " + str(angle) + " ° angle.")
+
         self.mutex.unlock()
 
     def read_position(self):
