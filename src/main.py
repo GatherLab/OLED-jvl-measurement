@@ -378,7 +378,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.gw_homing_time_spinBox.setValue(30)
         # self.gw_moving_time_spinBox.setValue(1)
         # self.gw_oled_on_time_spinBox.setValue(2)
-        self.gw_vc_value_spinBox.setValue(5)
+        self.gw_vc_value_spinBox.setValue(3.5)
         self.gw_vc_compliance_spinBox.setValue(1.05)
 
         # Set standard parameters for Spectral Measurement
@@ -1515,10 +1515,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # right direction and does not break the cable
         helper_move = False
         helper_angle = 0
-        if math.isclose(self.motor.read_position(), 0, abs_tol=0.01) and math.isclose(
-            angle, 180, abs_tol=0.01
-        ):
-            helper_angle = 2
+        if math.isclose(angle, 180, abs_tol=0.01):
+            helper_angle = 1
             helper_move = True
         elif math.isclose(
             self.motor.read_position(), 180, abs_tol=0.01
@@ -1540,11 +1538,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # app.processEvents()
             # time.sleep(0.05)
 
+<<<<<<< Updated upstream
             # while not math.isclose(0, motor_position, abs_tol=1):
             #     motor_position = self.motor.read_position()
             #     self.gw_animation.move(motor_position)
             #     app.processEvents()
             #     time.sleep(0.05)
+=======
 
             # # Update animation once more since the position might be 0.9 at this
             # # point (int comparison in the above while loop)

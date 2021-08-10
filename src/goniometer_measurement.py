@@ -115,34 +115,35 @@ class GoniometerMeasurement(QtCore.QThread):
 
         import pydevd
 
-        pydevd.settrace(suspend=False)
-
-        # Move to initial position which is the offset position
-        self.motor.move_to(0)
-
-        # # Instead of defining a homeing time, just read the motor position and
-        # # only start the measurement when the motor is at the right position
-        # motor_position = self.motor.read_position()
-
-        # while not math.isclose(motor_position, 0, abs_tol=0.01):
-        #     motor_position = self.motor.read_position()
-        #     self.update_animation.emit(motor_position)
-        #     time.sleep(0.05)
-
-        # # Update animation once more since the position might be 0.9 at this
-        # # point (int comparison in the above while loop)
-        # self.update_animation.emit(motor_position)
-
-        # Wait one additional second (not really needed but only to be on the
-        # save side)
-        time.sleep(1)
-
-        # time.sleep(self.goniometer_measurement_parameters["homing_time"])
-        cf.log_message("Moved to home position")
+        # pydevd.settrace(suspend=False)
 
         # The following is only needed for EL measurement
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             if self.goniometer_measurement_parameters["voltage_scan"]:
+                # Move to initial position which is the offset position
+                pd_position = 90
+                self.motor.move_to(pd_position)
+
+                # # Instead of defining a homeing time, just read the motor position and
+                # # only start the measurement when the motor is at the right position
+                # motor_position = self.motor.read_position()
+
+                # while not math.isclose(motor_position, 0, abs_tol=0.01):
+                #     motor_position = self.motor.read_position()
+                #     self.update_animation.emit(motor_position)
+                #     time.sleep(0.05)
+
+                # # Update animation once more since the position might be 0.9 at this
+                # # point (int comparison in the above while loop)
+                # self.update_animation.emit(motor_position)
+
+                # Wait one additional second (not really needed but only to be on the
+                # save side)
+                time.sleep(1)
+
+                # time.sleep(self.goniometer_measurement_parameters["homing_time"])
+                cf.log_message("Moved to PD position")
+
                 multimeter_latency = cf.read_global_settings()["multimeter_latency"]
 
                 autotube_measurement = AutotubeMeasurement(
@@ -184,7 +185,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 )
                 cf.log_message("Keithley source initialised as current source")
 
-            self.keithley_source.init_buffer("pulsebuffer", buffer_length=1000)
+            # self.keithley_source.init_buffer("pulsebuffer", buffer_length=1000)
 
             # Now activate the output to measure the specific voltages/current
             self.uno.trigger_relay(self.pixel[0])
@@ -198,7 +199,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # Deactivate output
             self.keithley_source.deactivate_output()
-            self.uno.trigger_relay(relay=0)
+            self.uno.trigger_relay(0)
 
             cf.log_message("Specific voltages measured")
 
@@ -258,7 +259,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # If el measurement was selected, activate the selected pixel already
         if not self.goniometer_measurement_parameters["el_or_pl"]:
-            self.uno.trigger_relay(self.pixel[0])
+            self.keithley_source.activate_output()
         else:
             # Check first if user already aborted the measurement
             if self.pause == "return":
@@ -324,7 +325,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # Only activate output for EL measurement
             if not self.goniometer_measurement_parameters["el_or_pl"]:
-                self.keithley_source.activate_output()
+                self.uno.trigger_relay(self.pixel[0])
 
                 # The pulse duration is a valid parameter for the EL
                 # measurements but hinders fast scans for PL measurements
@@ -381,7 +382,8 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # Only deactivate output for el (otherwise it was never activated)
             if not self.goniometer_measurement_parameters["el_or_pl"]:
-                self.keithley_source.deactivate_output()
+                # self.keithley_source.deactivate_output()
+                self.uno.trigger_relay(self.pixel[0])
 
             # Calculate the processing time it took
             # end_process = time.process_time()
@@ -468,8 +470,10 @@ class GoniometerMeasurement(QtCore.QThread):
 
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             # Close relay only
-            self.uno.trigger_relay(relay=0)
+            # self.uno.trigger_relay(relay=0)
+            # self.uno.trigger_relay(self.pixel[0])
             # self.uno.close_serial_connection()  # close COM port
+            self.keithley_source.deactivate_output()
 
             # Only save iv data for el measurement, because it otherwise does not exist
             self.iv_data = pd.DataFrame(rows_list)
