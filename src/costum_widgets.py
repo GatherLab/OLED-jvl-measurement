@@ -10,6 +10,8 @@ from PySide2.QtWidgets import (
     QWidget,
 )
 
+import time
+
 
 class Ui_GoniometerAnimation(QtWidgets.QWidget):
     """
@@ -114,6 +116,7 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
             str(self.position) + "°",
         )
         painter.end()
+        time.sleep(0.05)
 
     def _trigger_refresh(self):
         self.update()

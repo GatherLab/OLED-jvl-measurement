@@ -115,7 +115,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         import pydevd
 
-        # pydevd.settrace(suspend=False)
+        pydevd.settrace(suspend=False)
 
         # The following is only needed for EL measurement
         if not self.goniometer_measurement_parameters["el_or_pl"]:
@@ -203,6 +203,8 @@ class GoniometerMeasurement(QtCore.QThread):
 
             cf.log_message("Specific voltages measured")
 
+            time.sleep(0.5)
+
         # PL from here on
         self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
 
@@ -225,7 +227,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # Wait one additional second (not really needed but only to be on the
         # save side)
-        time.sleep(1)
+        time.sleep(0.5)
 
         # cf.log_message(
         # "Motor moved to minimum angle: "
@@ -299,7 +301,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.reset_start_button.emit(False)
                 return
 
-            self.motor.move_to(angle)
+            self.motor.move_to(angle, updates=False)
             # self.parent.gw_animation.move(angle)
             # self.update_animation.emit(angle)
 

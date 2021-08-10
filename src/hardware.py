@@ -15,6 +15,7 @@ import logging
 import re
 import numpy as np
 import math
+import copy
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -295,13 +296,13 @@ class KeithleySource:
         """
         Read current on Keithley source meter
         """
-        return float(self.reverse * self.keith.query("MEASure:CURRent:DC?"))
+        return self.reverse * float(self.keith.query("MEASure:CURRent:DC?"))
 
     def read_voltage(self):
         """
         Read voltage on Keithley source meter
         """
-        return float(self.reverse * self.keith.query("MEASure:VOLTage:DC?"))
+        return self.reverse * float(self.keith.query("MEASure:VOLTage:DC?"))
 
     def read_buffer(self, buffer_name):
         return float(self.keith.query('Read? "' + buffer_name + '"')[:-1])
@@ -327,7 +328,7 @@ class KeithleySource:
         self.mutex.lock()
         # set current to source_value
         if self.mode == "current":
-            self.keith.write("Source:Current " + str(self.reverse * current))
+            self.keith.write("Source:Current " + str(self.reverse * current * 1e-3))
         else:
             logging.warning(
                 "You can not set the current of the Keithley source in voltage mode"
@@ -480,11 +481,12 @@ class ThorlabMotor:
     Class to control the thorlab motors
     """
 
-    update_animation = QtCore.Signal(float)
+    # update_animation = QtCore.Signal(float)
+    update_progress_bar = QtCore.Signal(str, float)
 
     def __init__(self, motor_number, offset_angle, main_widget):
         # Define a mutex
-        self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
+        self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
 
         # First cleanup before we can work with things (otherwise there might be
         # an open connection somewhere)
@@ -505,11 +507,12 @@ class ThorlabMotor:
         # Move the motor home first, so that we can work with absolute positions
         # self.motor.move_home(True)
 
-        self.update_animation.connect(main_widget.gw_animation.move)
+        # self.update_animation.connect(main_widget.gw_animation.move)
+        self.main_widget = main_widget
 
         self.offset_angle = offset_angle
 
-    def move_to(self, angle, blocking=False):
+    def move_to(self, angle, blocking=False, updates=True):
         """
         Call the move_to function of the apt package
         """
@@ -556,23 +559,41 @@ class ThorlabMotor:
         #     direction = dict_direction["counterclockwise"]
 
         # self.motor.move_velocity(int(direction))
+        if updates:
+            self.main_widget.progressBar.setProperty("value", 0)
+        # self.main_widget.progressBar.show()
 
         self.motor.move_to(angle - float(self.offset_angle), blocking)
 
         # Instead of defining a homeing time, just read the motor position and
         # only start the measurement when the motor is at the right position
         motor_position = self.read_position()
+        initial_position = copy.copy(motor_position)
 
         while not math.isclose(motor_position, angle, abs_tol=0.01):
             motor_position = self.read_position()
-            self.update_animation.emit(motor_position)
+            if updates:
+                self.main_widget.gw_animation.move(motor_position)
+                self.main_widget.progressBar.setProperty(
+                    "value",
+                    int(abs(motor_position - initial_position))
+                    / max(int(abs(initial_position - angle)), 1)
+                    * 100,
+                )
+                self.main_widget.update_app()
             time.sleep(0.01)
 
         # Update animation once more since the position might be 0.9 at this
         # point (int comparison in the above while loop)
-        self.update_animation.emit(motor_position)
+        self.main_widget.gw_animation.move(motor_position)
+        if updates:
+            self.main_widget.progressBar.setProperty(
+                "value",
+                100,
+            )
+        self.main_widget.update_app()
 
-        cf.log_message("Motor moved to " + str(angle) + " ° angle.")
+        cf.log_message("Motor moved to " + str(angle) + "° angle.")
 
         self.mutex.unlock()
 

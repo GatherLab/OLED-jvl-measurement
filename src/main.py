@@ -358,7 +358,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_high_voltage_step_spinBox.setValue(0.1)
         self.aw_scan_compliance_spinBox.setMaximum(1.05)
         self.aw_scan_compliance_spinBox.setSingleStep(0.05)
-        self.aw_scan_compliance_spinBox.setValue(1.05)
+        self.aw_scan_compliance_spinBox.setMinimum(0)
+        self.aw_scan_compliance_spinBox.setMaximum(1050)
+        self.aw_scan_compliance_spinBox.setValue(1050)
 
         # Set standard parameters for Goniometer
         self.gw_offset_angle_spinBox.setMaximum(180)
@@ -379,7 +381,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.gw_moving_time_spinBox.setValue(1)
         # self.gw_oled_on_time_spinBox.setValue(2)
         self.gw_vc_value_spinBox.setValue(3.5)
-        self.gw_vc_compliance_spinBox.setValue(1.05)
+        self.gw_vc_compliance_spinBox.setMinimum(0)
+        self.gw_vc_compliance_spinBox.setMaximum(1050)
+        self.gw_vc_compliance_spinBox.setValue(1050)
 
         # Set standard parameters for Spectral Measurement
         self.specw_voltage_spinBox.setMinimum(-200.0)
@@ -766,6 +770,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Update statusbar
         cf.log_message("All pixels unselected")
 
+    def update_app(self):
+        """
+        Helper function to call update function from other class
+        """
+        app.processEvents()
+
     def prebias_pixels(self):
         """
         Prebias all pixels (e.g. at -2 V)
@@ -941,13 +951,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         if self.sw_top_emitting_toggleSwitch.isChecked():
             self.motor.offset_angle += 180
+            self.progressBar.show()
             self.motor.move_to(0)
+            self.progressBar.hide()
             cf.log_message(
                 "Motor offset angle increased by 180° and motor is moving to new zero position to account for top emitting device."
             )
         else:
             self.motor.offset_angle -= 180
+            self.progressBar.show()
             self.motor.move_to(0)
+            self.progressBar.hide()
             cf.log_message(
                 "Motor offset angle set back to original value and motor is moving to new zeor position to account for bottom emitting device."
             )
@@ -1468,6 +1482,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Draw the new figure
         self.gw_fig.draw()
+        time.sleep(0.1)
 
         # Update statusbar
         cf.log_message("Goniometer Measurement Plotted")
@@ -1495,6 +1510,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Draw the new figure
         self.gw_fig.draw()
+        time.sleep(0.1)
 
         # Update statusbar
         cf.log_message("Spectrum plotted")
@@ -1507,9 +1523,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # global_settings = cf.read_global_settings()
 
         # Read the angle from the spinBox
+        self.progressBar.show()
         angle = self.gw_offset_angle_spinBox.value()
-
-        cf.log_message("Motor is moving")
 
         # Here are some tweaks to ensure that the motor always moves in the
         # right direction and does not break the cable
@@ -1538,13 +1553,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # app.processEvents()
             # time.sleep(0.05)
 
-<<<<<<< Updated upstream
             # while not math.isclose(0, motor_position, abs_tol=1):
             #     motor_position = self.motor.read_position()
             #     self.gw_animation.move(motor_position)
             #     app.processEvents()
             #     time.sleep(0.05)
-=======
 
             # # Update animation once more since the position might be 0.9 at this
             # # point (int comparison in the above while loop)
@@ -1552,6 +1565,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # app.processEvents()
 
         self.motor.move_to(angle)
+        self.progressBar.hide()
 
         # I decided to read the motor position instead of doing a virtual
         # animation. The animation shall always show the true motor position (if
@@ -1696,7 +1710,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Kill motor savely
         try:
             # Move motor back go home position
+            self.progressBar.show()
             self.motor.move_to(self.motor.offset_angle)
+            self.progressBar.hide()
 
             # Instead of defining a moving time, just read the motor position and
             # only start the measurement when the motor is at the right position
