@@ -204,7 +204,7 @@ class KeithleySource:
         # choose current for measuring
         self.keith.write('Sense:Function "Current"')
         # set compliance
-        self.keith.write("Source:Volt:ILimit " + str(current_compliance))
+        self.keith.write("Source:Volt:ILimit " + str(current_compliance * 1e-3))
         # reads back the set voltage
         self.keith.write("Source:Volt:READ:BACK ON")
         # sets the read-out speed and accuracy (0.01 fastest, 10 slowest but highest accuracy)

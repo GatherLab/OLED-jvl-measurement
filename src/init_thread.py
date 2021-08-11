@@ -146,14 +146,14 @@ class InitThread(QtCore.QThread):
         try:
             keithley_source = KeithleySource(
                 global_settings["keithley_source_address"],
-                1.05,
+                1050,
             )
             cf.log_message("Keithley SourceMeter successfully initialised")
             keithley_source_init = True
         except Exception as e:
             keithley_source = MockKeithleySource(
                 global_settings["keithley_source_address"],
-                1.05,
+                1050,
             )
             cf.log_message(
                 "The Keithley SourceMeter could not be initialised! Please reconnect the device and check the serial number in the settings file!"

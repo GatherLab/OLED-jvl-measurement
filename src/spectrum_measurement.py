@@ -30,7 +30,7 @@ class SpectrumMeasurement(QtCore.QThread):
         self.uno = arduino
         self.uno.init_serial_connection()
         self.keithley_source = keithley_source
-        self.keithley_source.as_voltage_source(1.05)
+        self.keithley_source.as_voltage_source(1050)
         self.spectrometer = spectrometer
 
         # Connect signal to the updater from the parent class

@@ -635,7 +635,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         https://stackoverflow.com/questions/17045368/qthread-emits-finished-signal-but-isrunning-returns-true-and-isfinished-re
         """
         # Reset the keithley by reseting it as voltage source
-        self.keithley_source.as_voltage_source(1.05)
+        self.keithley_source.as_voltage_source(1050)
         self.keithley_multimeter.reset()
         self.arduino_uno.init_serial_connection()
 
