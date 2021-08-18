@@ -965,7 +965,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.sw_top_emitting_toggleSwitch.isChecked():
             self.motor.offset_angle += 180
             self.progressBar.show()
-            self.motor.move_to(0)
+            self.move_run = self.motor.move_to(0)
             self.progressBar.hide()
             cf.log_message(
                 "Motor offset angle increased by 180° and motor is moving to new zero position to account for top emitting device."
@@ -973,7 +973,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             self.motor.offset_angle -= 180
             self.progressBar.show()
-            self.motor.move_to(0)
+            self.move_run = self.motor.move_to(0)
             self.progressBar.hide()
             cf.log_message(
                 "Motor offset angle set back to original value and motor is moving to new zeor position to account for bottom emitting device."
@@ -1555,27 +1555,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             helper_angle = 0
             helper_move = True
 
-        if helper_move:
-            self.motor_run = self.motor.move_to(helper_angle)
+        # if helper_move:
+        #     self.motor_run = self.motor.move_to(helper_angle)
 
-            # I decided to read the motor position instead of doing a virtual
-            # animation. The animation shall always show the true motor position (if
-            # the hardware allows that). The
-            # motor_position = self.motor.read_position()
-            # self.gw_animation.move(motor_position)
-            # app.processEvents()
-            # time.sleep(0.05)
+        # I decided to read the motor position instead of doing a virtual
+        # animation. The animation shall always show the true motor position (if
+        # the hardware allows that). The
+        # motor_position = self.motor.read_position()
+        # self.gw_animation.move(motor_position)
+        # app.processEvents()
+        # time.sleep(0.05)
 
-            # while not math.isclose(0, motor_position, abs_tol=1):
-            #     motor_position = self.motor.read_position()
-            #     self.gw_animation.move(motor_position)
-            #     app.processEvents()
-            #     time.sleep(0.05)
+        # while not math.isclose(0, motor_position, abs_tol=1):
+        #     motor_position = self.motor.read_position()
+        #     self.gw_animation.move(motor_position)
+        #     app.processEvents()
+        #     time.sleep(0.05)
 
-            # # Update animation once more since the position might be 0.9 at this
-            # # point (int comparison in the above while loop)
-            # self.gw_animation.move(motor_position)
-            # app.processEvents()
+        # # Update animation once more since the position might be 0.9 at this
+        # # point (int comparison in the above while loop)
+        # self.gw_animation.move(motor_position)
+        # app.processEvents()
 
         self.motor_run = self.motor.move_to(angle)
         self.progressBar.hide()
@@ -1724,7 +1724,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             # Move motor back go home position
             self.progressBar.show()
-            self.motor.move_to(self.motor.offset_angle)
+            self.moto_run = self.motor.move_to(self.motor.offset_angle)
             self.progressBar.hide()
 
             # Instead of defining a moving time, just read the motor position and

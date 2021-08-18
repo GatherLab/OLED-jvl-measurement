@@ -566,8 +566,9 @@ class ThorlabMotor:
 
         motor_move = MotorMoveThread(angle, self.offset_angle, self, self.main_widget)
         motor_move.start()
-
         self.mutex.unlock()
+
+        return motor_move
 
     def read_position(self):
         """
