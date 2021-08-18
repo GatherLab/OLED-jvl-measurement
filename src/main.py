@@ -517,6 +517,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         to just kill all unused threads when we change the tab.
         """
 
+        if self.tabWidget.currentIndex() == 0:
+            self.spectrum_measurement.pause = True
+            self.current_tester = False
+        if self.tabWidget.currentIndex() == 1:
+            self.spectrum_measurement.pause = True
+            self.current_tester = True
+        if self.tabWidget.currentIndex() == 2:
+            self.spectrum_measurement.pause = False
+            self.current_tester = True
+        if self.tabWidget.currentIndex() == 3:
+            self.spectrum_measurement.pause = True
+            self.current_tester = True
+
         cf.log_message(
             "Switched to tab widget no. " + str(self.tabWidget.currentIndex())
         )

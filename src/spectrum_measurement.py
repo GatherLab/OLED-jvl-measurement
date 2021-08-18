@@ -25,6 +25,7 @@ class SpectrumMeasurement(QtCore.QThread):
         super(SpectrumMeasurement, self).__init__()
         # Variable to kill thread
         self.is_killed = False
+        self.pause = False
 
         # Assign hardware and reset
         self.uno = arduino
@@ -47,7 +48,14 @@ class SpectrumMeasurement(QtCore.QThread):
 
             # The sleep time here is very important because if it is chosen to
             # short, the program may crash. Currently 1 s seems to be save (one can at least go down to 0.5s)
-            # time.sleep(1)
+            time.sleep(0.5)
+
+            if self.pause:
+                while True:
+                    time.sleep(0.5)
+
+                    if not self.pause:
+                        break
 
             if self.is_killed:
                 # Close the connection to the spectrometer
@@ -65,6 +73,8 @@ class SpectrumMeasurement(QtCore.QThread):
 
         # Turn keithley off
         self.keithley_source.deactivate_output()
+
+        self.pause = False
 
         # Trigger interruption of run sequence
         self.is_killed = True

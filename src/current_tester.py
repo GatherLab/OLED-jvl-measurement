@@ -34,6 +34,7 @@ class CurrentTester(QtCore.QThread):
         super(CurrentTester, self).__init__()
 
         self.is_killed = False
+        self.pause = False
 
         # Reset Arduino and Keithley
         self.uno = arduino
@@ -60,6 +61,13 @@ class CurrentTester(QtCore.QThread):
             self.update_ammeter_signal.emit(current_reading)
             time.sleep(0.5)
 
+            if self.pause:
+                while True:
+                    time.sleep(0.5)
+
+                    if not self.pause:
+                        break
+
             if self.is_killed:
                 self.quit()
                 break
@@ -74,6 +82,7 @@ class CurrentTester(QtCore.QThread):
 
         # Turn keithley off
         self.keithley_source.deactivate_output()
+        self.pause = False
 
         # Trigger interruption of run sequence
         self.is_killed = True
