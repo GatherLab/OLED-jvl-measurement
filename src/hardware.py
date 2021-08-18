@@ -559,41 +559,13 @@ class ThorlabMotor:
         #     direction = dict_direction["counterclockwise"]
 
         # self.motor.move_velocity(int(direction))
-        if updates:
-            self.main_widget.progressBar.setProperty("value", 0)
+        self.main_widget.progressBar.setProperty("value", 0)
         # self.main_widget.progressBar.show()
 
         self.motor.move_to(angle - float(self.offset_angle), blocking)
 
-        # Instead of defining a homeing time, just read the motor position and
-        # only start the measurement when the motor is at the right position
-        motor_position = self.read_position()
-        initial_position = copy.copy(motor_position)
-
-        while not math.isclose(motor_position, angle, abs_tol=0.01):
-            motor_position = self.read_position()
-            if updates:
-                self.main_widget.gw_animation.move(motor_position)
-                self.main_widget.progressBar.setProperty(
-                    "value",
-                    int(abs(motor_position - initial_position))
-                    / max(int(abs(initial_position - angle)), 1)
-                    * 100,
-                )
-                self.main_widget.update_app()
-            time.sleep(0.01)
-
-        # Update animation once more since the position might be 0.9 at this
-        # point (int comparison in the above while loop)
-        self.main_widget.gw_animation.move(motor_position)
-        if updates:
-            self.main_widget.progressBar.setProperty(
-                "value",
-                100,
-            )
-        self.main_widget.update_app()
-
-        cf.log_message("Motor moved to " + str(angle) + "° angle.")
+        motor_move = MotorMoveThread(angle, self.offset_angle, self, self.main_widget)
+        motor_move.start()
 
         self.mutex.unlock()
 
@@ -652,3 +624,94 @@ class ThorlabMotor:
             lib.APTCleanUp()
             lib.APTInit()
         self.mutex.unlock()
+
+
+class MotorMoveThread(QtCore.QThread):
+    """
+    QThread that shall do all the work for the current tester in the setup tab.
+    It is mainly needed for updating the current reading. However, I figure
+    at the moment, that it is probably also good to have the other current
+    tester functionalities in this class. Mainly because it does not make
+    sense to return a current reading while the keithley has to be resetted,
+    for instance. So it is not only okay but kind of demanded to have this in
+    a single thread.
+    """
+
+    # Define costum signals
+    # https://stackoverflow.com/questions/36434706/pyqt-proper-use-of-emit-and-pyqtsignal
+    # With pyside2 https://wiki.qt.io/Qt_for_Python_Signals_and_Slots
+    # read_motor_position_signal = QtCore.Signal()
+    update_animation_signal = QtCore.Signal(float)
+    update_progress_bar_signal = QtCore.Signal(str, float)
+
+    def __init__(
+        self,
+        angle,
+        offset_angle,
+        motor,
+        main_widget,
+    ):
+
+        super(MotorMoveThread, self).__init__()
+
+        self.is_killed = False
+
+        self.angle = angle
+        self.offset_angle = offset_angle
+        self.motor = motor
+
+        # Reset Arduino and Keithley
+        # Connect signal to the updater from the parent class
+        # self.read_motor_position_signal.connect(motor.read_position)
+        self.update_animation_signal.connect(main_widget.gw_animation.move)
+        self.update_progress_bar_signal.connect(main_widget.progressBar.setProperty)
+
+    def run(self):
+        """
+        Class that continuously reads the current on the Keithley source and
+        communicates with the main class. It has to be kept in separate
+        classes to allow for threading. It is started with the .start()
+        method from the QThread class
+        """
+        import pydevd
+
+        pydevd.settrace(suspend=False)
+
+        # Instead of defining a homeing time, just read the motor position and
+        # only start the measurement when the motor is at the right position
+        motor_position = self.motor.read_position()
+        initial_position = copy.copy(motor_position)
+
+        while not math.isclose(motor_position, self.angle, abs_tol=0.01):
+            motor_position = self.motor.read_position()
+            self.update_animation_signal.emit(motor_position)
+            self.update_progress_bar_signal.emit(
+                "value",
+                int(abs(motor_position - initial_position))
+                / max(int(abs(initial_position - self.angle)), 1)
+                * 100,
+            )
+            time.sleep(0.1)
+
+            if self.is_killed:
+                self.quit()
+                break
+
+        # Update animation once more since the position might be 0.9 at this
+        # point (int comparison in the above while loop)
+        self.update_animation_signal.emit(motor_position)
+
+        # self.main_widget.progressBar.setProperty(
+        #     "value",
+        #     100,
+        # )
+
+        cf.log_message("Motor moved to " + str(self.angle) + "° angle.")
+
+    def kill(self):
+        """
+        Kill this thread by stopping the loop
+        """
+
+        # Trigger interruption of run sequence
+        self.is_killed = True

@@ -1556,7 +1556,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             helper_move = True
 
         if helper_move:
-            self.motor.move_to(helper_angle)
+            self.motor_run = self.motor.move_to(helper_angle)
 
             # I decided to read the motor position instead of doing a virtual
             # animation. The animation shall always show the true motor position (if
@@ -1577,7 +1577,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # self.gw_animation.move(motor_position)
             # app.processEvents()
 
-        self.motor.move_to(angle)
+        self.motor_run = self.motor.move_to(angle)
         self.progressBar.hide()
 
         # I decided to read the motor position instead of doing a virtual

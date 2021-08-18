@@ -1,5 +1,7 @@
 import psutil
 import numpy as np
+import time
+from hardware import MotorMoveThread
 
 
 class MockArduinoUno:
@@ -106,10 +108,17 @@ class MockThorlabMotor:
 
     def __init__(self, motor_number, offset_angle, main_widget):
         self.position = 0
+        self.offset_angle = offset_angle
+        self.main_widget = main_widget
 
     def move_to(self, angle):
         self.position = angle
-        print("Moved to angle " + str(angle))
+
+        motor_move = MotorMoveThread(angle, self.offset_angle, self, self.main_widget)
+        motor_move.start()
+        time.sleep(0.5)
+        return motor_move
+        # print("Moved to angle " + str(angle))
 
     def read_position(self):
         return float(self.position)
