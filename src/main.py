@@ -14,6 +14,7 @@ from hardware import (
     ThorlabMotor,
     KeithleyMultimeter,
     KeithleySource,
+    MotorMoveThread,
 )
 
 import core_functions as cf
@@ -68,6 +69,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # -------------------------------------------------------------------- #
         # -------------------------- Hardware Setup -------------------------- #
         # -------------------------------------------------------------------- #
+        self.motor_run = MotorMoveThread(0, 45, self)
 
         # Execute initialisation thread
         loading_window = LoadingWindow(self)
@@ -325,6 +327,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_pixel7_pushButton.setShortcut("7")
         self.gw_pixel8_pushButton.setShortcut("8")
 
+        # self.motor_run = MotorMoveThread(0, 45, self)
+
         # -------------------------------------------------------------------- #
         # --------------------------- Menubar -------------------------------- #
         # -------------------------------------------------------------------- #
@@ -519,16 +523,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         if self.tabWidget.currentIndex() == 0:
             self.spectrum_measurement.pause = True
-            self.current_tester = False
+            self.current_tester.pause = False
         if self.tabWidget.currentIndex() == 1:
             self.spectrum_measurement.pause = True
-            self.current_tester = True
+            self.current_tester.pause = True
         if self.tabWidget.currentIndex() == 2:
             self.spectrum_measurement.pause = False
-            self.current_tester = True
+            self.current_tester.pause = True
         if self.tabWidget.currentIndex() == 3:
             self.spectrum_measurement.pause = True
-            self.current_tester = True
+            self.current_tester.pause = True
 
         cf.log_message(
             "Switched to tab widget no. " + str(self.tabWidget.currentIndex())
@@ -963,20 +967,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Function to mirror the goniometer angles for top emitting OLEDs
         """
         if self.sw_top_emitting_toggleSwitch.isChecked():
-            self.motor.offset_angle += 180
+            self.motor.change_offset_angle(180)
             self.progressBar.show()
-            self.move_run = self.motor.move_to(0)
-            self.progressBar.hide()
+            self.motor.move_to(0)
+            # # Wait until the motor move is finished
+            # while not self.motor_run.isFinished():
+            #     time.sleep(0.1)
+            # self.progressBar.hide()
             cf.log_message(
                 "Motor offset angle increased by 180° and motor is moving to new zero position to account for top emitting device."
             )
         else:
-            self.motor.offset_angle -= 180
+            self.motor.change_offset_angle(-180)
             self.progressBar.show()
-            self.move_run = self.motor.move_to(0)
-            self.progressBar.hide()
+            self.motor.move_to(0)
+            # # Wait until the motor move is finished
+            # while not self.motor_run.isFinished():
+            #     time.sleep(0.1)
+            # self.progressBar.hide()
             cf.log_message(
-                "Motor offset angle set back to original value and motor is moving to new zeor position to account for bottom emitting device."
+                "Motor offset angle set back to original value and motor is moving to new zero position to account for bottom emitting device."
             )
 
     def reverse_all_voltages(self):
@@ -1536,7 +1546,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # global_settings = cf.read_global_settings()
 
         # Read the angle from the spinBox
-        self.progressBar.show()
         angle = self.gw_offset_angle_spinBox.value()
 
         # Here are some tweaks to ensure that the motor always moves in the
@@ -1555,8 +1564,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             helper_angle = 0
             helper_move = True
 
-        # if helper_move:
-        #     self.motor_run = self.motor.move_to(helper_angle)
+        if helper_move:
+            self.progressBar.show()
+            self.motor.move_to(helper_angle)
+
+            # Wait until the motor move is finished
+            # while not self.motor_run.isFinished():
+            # time.sleep(0.1)
+            # self.progressBar.hide()
 
         # I decided to read the motor position instead of doing a virtual
         # animation. The animation shall always show the true motor position (if
@@ -1564,7 +1579,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # motor_position = self.motor.read_position()
         # self.gw_animation.move(motor_position)
         # app.processEvents()
-        # time.sleep(0.05)
+        # time.sleep(0.05
 
         # while not math.isclose(0, motor_position, abs_tol=1):
         #     motor_position = self.motor.read_position()
@@ -1577,8 +1592,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.gw_animation.move(motor_position)
         # app.processEvents()
 
-        self.motor_run = self.motor.move_to(angle)
-        self.progressBar.hide()
+        self.progressBar.show()
+        self.motor.move_to(angle)
+        # Wait until the motor move is finished
+        # while not self.motor_run.isFinished():
+        # time.sleep(0.1)
+        # self.progressBar.hide()
 
         # I decided to read the motor position instead of doing a virtual
         # animation. The animation shall always show the true motor position (if
@@ -1722,9 +1741,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Kill motor savely
         try:
-            # Move motor back go home position
             self.progressBar.show()
-            self.moto_run = self.motor.move_to(self.motor.offset_angle)
+            # Move motor back go home position
+            self.motor.move_to(self.motor.offset_angle)
+
+            # Wait until the motor move is finished
+            while not self.motor_run.isFinished():
+                time.sleep(0.1)
+
             self.progressBar.hide()
 
             # Instead of defining a moving time, just read the motor position and

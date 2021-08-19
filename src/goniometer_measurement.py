@@ -124,6 +124,10 @@ class GoniometerMeasurement(QtCore.QThread):
                 pd_position = 90
                 self.motor.move_to(pd_position)
 
+                # Wait until the motor move is finished
+                while not self.parent.motor_run.isFinished():
+                    time.sleep(0.1)
+
                 # # Instead of defining a homeing time, just read the motor position and
                 # # only start the measurement when the motor is at the right position
                 # motor_position = self.motor.read_position()
@@ -207,6 +211,10 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # PL from here on
         self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
+
+        # Wait until the motor move is finished
+        while not self.parent.motor_run.isFinished():
+            time.sleep(0.1)
 
         # Instead of defining a homeing time, just read the motor position and
         # only start the measurement when the motor is at the right position
@@ -302,6 +310,10 @@ class GoniometerMeasurement(QtCore.QThread):
                 return
 
             self.motor.move_to(angle, updates=False)
+            # Wait until the motor move is finished
+            while not self.parent.motor_run.isFinished():
+                time.sleep(0.1)
+
             # self.parent.gw_animation.move(angle)
             # self.update_animation.emit(angle)
 
@@ -410,6 +422,15 @@ class GoniometerMeasurement(QtCore.QThread):
         if self.goniometer_measurement_parameters["degradation_check"]:
             self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
 
+            # Wait until the motor move is finished
+            while not self.parent.motor_run.isFinished():
+                time.sleep(0.1)
+
+            # Only activate output for el (otherwise it was never activated)
+            if not self.goniometer_measurement_parameters["el_or_pl"]:
+                # self.keithley_source.deactivate_output()
+                self.uno.trigger_relay(self.pixel[0])
+
             # Instead of defining a moving time, just read the motor position and
             # only start the measurement when the motor is at the right position
             # motor_position = self.motor.read_position()
@@ -462,6 +483,11 @@ class GoniometerMeasurement(QtCore.QThread):
                 ],
                 ["before measurement", "after measurement"],
             )
+
+            # Only deactivate output for el (otherwise it was never activated)
+            if not self.goniometer_measurement_parameters["el_or_pl"]:
+                # self.keithley_source.deactivate_output()
+                self.uno.trigger_relay(self.pixel[0])
 
         self.save_spectrum_data()
 

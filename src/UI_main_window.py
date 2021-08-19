@@ -38,7 +38,7 @@ class Ui_MainWindow(object):
         """
 
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(973, 695)
+        MainWindow.resize(1200, 800)
         sizePolicy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
         )

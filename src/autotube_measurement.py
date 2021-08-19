@@ -30,6 +30,7 @@ class AutotubeMeasurement(QtCore.QThread):
 
     update_plot = QtCore.Signal(list, list, list)
     update_progress_bar = QtCore.Signal(str, float)
+    # show_progress_bar = QtCore.Signal()
     hide_progress_bar = QtCore.Signal()
     reset_start_button = QtCore.Signal(bool)
 
@@ -75,6 +76,7 @@ class AutotubeMeasurement(QtCore.QThread):
         self.update_plot.connect(parent.plot_autotube_measurement)
         self.update_progress_bar.connect(parent.progressBar.setProperty)
         self.hide_progress_bar.connect(parent.progressBar.hide)
+        # self.show_progress_bar.connect(parent.progressBar.show)
         self.reset_start_button.connect(
             parent.aw_start_measurement_pushButton.setChecked
         )
@@ -97,10 +99,15 @@ class AutotubeMeasurement(QtCore.QThread):
         import pydevd
 
         pydevd.settrace(suspend=False)
+
         if self.measurement_parameters["auto_spectrum"]:
             cf.log_message("Motor is moving to Photodiode Position")
             pd_position = 90
             self.parent.motor.move_to(pd_position)
+
+            # Wait until the motor move is finished
+            while not self.parent.motor_run.isFinished():
+                time.sleep(0.1)
 
             # motor_position = self.parent.motor.read_position()
             # motor_position_initial = self.parent.motor.read_position()
@@ -295,6 +302,10 @@ class AutotubeMeasurement(QtCore.QThread):
             cf.log_message("Motor is moving to Spectrometer Position")
             spectrometer_position = 0
             self.parent.motor.move_to(spectrometer_position)
+
+            # Wait until the motor move is finished
+            while not self.parent.motor_run.isFinished():
+                time.sleep(0.1)
 
             # motor_position = self.parent.motor.read_position()
             # motor_position_initial = self.parent.motor.read_position()

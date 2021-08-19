@@ -97,6 +97,7 @@ class InitThread(QtCore.QThread):
         # Try if motor can be easily initialised
         try:
             motor = ThorlabMotor(
+                self.widget.parent.motor_run,
                 global_settings["motor_number"],
                 global_settings["motor_offset"],
                 self.widget.parent,
@@ -106,6 +107,7 @@ class InitThread(QtCore.QThread):
             motor_init = True
         except Exception as e:
             motor = MockThorlabMotor(
+                self.widget.parent.motor_run,
                 global_settings["motor_number"],
                 global_settings["motor_offset"],
                 self.widget.parent,

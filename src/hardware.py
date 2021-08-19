@@ -484,7 +484,7 @@ class ThorlabMotor:
     # update_animation = QtCore.Signal(float)
     update_progress_bar = QtCore.Signal(str, float)
 
-    def __init__(self, motor_number, offset_angle, main_widget):
+    def __init__(self, motor_run, motor_number, offset_angle, main_widget):
         # Define a mutex
         self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
 
@@ -509,8 +509,9 @@ class ThorlabMotor:
 
         # self.update_animation.connect(main_widget.gw_animation.move)
         self.main_widget = main_widget
-
+        self.motor_run = motor_run
         self.offset_angle = offset_angle
+        self.motor_run.offset_angle = self.offset_angle
 
     def move_to(self, angle, blocking=False, updates=True):
         """
@@ -559,16 +560,21 @@ class ThorlabMotor:
         #     direction = dict_direction["counterclockwise"]
 
         # self.motor.move_velocity(int(direction))
-        self.main_widget.progressBar.setProperty("value", 0)
+        # self.main_widget.progressBar.setProperty("value", 0)
         # self.main_widget.progressBar.show()
 
         self.motor.move_to(angle - float(self.offset_angle), blocking)
+        self.motor_run.angle = angle
 
-        motor_move = MotorMoveThread(angle, self.offset_angle, self, self.main_widget)
-        motor_move.start()
+        self.motor_run.start()
         self.mutex.unlock()
 
-        return motor_move
+    def change_offset_angle(self, offset_angle):
+        """
+        Changes offset angle
+        """
+        self.offset_angle += offset_angle
+        self.motor_run.offset_angle = self.offset_angle
 
     def read_position(self):
         """
@@ -577,6 +583,7 @@ class ThorlabMotor:
         self.mutex.lock()
         # Make sure that the motor position is returned as values between -180 to 180 (definition)
         if self.motor.position + float(self.offset_angle) > 180:
+
             motor_position_translated = (
                 self.motor.position + float(self.offset_angle) - 360
             )
@@ -649,7 +656,6 @@ class MotorMoveThread(QtCore.QThread):
         self,
         angle,
         offset_angle,
-        motor,
         main_widget,
     ):
 
@@ -659,7 +665,7 @@ class MotorMoveThread(QtCore.QThread):
 
         self.angle = angle
         self.offset_angle = offset_angle
-        self.motor = motor
+        self.main_widget = main_widget
 
         # Reset Arduino and Keithley
         # Connect signal to the updater from the parent class
@@ -677,14 +683,18 @@ class MotorMoveThread(QtCore.QThread):
         import pydevd
 
         pydevd.settrace(suspend=False)
+        motor = self.main_widget.motor
+
+        # self.show_progress_bar_signal.emit()
+        self.update_progress_bar_signal.emit("value", 0)
 
         # Instead of defining a homeing time, just read the motor position and
         # only start the measurement when the motor is at the right position
-        motor_position = self.motor.read_position()
+        motor_position = motor.read_position()
         initial_position = copy.copy(motor_position)
 
         while not math.isclose(motor_position, self.angle, abs_tol=0.01):
-            motor_position = self.motor.read_position()
+            motor_position = motor.read_position()
             self.update_animation_signal.emit(motor_position)
             self.update_progress_bar_signal.emit(
                 "value",
@@ -702,10 +712,8 @@ class MotorMoveThread(QtCore.QThread):
         # point (int comparison in the above while loop)
         self.update_animation_signal.emit(motor_position)
 
-        # self.main_widget.progressBar.setProperty(
-        #     "value",
-        #     100,
-        # )
+        self.update_progress_bar_signal.emit("value", 100)
+        # self.hide_progress_bar_signal.emit()
 
         cf.log_message("Motor moved to " + str(self.angle) + "° angle.")
 
