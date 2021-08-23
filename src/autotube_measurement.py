@@ -192,9 +192,10 @@ class AutotubeMeasurement(QtCore.QThread):
                 # if self.measurement_parameters["fixed_multimeter_range"]:
                 # diode_voltage = self.keithley_multimeter.measure_voltage(1)
                 # else:
-                diode_voltage = self.keithley_multimeter.measure_voltage()
                 # Take OLED current reading from Sourcemeter
                 oled_current = self.keithley_source.read_current()
+
+                diode_voltage = self.keithley_multimeter.measure_voltage()
 
                 # check if compliance is reached
                 if abs(oled_current) >= self.measurement_parameters["scan_compliance"]:
