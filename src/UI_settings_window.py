@@ -6,7 +6,7 @@ import core_functions as cf
 
 from loading_window import LoadingWindow
 
-from costum_widgets import ToggleSwitch
+from costum_widgets import ToggleSwitch, HumbleDoubleSpinBox
 
 
 class Ui_Settings(object):
@@ -132,6 +132,14 @@ class Ui_Settings(object):
         self.motor_offset_lineEdit = QtWidgets.QLineEdit(Settings)
         self.motor_offset_lineEdit.setObjectName("motor_offset_lineEdit")
         self.gridLayout.addWidget(self.motor_offset_lineEdit, 6, 1, 1, 1)
+
+        # Motor speed
+        self.motor_speed_label = QtWidgets.QLabel(Settings)
+        self.motor_speed_label.setObjectName("motor_offset_label")
+        self.gridLayout.addWidget(self.motor_speed_label, 7, 0, 1, 1)
+        self.motor_speed_spinBox = HumbleDoubleSpinBox(Settings)
+        self.motor_speed_spinBox.setObjectName("motor_offset_lineEdit")
+        self.gridLayout.addWidget(self.motor_speed_spinBox, 7, 1, 1, 1)
 
         # # Spectrum integration time for goniometer measurement
         # self.spectrum_integration_time_label = QtWidgets.QLabel(Settings)
@@ -372,6 +380,7 @@ class Ui_Settings(object):
         self.motor_offset_label.setText(
             _translate("Settings", "Motor Offset Angle (°)")
         )
+        self.motor_speed_label.setText(_translate("Settings", "Motor Speed"))
         # self.spectrum_integration_time_label.setText(
         #     _translate("Settings", "Spetrometer Integration Time (ms)")
         # )

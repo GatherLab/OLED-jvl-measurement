@@ -100,6 +100,7 @@ class InitThread(QtCore.QThread):
                 self.widget.parent.motor_run,
                 global_settings["motor_number"],
                 global_settings["motor_offset"],
+                global_settings["motor_speed"],
                 self.widget.parent,
             )
             motor.motor.move_home(True)
@@ -110,6 +111,7 @@ class InitThread(QtCore.QThread):
                 self.widget.parent.motor_run,
                 global_settings["motor_number"],
                 global_settings["motor_offset"],
+                global_settings["motor_speed"],
                 self.widget.parent,
             )
             cf.log_message(

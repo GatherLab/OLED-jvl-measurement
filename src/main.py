@@ -69,7 +69,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # -------------------------------------------------------------------- #
         # -------------------------- Hardware Setup -------------------------- #
         # -------------------------------------------------------------------- #
-        self.motor_run = MotorMoveThread(0, 45, self)
+        self.motor_run = MotorMoveThread(0, 45, False, self)
 
         # Execute initialisation thread
         loading_window = LoadingWindow(self)
@@ -327,7 +327,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_pixel7_pushButton.setShortcut("7")
         self.gw_pixel8_pushButton.setShortcut("8")
 
-        # self.motor_run = MotorMoveThread(0, 45, self)
+        # self.motor_run = motormovethread(0, 45, self)
 
         # -------------------------------------------------------------------- #
         # --------------------------- Menubar -------------------------------- #
@@ -628,6 +628,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "batch_name": self.sw_batch_name_lineEdit.text(),
             "device_number": self.sw_device_number_spinBox.value(),
             "test_voltage": self.sw_ct_voltage_spinBox.value(),
+            "top_emitting": self.sw_top_emitting_toggleSwitch.isChecked(),
+            "nip": self.sw_nip_toggleSwitch.isChecked(),
             "selected_pixel": [
                 self.sw_pixel1_pushButton.isChecked(),
                 self.sw_pixel2_pushButton.isChecked(),
@@ -968,7 +970,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         if self.sw_top_emitting_toggleSwitch.isChecked():
             self.motor.change_offset_angle(180)
+            self.motor.top_emitting_reverse_angles = -1
             self.progressBar.show()
+            self.gw_animation.reverse_angles(True)
             self.motor.move_to(0)
             # # Wait until the motor move is finished
             # while not self.motor_run.isFinished():
@@ -979,7 +983,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             )
         else:
             self.motor.change_offset_angle(-180)
+            self.motor.top_emitting_reverse_angles = 1
             self.progressBar.show()
+            self.gw_animation.reverse_angles(False)
             self.motor.move_to(0)
             # # Wait until the motor move is finished
             # while not self.motor_run.isFinished():
@@ -1548,77 +1554,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Read the angle from the spinBox
         angle = self.gw_offset_angle_spinBox.value()
 
-        # Here are some tweaks to ensure that the motor always moves in the
-        # right direction and does not break the cable
-        helper_move = False
-        helper_angle = 0
-        if math.isclose(angle, 180, abs_tol=0.01):
-            helper_angle = 1
-            helper_move = True
-        elif math.isclose(
-            self.motor.read_position(), 180, abs_tol=0.01
-        ) and math.isclose(angle, 0, abs_tol=0.01):
-            helper_angle = 170
-            helper_move = True
-        elif np.sign(self.motor.read_position()) != np.sign(angle):
-            helper_angle = 0
-            helper_move = True
-
-        if helper_move:
-            self.progressBar.show()
-            self.motor.move_to(helper_angle)
-
-            # Wait until the motor move is finished
-            # while not self.motor_run.isFinished():
-            # time.sleep(0.1)
-            # self.progressBar.hide()
-
-        # I decided to read the motor position instead of doing a virtual
-        # animation. The animation shall always show the true motor position (if
-        # the hardware allows that). The
-        # motor_position = self.motor.read_position()
-        # self.gw_animation.move(motor_position)
-        # app.processEvents()
-        # time.sleep(0.05
-
-        # while not math.isclose(0, motor_position, abs_tol=1):
-        #     motor_position = self.motor.read_position()
-        #     self.gw_animation.move(motor_position)
-        #     app.processEvents()
-        #     time.sleep(0.05)
-
-        # # Update animation once more since the position might be 0.9 at this
-        # # point (int comparison in the above while loop)
-        # self.gw_animation.move(motor_position)
-        # app.processEvents()
-
         self.progressBar.show()
         self.motor.move_to(angle)
-        # Wait until the motor move is finished
-        # while not self.motor_run.isFinished():
-        # time.sleep(0.1)
-        # self.progressBar.hide()
-
-        # I decided to read the motor position instead of doing a virtual
-        # animation. The animation shall always show the true motor position (if
-        # the hardware allows that). The
-        # motor_position = self.motor.read_position()
-        # self.gw_animation.move(motor_position)
-        # app.processEvents()
-        # time.sleep(0.05)
-
-        # while not math.isclose(angle, motor_position, abs_tol=0.01):
-        #     motor_position = self.motor.read_position()
-        #     self.gw_animation.move(motor_position)
-        #     app.processEvents()
-        #     time.sleep(0.05)
-
-        # # Update animation once more since the position might be 0.9 at this
-        # # point (int comparison in the above while loop)
-        # self.gw_animation.move(motor_position)
-        # app.processEvents()
-
-        # cf.log_message("Motor moved to " + str(angle) + " °")
 
     def disable_el_options(self):
         """
@@ -1739,36 +1676,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             cf.log_message("Arduino connection could not be savely killed")
             cf.log_message(e)
 
-        # Kill motor savely
-        try:
-            self.progressBar.show()
-            # Move motor back go home position
-            self.motor.move_to(self.motor.offset_angle)
-
-            # Wait until the motor move is finished
-            while not self.motor_run.isFinished():
-                time.sleep(0.1)
-
-            self.progressBar.hide()
-
-            # Instead of defining a moving time, just read the motor position and
-            # only start the measurement when the motor is at the right position
-            # motor_position = self.motor.read_position()
-
-            # while not math.isclose(motor_position, 45, abs_tol=0.01):
-            #     motor_position = self.motor.read_position()
-            #     self.update_animation.emit(motor_position)
-            #     time.sleep(0.05)
-
-            # # Update animation once more since the position might be 0.9 at this
-            # # point (int comparison in the above while loop)
-            # self.update_animation.emit(motor_position)
-            self.motor.clean_up()
-
-        except Exception as e:
-            cf.log_message("Motor could not be turned off savely")
-            cf.log_message(e)
-
         # Kill connection to spectrometer savely
         try:
             self.spectrometer.close_connection()
@@ -1790,8 +1697,32 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             cf.log_message("Connection to Keithleys could not be closed savely")
             cf.log_message(e)
 
+        # Kill motor savely
+        try:
+            self.progressBar.show()
+            # Move motor back go home position
+            global_settings = cf.read_global_settings()
+            self.motor.change_velocity(20)
+            self.motor.top_emitting_reverse_angles = 1
+            self.motor.change_offset_angle(
+                global_settings["motor_offset"], relative=False
+            )
+            self.motor.move_to(global_settings["motor_offset"])
+
+            # Wait until the motor move is finished
+            while not self.motor_run.isFinished():
+                time.sleep(0.1)
+
+            self.progressBar.hide()
+            self.motor.clean_up()
+
+        except Exception as e:
+            cf.log_message("Motor could not be turned off savely")
+            cf.log_message(e)
+
         # if can_exit:
         event.accept()  # let the window close
+        self.close()
         # else:
         #     event.ignore()
 

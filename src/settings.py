@@ -34,9 +34,12 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
             str(default_settings["arduino_com_address"])
         )
         self.motor_number_lineEdit.setText(str(default_settings["motor_number"]))
+        self.motor_speed_spinBox.setMinimum(0)
+        self.motor_speed_spinBox.setMaximum(20)
+        self.motor_speed_spinBox.setValue(float(default_settings["motor_speed"]))
         self.motor_offset_lineEdit.setText(str(default_settings["motor_offset"]))
         # self.spectrum_integration_time_lineEdit.setText(
-            # str(default_settings["spectrum_integration_time"])
+        # str(default_settings["spectrum_integration_time"])
         # )
 
         self.non_linearity_correction_toggleSwitch.setChecked(
@@ -82,6 +85,10 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         self.load_defaults_pushButton.clicked.connect(self.load_defaults)
         self.save_settings_pushButton.clicked.connect(self.save_settings)
 
+        self.initial_settings = json.loads(
+            json.dumps(default_settings), parse_float=str
+        )
+
     def save_settings(self):
         """
         Save the settings the user just entered
@@ -95,10 +102,11 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
             "keithley_multimeter_address": self.keithley_multimeter_address_lineEdit.text(),
             "arduino_com_address": self.arduino_com_address_lineEdit.text(),
             "motor_number": self.motor_number_lineEdit.text(),
+            "motor_speed": self.motor_speed_spinBox.value(),
             "motor_offset": self.motor_offset_lineEdit.text(),
             # "spectrum_integration_time": self.spectrum_integration_time_lineEdit.text(),
-            "spectrometer_non_linearity_correction": str(
-                self.non_linearity_correction_toggleSwitch.isChecked()
+            "spectrometer_non_linearity_correction": bool(
+                str(self.non_linearity_correction_toggleSwitch.isChecked())
             ),
             # "photodiode_cutoff": self.photodiode_cutoff_lineEdit.text(),
             "photodiode_saturation": self.photodiode_saturation_lineEdit.text(),
@@ -121,7 +129,6 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         # Add the default parameters to the new settings json
         settings_data["default"] = []
         settings_data["default"] = default_settings
-        print(settings_data)
 
         # Save the entire thing again to the settings.json file
         with open(
@@ -135,12 +142,42 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         # Close window on accepting
         self.accept()
 
-        # Before closing the window, reinstanciate the devices with the new
-        # parameters
-        loading_window = LoadingWindow(self.parent)
+        reload_window_comparison = {
+            k: settings_data["overwrite"][k]
+            for k in self.initial_settings
+            if k in settings_data["overwrite"]
+            and self.initial_settings[k] != settings_data["overwrite"][k]
+        }
+        # If any of the parameters that require a reinitialisation has been changed, then do one
+        if any(
+            key in reload_window_comparison.keys()
+            for key in [
+                "keithley_source_address",
+                "keithley_multimeter_address",
+                "arduino_com_addres",
+                "motor_number",
+            ]
+        ):
+            # Before closing the window, reinstanciate the devices with the new
+            # parameters
+            loading_window = LoadingWindow(self.parent)
 
-        # Execute loading dialog
-        loading_window.exec()
+            # Execute loading dialog
+            loading_window.exec()
+        else:
+            # Otherwise just do the necessary tweaks to the paramters
+            if self.parent.sw_top_emitting_toggleSwitch.isChecked():
+                offset_angle = float(settings_data["overwrite"]["motor_offset"]) + 180
+            else:
+                offset_angle = float(settings_data["overwrite"]["motor_offset"])
+
+            self.parent.motor.change_offset_angle(offset_angle, relative=False)
+            self.parent.spectrometer.non_linearity_correction = bool(
+                settings_data["overwrite"]["spectrometer_non_linearity_correction"]
+            )
+            self.parent.motor.change_velocity(
+                float(settings_data["overwrite"]["motor_speed"])
+            )
 
     def load_defaults(self):
         """
@@ -160,13 +197,14 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
             str(default_settings["arduino_com_address"])
         )
         self.motor_number_lineEdit.setText(str(default_settings["motor_number"]))
+        self.motor_speed_spinBox.setValue(float(default_settings["motor_speed"]))
         self.motor_offset_lineEdit.setText(str(default_settings["motor_offset"]))
         # self.spectrum_integration_time_lineEdit.setText(
-            # str(default_settings["spectrum_integration_time"])
+        # str(default_settings["spectrum_integration_time"])
         # )
 
         self.non_linearity_correction_toggleSwitch.setChecked(
-            default_settings["spectrometer_non_linearity_correction"]
+            bool(default_settings["spectrometer_non_linearity_correction"])
         )
         # self.photodiode_cutoff_lineEdit.setText(
         # str(default_settings["photodiode_cutoff"])
