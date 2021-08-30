@@ -456,7 +456,7 @@ class Ui_MainWindow(object):
         self.aw_mpl_graph_gridLayout.addWidget(self.aw_fig)
 
         self.aw_ax = self.aw_fig.figure.subplots()
-        self.aw_ax.set_facecolor("#E0E0E0")
+        self.aw_ax.set_facecolor("#FFFFFF")
         self.aw_ax.grid(True)
         self.aw_ax.set_yscale("log")
         self.aw_ax.set_xlabel("Voltage (V)", fontsize=14)
@@ -472,9 +472,9 @@ class Ui_MainWindow(object):
             color=(85 / 255, 170 / 255, 255 / 255),
             fontsize=14,
         )
-        self.aw_fig.figure.set_facecolor("#E0E0E0")
+        self.aw_fig.figure.set_facecolor("#FFFFFF")
         self.aw_mplToolbar = NavigationToolbar(self.aw_fig, self.aw_graph_widget)
-        self.aw_mplToolbar.setStyleSheet("background-color:#E0E0E0; color:black;")
+        self.aw_mplToolbar.setStyleSheet("background-color:#FFFFFF; color:black;")
         self.aw_mpl_graph_gridLayout.addWidget(self.aw_mplToolbar)
 
         # ----------------------- Define scroll area ---------------------------
@@ -770,7 +770,7 @@ class Ui_MainWindow(object):
         self.specw_mpl_graph_gridLayout.addWidget(self.specw_fig)
 
         self.specw_ax = self.specw_fig.figure.subplots()
-        self.specw_ax.set_facecolor("#E0E0E0")
+        self.specw_ax.set_facecolor("#FFFFFF")
         self.specw_ax.grid(True)
         self.specw_ax.set_xlabel("Wavelength (nm)", fontsize=14)
         self.specw_ax.set_ylabel("Intensity (a.u.)", fontsize=14)
@@ -779,11 +779,11 @@ class Ui_MainWindow(object):
         self.specw_ax.axhline(linewidth=1, color="black")
         self.specw_ax.axvline(linewidth=1, color="black")
 
-        self.specw_fig.figure.set_facecolor("#E0E0E0")
+        self.specw_fig.figure.set_facecolor("#FFFFFF")
         self.specw_mplToolbar = NavigationToolbar(
             self.specw_fig, self.specw_graph_widget
         )
-        self.specw_mplToolbar.setStyleSheet("background-color:#E0E0E0;")
+        self.specw_mplToolbar.setStyleSheet("background-color:#FFFFFF;")
         self.specw_mpl_graph_gridLayout.addWidget(self.specw_mplToolbar)
 
         # ----------------------- Define scroll area ---------------------------
@@ -1019,10 +1019,10 @@ class Ui_MainWindow(object):
         self.gw_mpl_graph_gridLayout.addWidget(self.gw_fig)
 
         self.gw_ax1 = self.gw_fig.figure.subplots()
-        self.gw_ax1.set_facecolor("#E0E0E0")
-        self.gw_fig.figure.set_facecolor("#E0E0E0")
+        self.gw_ax1.set_facecolor("#FFFFFF")
+        self.gw_fig.figure.set_facecolor("#FFFFFF")
         self.gw_mplToolbar = NavigationToolbar(self.gw_fig, self.gw_graph_widget)
-        self.gw_mplToolbar.setStyleSheet("background-color:#E0E0E0;")
+        self.gw_mplToolbar.setStyleSheet("background-color:#FFFFFF;")
         self.gw_mpl_graph_gridLayout.addWidget(self.gw_mplToolbar)
 
         # ------------------------- Scroll Area ------------------------------ #
@@ -1427,7 +1427,7 @@ class Ui_MainWindow(object):
             "QProgressBar"
             "{"
             "border-radius: 5px;"
-            "background-color: #E0E0E0;"
+            "background-color: #FFFFFF;"
             "text-align: center;"
             "color: black;"
             'font: 63 bold 10pt "Segoe UI";'
@@ -1474,15 +1474,18 @@ class Ui_MainWindow(object):
         self.sw_browse_pushButton.setText(_translate("MainWindow", "Browse"))
         self.sw_ct_voltage_spinBox.setSuffix(_translate("MainWindow", " V"))
         self.sw_batch_name_label.setText(_translate("MainWindow", "Batch Name"))
-        self.sw_device_number_label.setText(_translate("MainWindow", "Device Number"))
-        self.sw_header1_label.setToolTip(
-            _translate(
-                "MainWindow",
-                "<html><head/><body><p>The file name the data is saved in in the end"
-                " will be in the format"
-                " yyyy-mm-dd_&lt;batch-name&gt;_d&lt;device-number&gt;_p&lt;pixel-number&gt;.csv.</p></body></html>",
-            )
+        self.sw_batch_name_lineEdit.setStatusTip(
+            "Batch name must not contain underscores!"
         )
+        self.sw_device_number_label.setText(_translate("MainWindow", "Device Number"))
+        # self.sw_header1_label.setToolTip(
+        # _translate(
+        # "MainWindow",
+        # "<html><head/><body><p>The file name the data is saved in in the end"
+        # " will be in the format"
+        # " yyyy-mm-dd_&lt;batch-name&gt;_d&lt;device-number&gt;_p&lt;pixel-number&gt;.csv.</p></body></html>",
+        # )
+        # )
         self.sw_header1_label.setText(
             _translate("MainWindow", "Batch Name and File Path")
         )
@@ -1655,6 +1658,10 @@ class Ui_MainWindow(object):
         self.gw_vc_compliance_label.setText(_translate("MainWindow", "Max. I/V (mA/V)"))
         self.gw_integration_time_label.setText(
             _translate("MainWindow", "Integration Time (ms)")
+        )
+
+        self.gw_start_measurement_pushButton.setStatusTip(
+            "To evaluate EL data, the scan must include the range of [0°, 90°]!"
         )
         # self.gw_homing_time_label.setText(_translate("MainWindow", "Homing Time (s)"))
         # self.gw_animation.setText(_translate("MainWindow", "small animation"))
