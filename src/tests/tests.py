@@ -106,7 +106,7 @@ class MockThorlabMotor:
     Mock class for testing
     """
 
-    def __init__(self, motor_run, motor_number, offset_angle, main_widget):
+    def __init__(self, motor_run, motor_number, offset_angle, motor_speed, main_widget):
         self.position = 0
         self.offset_angle = offset_angle
         self.main_widget = main_widget
@@ -115,7 +115,9 @@ class MockThorlabMotor:
     def move_to(self, angle):
         self.position = angle
 
-        motor_move = MotorMoveThread(angle, self.offset_angle, self, self.main_widget)
+        motor_move = MotorMoveThread(
+            angle, self.offset_angle, False, self, self.main_widget
+        )
         motor_move.start()
         time.sleep(0.5)
         return motor_move

@@ -102,7 +102,10 @@ class AutotubeMeasurement(QtCore.QThread):
 
         if self.measurement_parameters["auto_spectrum"]:
             cf.log_message("Motor is moving to Photodiode Position")
-            pd_position = 90
+            if self.setup_parameters["top_emitting"]:
+                pd_position = -90
+            else:
+                pd_position = 90
             self.parent.motor.move_to(pd_position)
 
             # Wait until the motor move is finished
@@ -153,7 +156,7 @@ class AutotubeMeasurement(QtCore.QThread):
         #     "OLEDbuffer", 10 * len(low_vlt) + len(high_vlt)
         # )
         # Turn all pixels off at the beginning
-        self.uno.trigger_relay(0)
+        self.parent.unselect_all_pixels()
 
         self.update_progress_bar.emit("value", 0)
 
@@ -340,7 +343,7 @@ class AutotubeMeasurement(QtCore.QThread):
             self.parent.toggle_pixel(pixel_with_highest_luminance, "specw")
             # self.keithley_source.set_voltage(str(voltages_to_scan[-1]))
             # self.keithley_source.activate_output()
-            self.parent.specw_voltage_spinBox.setValue(voltages_to_scan[-1])
+            self.parent.specw_voltage_spinBox.setValue(3.5)
             self.parent.tabWidget.setCurrentIndex(2)
 
             # # self.progressBar.setProperty("value", 0)
@@ -442,6 +445,9 @@ class AutotubeMeasurement(QtCore.QThread):
         # Untoggle the pushbutton
         self.reset_start_button.emit(False)
 
+        # Set keithley source back to initial value set in setup window
+        # self.keithley_source.set_voltage(self.setup_parameters["test_voltage"])
+
         # Update statusbar
         cf.log_message("Autotube measurement finished")
 
@@ -458,28 +464,28 @@ class AutotubeMeasurement(QtCore.QThread):
         """
         # Define Header
         line03 = (
-            "Min voltage:   "
+            "Min voltage: "
             + str(self.measurement_parameters["min_voltage"])
-            + " V   "
-            + "Max voltage:   "
+            + " V\t"
+            + "Max voltage: "
             + str(self.measurement_parameters["max_voltage"])
-            + " V    "
-            + "Change voltage:   "
+            + " V\t"
+            + "Change voltage: "
             + str(self.measurement_parameters["changeover_voltage"])
             + " V"
         )
         line04 = (
-            "Step voltage at low voltages:   "
+            "Step voltage at low voltages: "
             + str(self.measurement_parameters["low_voltage_step"])
             + " V"
         )
         line05 = (
-            "Step voltage at high voltages:   "
+            "Step voltage at high voltages: "
             + str(self.measurement_parameters["high_voltage_step"])
             + " V"
         )
         line06 = (
-            "Current Compliance:   "
+            "Current Compliance: "
             + str(self.measurement_parameters["scan_compliance"])
             + " A"
         )

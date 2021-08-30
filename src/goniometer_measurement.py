@@ -121,7 +121,11 @@ class GoniometerMeasurement(QtCore.QThread):
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             if self.goniometer_measurement_parameters["voltage_scan"]:
                 # Move to initial position which is the offset position
-                pd_position = 90
+                if self.setup_parameters["top_emitting"]:
+                    pd_position = -90
+                else:
+                    pd_position = 90
+
                 self.motor.move_to(pd_position)
 
                 # Wait until the motor move is finished
@@ -352,7 +356,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # These measurements are only taken for el measurements
             if not self.goniometer_measurement_parameters["el_or_pl"]:
-                temp_buffer = self.keithley_source.read_current()
+                temp_buffer = self.keithley_source.read_current() * 1e3
 
                 # In the case of a voltage scan
                 if self.goniometer_measurement_parameters["voltage_or_current"]:
@@ -506,6 +510,8 @@ class GoniometerMeasurement(QtCore.QThread):
             # Only save iv data for el measurement, because it otherwise does not exist
             self.iv_data = pd.DataFrame(rows_list)
             self.save_iv_data()
+            self.keithley_source.reset()
+            self.keithley_source.set_voltage(self.setup_parameters["test_voltage"])
         else:
             # Show pop_up that asks to shut down the lamp after the measurement
             # was done
@@ -526,28 +532,28 @@ class GoniometerMeasurement(QtCore.QThread):
         """
         # Header Parameters
         line01 = (
-            "Integration time:   "
+            "Integration time: "
             + str(self.goniometer_measurement_parameters["integration_time"])
-            + " ms    "
-            + "OLED on time:   "
+            + " ms\t"
+            + "OLED on time: "
             + str(self.goniometer_measurement_parameters["oled_on_time"])
             + " s    "
         )
         if self.goniometer_measurement_parameters["voltage_or_current"]:
             line02 = (
-                "Source Voltage:		"
+                "Source Voltage: "
                 + str(self.goniometer_measurement_parameters["vc_value"])
-                + " V        "
-                + "Current Compliance:	"
+                + " V\t"
+                + "Current Compliance: "
                 + str(self.goniometer_measurement_parameters["vc_compliance"] * 1e3)
                 + " mA"
             )
         else:
             line02 = (
-                "Source Current:		"
+                "Source Current:"
                 + str(self.goniometer_measurement_parameters["vc_value"] * 1e3)
-                + " mA        "
-                + "Voltage Compliance:	"
+                + " mA\t"
+                + "Voltage Compliance: "
                 + str(self.goniometer_measurement_parameters["vc_compliance"])
                 + " V"
             )
@@ -555,19 +561,19 @@ class GoniometerMeasurement(QtCore.QThread):
         # Save the specific oled and photodiode data
         line03 = "Specific oled and photodiode data"
         line04 = (
-            "OLED voltage:     "
+            "OLED voltage: "
             + str(self.specific_oled_voltage)
-            + " V"
-            + "OLED current:        "
+            + " V\t"
+            + "OLED current: "
             + str(self.specific_oled_current)
-            + " mA"
-            + "PD voltage:      "
+            + " mA\t"
+            + "PD voltage: "
             + str(self.specific_pd_voltage)
             + " V"
         )
         line05 = "### Measurement data ###"
         line06 = "Angle\t OLED Voltage\t OLED Current"
-        line07 = "°\t V\t mA\n"
+        line07 = "deg\t V\t mA\n"
 
         header_lines = [
             line01,
@@ -623,28 +629,28 @@ class GoniometerMeasurement(QtCore.QThread):
         """
         # Header Parameters
         line01 = (
-            "Integration time:   "
+            "Integration time: "
             + str(self.goniometer_measurement_parameters["integration_time"])
-            + " micro s    "
-            + "OLED on time:   "
+            + " us\t"
+            + "OLED on time: "
             + str(self.goniometer_measurement_parameters["oled_on_time"])
-            + " s    "
+            + " s"
         )
         if self.goniometer_measurement_parameters["voltage_or_current"]:
             line02 = (
-                "Source Voltage:		"
+                "Source Voltage: "
                 + str(self.goniometer_measurement_parameters["vc_value"])
-                + " V        "
-                + "Current Compliance:	"
+                + " V\t"
+                + "Current Compliance: "
                 + str(self.goniometer_measurement_parameters["vc_compliance"] * 1e3)
                 + " mA"
             )
         else:
             line02 = (
-                "Source Current:		"
+                "Source Current: "
                 + str(self.goniometer_measurement_parameters["vc_value"] * 1e3)
-                + " mA        "
-                + "Voltage Compliance:	"
+                + " mA\t"
+                + "Voltage Compliance: "
                 + str(self.goniometer_measurement_parameters["vc_compliance"])
                 + " V"
             )

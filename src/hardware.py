@@ -313,6 +313,7 @@ class KeithleySource:
         """
 
         self.mutex.lock()
+        voltage = float(voltage)
         if self.mode == "voltage":
             self.keith.write("Source:Volt " + str(self.reverse * voltage))
         else:
@@ -326,6 +327,7 @@ class KeithleySource:
         Set the current on the source meter (only in current mode)
         """
         self.mutex.lock()
+        current = float(current)
         # set current to source_value
         if self.mode == "current":
             self.keith.write("Source:Current " + str(self.reverse * current * 1e-3))
@@ -484,7 +486,7 @@ class ThorlabMotor:
     # update_animation = QtCore.Signal(float)
     update_progress_bar = QtCore.Signal(str, float)
 
-    def __init__(self, motor_run, motor_number, offset_angle, main_widget):
+    def __init__(self, motor_run, motor_number, offset_angle, motor_speed, main_widget):
         # Define a mutex
         self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
 
@@ -500,7 +502,7 @@ class ThorlabMotor:
         self.motor = apt.Motor(int(motor_number))
         time.sleep(1)
         # velocity MUST be set to avoid the motor moving slowly
-        self.motor.set_velocity_parameters(0, 9, 5)
+        self.motor.set_velocity_parameters(0, 9, motor_speed)
         # ensures that the motor homes properly - home in reverse with reverse lim switches
         self.motor.set_hardware_limit_switches(5, 5)
         self.motor.set_move_home_parameters(2, 1, 10, 3)
@@ -511,70 +513,52 @@ class ThorlabMotor:
         self.main_widget = main_widget
         self.motor_run = motor_run
         self.offset_angle = offset_angle
+        self.top_emitting_reverse_angles = 1
         self.motor_run.offset_angle = self.offset_angle
 
-    def move_to(self, angle, blocking=False, updates=True):
+    def change_velocity(self, velocity):
+        """
+        Change velocity of motor
+        """
+        if velocity <= 20 and velocity >= 0:
+            self.motor.set_velocity_parameters(0, 9, velocity)
+        else:
+            cf.log_message("Motor velocity is exceeding its limits")
+
+    def move_to(self, angle, blocking=False):
         """
         Call the move_to function of the apt package
         """
         self.mutex.lock()
 
-        # It seems like the "move_velocity" function of the thorlabs library is
-        # dead. Therefore, the following is a workaround that always moves to
-        # zero first in these cases (since the motor always # takes the shortest
-        # route but we don't want to allow for full rotations)
-        # if np.logical_or(
-        #     (
-        #         self.motor.position >= 270 + self.offset_angle
-        #         or self.motor.position <= 90 + self.offset_angle
-        #     )
-        #     and angle < 0,
-        #     (
-        #         self.motor.position < 270 + self.offset_angle
-        #         or self.motor.position > 90 + self.offset_angle
-        #     )
-        #     and angle > 0,
-        # ):
-        #     self.motor.move_to(0 + self.offset_angle, blocking=True)
+        angle_corrected = angle * self.top_emitting_reverse_angles
 
-        # # The motor does not always choose the closest way. If we want that, it must be calculated first
-        # dict_direction = {"clockwise": 1, "counterclockwise": 2}
-        # direction = 1
+        if math.isclose(abs(self.read_position()), 180, abs_tol=5):
+            self.motor_run.helper_angle = False
+            self.motor.move_to((angle_corrected - float(self.offset_angle)) % 360)
+        elif np.sign(self.read_position()) != np.sign(angle):
+            self.motor_run.helper_angle = True
+            self.motor.move_to((0 - float(self.offset_angle) % 360))
+        else:
+            self.motor_run.helper_angle = False
+            self.motor.move_to((angle_corrected - float(self.offset_angle)) % 360)
 
-        # if angle < self.motor.position:
-        #     direction = dict_direction["clockwise"]
-        #     # self.motor.move_velocity(int(1))
-        # elif angle > self.motor.position:
-        #     direction = dict_direction["counterclockwise"]
-        #     # self.motor.move_velocity(int(2))
-
-        # # Ideally the motor shouldn't turn completely around not to break the
-        # # cable (turn around at 180°)
-        # # The numbers here result from the motor reading of the motor between 0
-        # # and 360 degrees whereas we have a 45° offset due to our current setup
-        # if (self.motor.position >= 270 + self.offset_angle or self.motor.position <= 90 + self.offset_angle) and angle < 0:
-        #     # self.motor.move_velocity(int(1))
-        #     direction = dict_direction["clockwise"]
-        # elif (self.motor.position < 270 + self.offset_angle or self.motor.position > 90 + self.offset_angle) and angle > 0:
-        #     # self.motor.move_velocity(int(2))
-        #     direction = dict_direction["counterclockwise"]
-
-        # self.motor.move_velocity(int(direction))
-        # self.main_widget.progressBar.setProperty("value", 0)
-        # self.main_widget.progressBar.show()
-
-        self.motor.move_to(angle - float(self.offset_angle), blocking)
+        # This here must not be angle_corrected
         self.motor_run.angle = angle
 
         self.motor_run.start()
         self.mutex.unlock()
 
-    def change_offset_angle(self, offset_angle):
+    def change_offset_angle(self, offset_angle, relative=True):
         """
         Changes offset angle
         """
-        self.offset_angle += offset_angle
-        self.motor_run.offset_angle = self.offset_angle
+        if relative:
+            self.offset_angle += offset_angle
+            self.motor_run.offset_angle = self.offset_angle
+        else:
+            self.offset_angle = offset_angle
+            self.motor_run.offset_angle = self.offset_angle
 
     def read_position(self):
         """
@@ -582,14 +566,19 @@ class ThorlabMotor:
         """
         self.mutex.lock()
         # Make sure that the motor position is returned as values between -180 to 180 (definition)
-        if self.motor.position + float(self.offset_angle) > 180:
+        if (self.motor.position + float(self.offset_angle)) % 360 > 180:
 
             motor_position_translated = (
-                self.motor.position + float(self.offset_angle) - 360
-            )
+                self.motor.position + float(self.offset_angle)
+            ) % 360 - 360
         else:
-            motor_position_translated = self.motor.position + float(self.offset_angle)
+            motor_position_translated = (
+                self.motor.position + float(self.offset_angle)
+            ) % 360
 
+        motor_position_translated = (
+            motor_position_translated * self.top_emitting_reverse_angles
+        )
         self.mutex.unlock()
         return motor_position_translated
 
@@ -656,6 +645,7 @@ class MotorMoveThread(QtCore.QThread):
         self,
         angle,
         offset_angle,
+        helper_angle,
         main_widget,
     ):
 
@@ -665,6 +655,7 @@ class MotorMoveThread(QtCore.QThread):
 
         self.angle = angle
         self.offset_angle = offset_angle
+        self.helper_angle = helper_angle
         self.main_widget = main_widget
 
         # Reset Arduino and Keithley
@@ -694,6 +685,14 @@ class MotorMoveThread(QtCore.QThread):
         initial_position = copy.copy(motor_position)
 
         while not math.isclose(motor_position, self.angle, abs_tol=0.01):
+            if self.helper_angle == True:
+                if math.isclose(motor_position, 0, abs_tol=20):
+                    motor.motor.move_to(
+                        motor.top_emitting_reverse_angles * self.angle
+                        - float(self.offset_angle)
+                    )
+                    self.helper_angle = False
+
             motor_position = motor.read_position()
             self.update_animation_signal.emit(motor_position)
             self.update_progress_bar_signal.emit(

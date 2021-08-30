@@ -2,13 +2,7 @@ from PySide2 import QtWidgets, QtCore, QtGui
 
 from PySide2.QtCore import QPropertyAnimation, QRectF, QSize, Qt, Property
 from PySide2.QtGui import QPainter, QColor, QPalette
-from PySide2.QtWidgets import (
-    QAbstractButton,
-    QApplication,
-    QHBoxLayout,
-    QSizePolicy,
-    QWidget,
-)
+from PySide2.QtWidgets import QAbstractButton, QSizePolicy
 
 import time
 
@@ -29,6 +23,8 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
 
         # Initial position
         self.position = 0
+
+        self.reverse_angles_bool = False
 
     def sizeHint(self):
         """
@@ -79,10 +75,19 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
         # "180°",
         # )
 
+        if self.reverse_angles_bool:
+            top_label = "-90°"
+            bottom_label = "90°"
+            reverse = -1
+        else:
+            top_label = "90°"
+            bottom_label = "-90°"
+            reverse = 1
+
         painter.drawText(
             rect.center().toTuple()[0] - letter_width * len(str("90°")) / 2,
             rect.center().toTuple()[1] - circle_radius - circle_thickness - margin,
-            "90°",
+            top_label,
         )
         painter.drawText(
             rect.center().toTuple()[0] - letter_width * len(str("-90°")) / 2,
@@ -91,7 +96,7 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
             + circle_thickness
             + margin
             + letter_height,
-            "-90°",
+            bottom_label,
         )
 
         painter.setPen(
@@ -107,7 +112,7 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
             circle_radius * 2 - margin - circle_thickness - arc_thickness,
             circle_radius * 2 - margin - circle_thickness - arc_thickness,
             0 * 16,
-            16 * self.position,
+            16 * self.position * reverse,
         )
         painter.drawText(
             rect.center().toTuple()[0]
@@ -127,6 +132,14 @@ class Ui_GoniometerAnimation(QtWidgets.QWidget):
         Function to trigger a move of the position animation for the goniometer
         """
         self.position = round(position, 1)
+        self.update()
+
+    @QtCore.Slot(bool)
+    def reverse_angles(self, reverse_angle_bool):
+        """
+        Function to reverse angles on the diagram
+        """
+        self.reverse_angles_bool = reverse_angle_bool
         self.update()
 
 
@@ -345,6 +358,7 @@ class HumbleSpinBox(QtWidgets.QSpinBox):
 
     def focusInEvent(self, event):
         self.setFocusPolicy(QtCore.Qt.WheelFocus)
+        # help_event = QHelpEvent(event.ToolTip, self.pos(), QCursor.pos())
         super(HumbleSpinBox, self).focusInEvent(event)
 
     def focusOutEvent(self, event):
