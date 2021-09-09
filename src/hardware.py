@@ -246,6 +246,7 @@ class KeithleySource:
         """
         self.mutex.lock()
         self.keith.write("*rst")
+        self.keith.write("Source:Volt:ILimit " + str(1.05))
         self.mutex.unlock()
 
     def init_buffer(self, buffer_name, buffer_length):
