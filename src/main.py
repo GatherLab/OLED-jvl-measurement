@@ -233,6 +233,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_pixel7_pushButton.setShortcut("7")
         self.aw_pixel8_pushButton.setShortcut("8")
 
+        # By default activate the auto position option
+        self.aw_auto_measure_toggleSwitch.setChecked(True)
+
         # -------------------------------------------------------------------- #
         # ---------------------- Spectrum Measurement  ----------------------- #
         # -------------------------------------------------------------------- #
@@ -326,6 +329,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_pixel6_pushButton.setShortcut("6")
         self.gw_pixel7_pushButton.setShortcut("7")
         self.gw_pixel8_pushButton.setShortcut("8")
+
+        self.gw_voltage_or_current_toggleSwitch.clicked.connect(
+            self.change_measurement_mode
+        )
 
         # self.motor_run = motormovethread(0, 45, self)
 
@@ -615,6 +622,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             raise UserWarning("Please enter a valid folder path!")
 
         return setup_parameters
+
+    def make_format(self, current, other):
+        """
+        function to allow display of both coordinates for figures with two axis
+        """
+        # current and other are axes
+        def format_coord(x, y):
+            # x, y are data coordinates
+            # convert to display coords
+            display_coord = current.transData.transform((x, y))
+            inv = other.transData.inverted()
+            # convert back to data coords with respect to ax
+            ax_coord = inv.transform(display_coord)
+            coords = [ax_coord, (x, y)]
+            return "Left: {:<40}    Right: {:<}".format(
+                *["({:.3f}, {:.3f})".format(x, y) for x, y in coords]
+            )
+
+        return format_coord
 
     # -------------------------------------------------------------------- #
     # -------------------------- Current Tester -------------------------- #
@@ -1085,6 +1111,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             color=(85 / 255, 170 / 255, 255 / 255),
             marker="o",
         )
+        self.aw_ax2.format_coord = self.make_format(self.aw_ax, self.aw_ax2)
 
         self.aw_ax.grid(True)
         self.aw_ax.set_xlabel("Voltage (V)", fontsize=14)
@@ -1647,6 +1674,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         elif button == QtWidgets.QMessageBox.Cancel:
             self.goniometer_measurement.pause = "return"
             self.gw_start_measurement_pushButton.setChecked(False)
+
+    def change_measurement_mode(self):
+        """
+        Function that does some visual changes if the user selects current or
+        voltage mode in AR measurements.
+        """
+        if self.gw_voltage_or_current_toggleSwitch.isChecked():
+            # Current mode
+            # Set compliance to 5V
+            self.gw_vc_compliance_spinBox.setValue(5)
+            self.gw_vc_compliance_label.setText("Max. Voltage (V)")
+            self.gw_vc_value_label.setText("Applied Current (mA)")
+
+        else:
+            # Voltage mode
+            # Set compliance to 1.05 A
+            self.gw_vc_compliance_spinBox.setValue(1050)
+            self.gw_vc_compliance_label.setText("Max. Current (mA)")
+            self.gw_vc_value_label.setText("Applied Voltage (V)")
 
     def closeEvent(self, event):
         """

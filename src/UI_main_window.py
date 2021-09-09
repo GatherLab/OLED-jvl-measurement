@@ -687,7 +687,7 @@ class Ui_MainWindow(object):
         # Auto measure spectrum
         self.aw_auto_measure_HLayout = QtWidgets.QHBoxLayout()
         self.aw_auto_measure_toggleSwitch = ToggleSwitch()
-        self.aw_auto_measure_label = QtWidgets.QLabel("Auto Spectrum")
+        self.aw_auto_measure_label = QtWidgets.QLabel("Auto Position")
         self.aw_auto_measure_HLayout.addWidget(self.aw_auto_measure_toggleSwitch)
         self.aw_auto_measure_HLayout.addWidget(self.aw_auto_measure_label)
         self.gridLayout_3.addLayout(self.aw_auto_measure_HLayout, 13, 0, 1, 1)
@@ -783,7 +783,7 @@ class Ui_MainWindow(object):
         self.specw_mplToolbar = NavigationToolbar(
             self.specw_fig, self.specw_graph_widget
         )
-        self.specw_mplToolbar.setStyleSheet("background-color:#FFFFFF;")
+        self.specw_mplToolbar.setStyleSheet("background-color:#FFFFFF; color: black;")
         self.specw_mpl_graph_gridLayout.addWidget(self.specw_mplToolbar)
 
         # ----------------------- Define scroll area ---------------------------
@@ -1022,7 +1022,7 @@ class Ui_MainWindow(object):
         self.gw_ax1.set_facecolor("#FFFFFF")
         self.gw_fig.figure.set_facecolor("#FFFFFF")
         self.gw_mplToolbar = NavigationToolbar(self.gw_fig, self.gw_graph_widget)
-        self.gw_mplToolbar.setStyleSheet("background-color:#FFFFFF;")
+        self.gw_mplToolbar.setStyleSheet("background-color:#FFFFFF; color: black;")
         self.gw_mpl_graph_gridLayout.addWidget(self.gw_mplToolbar)
 
         # ------------------------- Scroll Area ------------------------------ #
@@ -1544,7 +1544,7 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Low Voltage Step (V)")
         )
         self.aw_scan_compliance_label.setText(
-            _translate("MainWindow", "Max Allowed Current (mA)")
+            _translate("MainWindow", "Max. Current (mA)")
         )
         # self.aw_pd_saturation_checkBox.setText(
         # _translate("MainWindow", "Check for PD Saturation")
@@ -1654,8 +1654,10 @@ class Ui_MainWindow(object):
         self.gw_el_or_pl_toggleSwitch.setText(_translate("MainWindow", "EL or PL"))
         self.gw_move_pushButton.setText(_translate("MainWindow", "Move"))
         self.gw_step_angle_label.setText(_translate("MainWindow", "Step Angle (°)"))
-        self.gw_vc_value_label.setText(_translate("MainWindow", "Constant V/I (V/mA)"))
-        self.gw_vc_compliance_label.setText(_translate("MainWindow", "Max. I/V (mA/V)"))
+        self.gw_vc_value_label.setText(_translate("MainWindow", "Applied Voltage (V)"))
+        self.gw_vc_compliance_label.setText(
+            _translate("MainWindow", "Max. Current (mA)")
+        )
         self.gw_integration_time_label.setText(
             _translate("MainWindow", "Integration Time (ms)")
         )
