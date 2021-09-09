@@ -313,7 +313,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.reset_start_button.emit(False)
                 return
 
-            self.motor.move_to(angle, updates=False)
+            self.motor.move_to(angle)
             # Wait until the motor move is finished
             while not self.parent.motor_run.isFinished():
                 time.sleep(0.1)
@@ -356,16 +356,19 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # These measurements are only taken for el measurements
             if not self.goniometer_measurement_parameters["el_or_pl"]:
-                temp_buffer = self.keithley_source.read_current() * 1e3
+                # Here the keithley switches from voltage measurement to current
+                # measurement
 
                 # In the case of a voltage scan
                 if self.goniometer_measurement_parameters["voltage_or_current"]:
+                    temp_buffer = self.keithley_source.read_voltage()
                     data_dict = {
                         "angle": angle,
                         "voltage": temp_buffer,
                         "current": self.goniometer_measurement_parameters["vc_value"],
                     }
                 else:
+                    temp_buffer = self.keithley_source.read_current() * 1e3
                     data_dict = {
                         "angle": angle,
                         "voltage": self.goniometer_measurement_parameters["vc_value"],
