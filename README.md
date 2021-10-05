@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  <a href="##setup">Setup</a> •
-  <a href="##hardware">Hardware</a>
+  <a href="#setup">Setup</a> •
+  <a href="#hardware">Hardware</a>
 </p>
 
 The goal of this project is to develop an easy to use interface for the investigation of organic leds (OLEDs). The measurements may or may not comprise current-voltage-luminance or spectral measurements. Additionally, an angle resolved spectrum of the OLED under investigation is made possible. Ultimately, the program should be easily usable and facilitate measurement and evaluation of classic OLED characterisation.
