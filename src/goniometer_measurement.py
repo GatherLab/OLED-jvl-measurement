@@ -96,15 +96,15 @@ class GoniometerMeasurement(QtCore.QThread):
         # Declare the data structures that are used in the goniometer measurement
         self.iv_data = pd.DataFrame()
         self.spectrum_data = pd.DataFrame()
-        self.specific_oled_voltage = 0
-        self.specific_oled_current = 0
-        self.specific_pd_voltage = 0
+        # self.specific_oled_voltage = 0
+        # self.specific_oled_current = 0
+        # self.specific_pd_voltage = 0
 
         # Introduce a pause variable
         self.pause = "False"
 
-        self.elapsed_time_maximum_angle = 0
-        self.elapsed_time_degradation_check = 0
+        self.pl_elapsed_time = 0
+        self.total_oled_on_time = 0
 
     def run(self):
         """
@@ -195,23 +195,46 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # self.keithley_source.init_buffer("pulsebuffer", buffer_length=1000)
 
-            # Now activate the output to measure the specific voltages/current
-            self.uno.trigger_relay(self.pixel[0])
-            self.keithley_source.activate_output()
+            # # Now activate the output to measure the specific voltages/current
+            # self.uno.trigger_relay(self.pixel[0])
+            # oled_on_time_start = time.time()
+            # self.keithley_source.activate_output()
 
-            self.specific_pd_voltage = (
-                self.keithley_multimeter.measure_voltage() - background_diode_voltage
-            )
-            self.specific_oled_current = self.keithley_source.read_current()
-            self.specific_oled_voltage = self.keithley_source.read_voltage()
+            # self.specific_pd_voltage = (
+            #     self.keithley_multimeter.measure_voltage() - background_diode_voltage
+            # )
+            # self.specific_oled_current = self.keithley_source.read_current()
+            # self.specific_oled_voltage = self.keithley_source.read_voltage()
 
-            # Deactivate output
-            self.keithley_source.deactivate_output()
-            self.uno.trigger_relay(0)
+            # # Deactivate output
+            # self.keithley_source.deactivate_output()
+            # self.uno.trigger_relay(0)
+            # self.total_oled_on_time += time.time() - oled_on_time_start
 
-            cf.log_message("Specific voltages measured")
+            # cf.log_message("Specific voltages measured")
 
-            time.sleep(0.5)
+            # time.sleep(0.5)
+
+        # If selected by the user, do a first measurement for the degradation check at zero angle.
+        if self.goniometer_measurement_parameters["degradation_check"]:
+            self.motor.move_to(0)
+
+            # Wait until the motor move is finished
+            while not self.parent.motor_run.isFinished():
+                time.sleep(0.1)
+
+            # Only activate output for el
+            if not self.goniometer_measurement_parameters["el_or_pl"]:
+                self.uno.trigger_relay(self.pixel[0])
+                oled_on_time_start = time.time()
+
+            self.spectrum_data[str(0.0) + "_deg1"] = self.spectrometer.measure()[1]
+
+            # Only deactivate output for el (otherwise it was never activated)
+            if not self.goniometer_measurement_parameters["el_or_pl"]:
+                # self.keithley_source.deactivate_output()
+                self.uno.trigger_relay(self.pixel[0])
+                self.total_oled_on_time += time.time() - oled_on_time_start
 
         # PL from here on
         self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
@@ -291,6 +314,9 @@ class GoniometerMeasurement(QtCore.QThread):
             while self.pause == "True":
                 time.sleep(0.1)
                 if self.pause == "break":
+                    # Take the time at the beginning to measure the length of the entire
+                    # measurement
+                    absolute_starting_time = time.time()
                     break
                 elif self.pause == "return":
                     return
@@ -344,6 +370,7 @@ class GoniometerMeasurement(QtCore.QThread):
             # Only activate output for EL measurement
             if not self.goniometer_measurement_parameters["el_or_pl"]:
                 self.uno.trigger_relay(self.pixel[0])
+                oled_on_time_start = time.time()
 
                 # The pulse duration is a valid parameter for the EL
                 # measurements but hinders fast scans for PL measurements
@@ -378,19 +405,6 @@ class GoniometerMeasurement(QtCore.QThread):
                 rows_list.append(data_dict)
 
             # Now measure spectrum (wavelength and intensity) (done for EL and pl)
-            if math.isclose(
-                angle, self.goniometer_measurement_parameters["minimum_angle"]
-            ):
-                starting_time = time.time()
-            elif math.isclose(
-                angle, self.goniometer_measurement_parameters["maximum_angle"]
-            ):
-                self.elapsed_time_maximum_angle = round(time.time() - starting_time, 2)
-                cf.log_message(
-                    str(self.elapsed_time_maximum_angle)
-                    + " s passed since the minimum angle measurement."
-                )
-
             self.spectrum_data[str(angle)] = self.spectrometer.measure()[1]
 
             # Emit a signal to update the plot (unfortunately with python 3.9
@@ -405,6 +419,7 @@ class GoniometerMeasurement(QtCore.QThread):
             if not self.goniometer_measurement_parameters["el_or_pl"]:
                 # self.keithley_source.deactivate_output()
                 self.uno.trigger_relay(self.pixel[0])
+                self.total_oled_on_time += time.time() - oled_on_time_start
 
             # Calculate the processing time it took
             # end_process = time.process_time()
@@ -424,10 +439,11 @@ class GoniometerMeasurement(QtCore.QThread):
                 )
                 * 100,
             )
-        # If the user wants it, move again back to the minimum angle and take
+
+        # If the user wants it, move again back to zero angle
         # another spectrum to see if the device degraded already
         if self.goniometer_measurement_parameters["degradation_check"]:
-            self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
+            self.motor.move_to(0)
 
             # Wait until the motor move is finished
             while not self.parent.motor_run.isFinished():
@@ -437,64 +453,27 @@ class GoniometerMeasurement(QtCore.QThread):
             if not self.goniometer_measurement_parameters["el_or_pl"]:
                 # self.keithley_source.deactivate_output()
                 self.uno.trigger_relay(self.pixel[0])
+                oled_on_time_start = time.time()
 
-            # Instead of defining a moving time, just read the motor position and
-            # only start the measurement when the motor is at the right position
-            # motor_position = self.motor.read_position()
+            self.spectrum_data[str(0.0) + "_deg2"] = self.spectrometer.measure()[1]
 
-            # while not math.isclose(
-            #     motor_position,
-            #     self.goniometer_measurement_parameters["minimum_angle"],
-            #     abs_tol=0.01,
-            # ):
-            #     motor_position = self.motor.read_position()
-            #     self.update_animation.emit(motor_position)
-            #     time.sleep(0.05)
-
-            # # Update animation once more since the position might be 0.9 at this
-            # # point (int comparison in the above while loop)
-            # self.update_animation.emit(motor_position)
-
-            self.elapsed_time_degradation_check = round(time.time() - starting_time, 2)
-            cf.log_message(
-                str(self.elapsed_time_degradation_check)
-                + " s passed since the minimum angle measurement."
-            )
-
-            self.spectrum_data[
-                str(float(self.goniometer_measurement_parameters["minimum_angle"]))
-                + "_deg"
-            ] = self.spectrometer.measure()[1]
+            # Only deactivate output for el (otherwise it was never activated)
+            if not self.goniometer_measurement_parameters["el_or_pl"]:
+                self.uno.trigger_relay(self.pixel[0])
+                self.total_oled_on_time += time.time() - oled_on_time_start
 
             # Now plot the spectrum of minimum angle and the final repeated measurement
             self.update_simple_spectrum_signal.emit(
                 [
                     self.spectrum_data["wavelength"],
-                    self.spectrum_data[
-                        str(
-                            float(
-                                self.goniometer_measurement_parameters["minimum_angle"]
-                            )
-                        )
-                    ]
-                    - self.spectrum_data["background"],
-                    self.spectrum_data[
-                        str(
-                            float(
-                                self.goniometer_measurement_parameters["minimum_angle"]
-                            )
-                        )
-                        + "_deg"
-                    ]
-                    - self.spectrum_data["background"],
+                    self.spectrum_data["0.0_deg1"] - self.spectrum_data["background"],
+                    self.spectrum_data["0.0_deg2"] - self.spectrum_data["background"],
                 ],
-                ["before measurement", "after measurement"],
+                [
+                    "initial spectrum",
+                    "after " + str(round(self.total_oled_on_time, 2)) + " s on time",
+                ],
             )
-
-            # Only deactivate output for el (otherwise it was never activated)
-            if not self.goniometer_measurement_parameters["el_or_pl"]:
-                # self.keithley_source.deactivate_output()
-                self.uno.trigger_relay(self.pixel[0])
 
         self.save_spectrum_data()
 
@@ -515,6 +494,7 @@ class GoniometerMeasurement(QtCore.QThread):
             self.save_iv_data()
             self.keithley_source.reset()
             self.keithley_source.set_voltage(self.setup_parameters["test_voltage"])
+
         else:
             # Show pop_up that asks to shut down the lamp after the measurement
             # was done
@@ -525,6 +505,14 @@ class GoniometerMeasurement(QtCore.QThread):
                 time.sleep(0.1)
                 if self.pause == "break":
                     break
+                    # Print total time elapsed
+                    self.pl_elapsed_time = round(
+                        time.time() - absolute_starting_time, 2
+                    )
+                    cf.log_message(
+                        str(self.absolute_elapsed_time)
+                        + " s passed since PL lamp was turned on."
+                    )
                 elif self.pause == "return":
                     return
 
@@ -563,17 +551,17 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # Save the specific oled and photodiode data
         line03 = "Specific oled and photodiode data"
-        line04 = (
-            "OLED voltage: "
-            + str(self.specific_oled_voltage)
-            + " V\t"
-            + "OLED current: "
-            + str(self.specific_oled_current)
-            + " mA\t"
-            + "PD voltage: "
-            + str(self.specific_pd_voltage)
-            + " V"
-        )
+        # line04 = (
+        #     "OLED voltage: "
+        #     + str(self.specific_oled_voltage)
+        #     + " V\t"
+        #     + "OLED current: "
+        #     + str(self.specific_oled_current)
+        #     + " mA\t"
+        #     + "PD voltage: "
+        #     + str(self.specific_pd_voltage)
+        #     + " V"
+        # )
         line05 = "### Measurement data ###"
         line06 = "Angle\t OLED Voltage\t OLED Current"
         line07 = "deg\t V\t mA\n"
@@ -582,7 +570,7 @@ class GoniometerMeasurement(QtCore.QThread):
             line01,
             line02,
             line03,
-            line04,
+            # line04,
             line05,
             line06,
             line07,
@@ -657,20 +645,10 @@ class GoniometerMeasurement(QtCore.QThread):
                 + str(self.goniometer_measurement_parameters["vc_compliance"])
                 + " V"
             )
-        if math.isclose(self.elapsed_time_degradation_check, 0):
-            line03 = (
-                "Time between min. and max. angle measurement: "
-                + str(self.elapsed_time_maximum_angle)
-                + " s"
-            )
+        if math.isclose(self.goniometer_measurement_parameters["el_or_pl"], 0):
+            line03 = "Total on time PL lamp: " + str(self.pl_elapsed_time) + " s"
         else:
-            line03 = (
-                "Time between min. and max. angle measurement: "
-                + str(self.elapsed_time_maximum_angle)
-                + ", Time between min. angle and degr. check measurement "
-                + str(self.elapsed_time_degradation_check)
-                + " s"
-            )
+            line03 = "Total OLED on time: " + str(self.total_oled_on_time) + " s"
 
         # Save the specific oled and photodiode data
         line04 = "### Measurement data ###\n"
