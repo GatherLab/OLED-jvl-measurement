@@ -115,12 +115,16 @@ class MockThorlabMotor:
     def move_to(self, angle):
         self.position = angle
 
-        motor_move = MotorMoveThread(
-            angle, self.offset_angle, False, self, self.main_widget
-        )
-        motor_move.start()
+        # motor_move = MotorMoveThread(
+        # angle, self.offset_angle, False, self, self.main_widget
+        # )
+        # motor_move.start()
+        # This here must not be angle_corrected
+        self.motor_run.angle = angle
+
+        self.motor_run.start()
         time.sleep(0.5)
-        return motor_move
+        # return motor_move
         # print("Moved to angle " + str(angle))
 
     def read_position(self):
