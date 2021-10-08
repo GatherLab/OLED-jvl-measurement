@@ -7,7 +7,7 @@ import seabreeze.spectrometers as sb  # MayaLSL Modules for Ocean Spectrometer
 
 import core_functions as cf
 
-# import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
+import thorlabs_apt as apt  # thorlabs apt for thorlabs motor
 
 import sys
 import time
