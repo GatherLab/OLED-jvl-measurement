@@ -170,8 +170,8 @@ class GoniometerMeasurement(QtCore.QThread):
                 # for the autotube thread to be finished
                 autotube_measurement.run()
 
-            # Take background voltage and measure specific current and voltage of photodiode and oled
-            background_diode_voltage = self.keithley_multimeter.measure_voltage()
+            # # Take background voltage and measure specific current and voltage of photodiode and oled
+            # background_diode_voltage = self.keithley_multimeter.measure_voltage()
 
             # Depending on if the user selected constant current or constant
             # voltage it is selected in the following what the Keithley source
@@ -215,6 +215,20 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # time.sleep(0.5)
 
+        # Take calibration readings
+        calibration_spectrum = self.spectrometer.measure()
+        self.spectrum_data["wavelength"] = calibration_spectrum[0]
+        self.spectrum_data["background"] = calibration_spectrum[1]
+
+        self.update_simple_spectrum_signal.emit(
+            [
+                calibration_spectrum[0],
+                calibration_spectrum[1],
+            ],
+            ["background"],
+        )
+        cf.log_message("Calibration spectrum measured")
+
         # If selected by the user, do a first measurement for the degradation check at zero angle.
         if self.goniometer_measurement_parameters["degradation_check"]:
             self.motor.move_to(0)
@@ -228,7 +242,9 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.uno.trigger_relay(self.pixel[0])
                 oled_on_time_start = time.time()
 
-            self.spectrum_data[str(0.0) + "_deg1"] = self.spectrometer.measure()[1]
+            # This here is temporarily saved in another variable to not distort
+            # the dataframe column order
+            degradation_data_before = self.spectrometer.measure()[1]
 
             # Only deactivate output for el (otherwise it was never activated)
             if not self.goniometer_measurement_parameters["el_or_pl"]:
@@ -270,20 +286,6 @@ class GoniometerMeasurement(QtCore.QThread):
         # + " °"
         # )
         # time.sleep(self.goniometer_measurement_parameters["homing_time"])
-
-        # Take calibration readings
-        calibration_spectrum = self.spectrometer.measure()
-        self.spectrum_data["wavelength"] = calibration_spectrum[0]
-        self.spectrum_data["background"] = calibration_spectrum[1]
-
-        self.update_simple_spectrum_signal.emit(
-            [
-                calibration_spectrum[0],
-                calibration_spectrum[1],
-            ],
-            ["background"],
-        )
-        cf.log_message("Calibration spectrum measured")
 
         # Initial processing time in seconds
         # I am not quite sure why this is done and if there is no better way of doing it
@@ -455,6 +457,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.uno.trigger_relay(self.pixel[0])
                 oled_on_time_start = time.time()
 
+            self.spectrum_data[str(0.0) + "_deg1"] = degradation_data_before
             self.spectrum_data[str(0.0) + "_deg2"] = self.spectrometer.measure()[1]
 
             # Only deactivate output for el (otherwise it was never activated)
@@ -475,7 +478,10 @@ class GoniometerMeasurement(QtCore.QThread):
                 ],
             )
 
-        self.save_spectrum_data()
+            corrected_spectrum_data = self.correct_spectrum_for_degradation()
+            self.save_spectrum_data(corrected_spectrum_data, "-deg")
+
+        self.save_spectrum_data(self.spectrum_data)
 
         self.hide_progress_bar.emit()
         self.reset_start_button.emit(False)
@@ -504,7 +510,6 @@ class GoniometerMeasurement(QtCore.QThread):
             while self.pause == "True":
                 time.sleep(0.1)
                 if self.pause == "break":
-                    break
                     # Print total time elapsed
                     self.pl_elapsed_time = round(
                         time.time() - absolute_starting_time, 2
@@ -513,8 +518,44 @@ class GoniometerMeasurement(QtCore.QThread):
                         str(self.absolute_elapsed_time)
                         + " s passed since PL lamp was turned on."
                     )
+                    break
                 elif self.pause == "return":
                     return
+
+    def correct_spectrum_for_degradation(self):
+        """
+        In case the degradation check was activated, correct the specturm for
+        the degradation.
+        """
+        # Function to do moving average
+        from scipy.ndimage.filters import uniform_filter1d
+
+        initial_maximum_intensity = max(
+            uniform_filter1d(self.spectrum_data["0.0_deg1"], 25)
+        )
+        final_maximum_intensity = max(
+            uniform_filter1d(self.spectrum_data["0.0_deg2"], 25)
+        )
+
+        # Assuming an exponential decay of the device, calculate the decay
+        # constant. Time is replaced by column number.
+        decay_constant = -len(self.spectrum_data.columns) / np.log(
+            final_maximum_intensity / initial_maximum_intensity
+        )
+
+        from copy import copy
+
+        # Apply the correction to the data
+        corrected_spectrum_data = copy(self.spectrum_data)
+        corrected_spectrum_data.iloc[:, 2:-2] = self.spectrum_data.iloc[:, 2:-2].apply(
+            lambda x: x
+            * np.exp(
+                (self.spectrum_data.iloc[:, 2:-2].columns.get_loc(x.name) + 1)
+                / decay_constant
+            )
+        )
+
+        return corrected_spectrum_data
 
     def save_iv_data(self):
         """
@@ -614,7 +655,7 @@ class GoniometerMeasurement(QtCore.QThread):
         # )
         cf.log_message("IV data saved")
 
-    def save_spectrum_data(self):
+    def save_spectrum_data(self, spectrum_data, additional_file_ending=""):
         """
         Function to save the spectrum data to a separate file
         """
@@ -645,10 +686,14 @@ class GoniometerMeasurement(QtCore.QThread):
                 + str(self.goniometer_measurement_parameters["vc_compliance"])
                 + " V"
             )
-        if math.isclose(self.goniometer_measurement_parameters["el_or_pl"], 0):
-            line03 = "Total on time PL lamp: " + str(self.pl_elapsed_time) + " s"
+        if not math.isclose(self.goniometer_measurement_parameters["el_or_pl"], 0):
+            line03 = (
+                "Total on time PL lamp: " + str(round(self.pl_elapsed_time, 2)) + " s"
+            )
         else:
-            line03 = "Total OLED on time: " + str(self.total_oled_on_time) + " s"
+            line03 = (
+                "Total OLED on time: " + str(round(self.total_oled_on_time, 2)) + " s"
+            )
 
         # Save the specific oled and photodiode data
         line04 = "### Measurement data ###\n"
@@ -668,6 +713,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 + dt.date.today().strftime("%Y-%m-%d_")
                 + self.setup_parameters["batch_name"]
                 + "_gon-spec"
+                + additional_file_ending
                 + ".csv"
             )
         else:
@@ -680,11 +726,17 @@ class GoniometerMeasurement(QtCore.QThread):
                 + "_p"
                 + str(self.pixel[0])
                 + "_gon-spec"
+                + additional_file_ending
                 + ".csv"
             )
 
+        # Format the dataframe for saving (no. of digits)
+        spectrum_data = spectrum_data.apply(
+            lambda x: x.map(lambda y: "{0:.1f}".format(y))
+        )
+
         # Save data
-        cf.save_file(self.spectrum_data, file_path, header_lines, save_header=True)
+        cf.save_file(spectrum_data, file_path, header_lines, save_header=True)
 
         # # Write header lines to file
         # with open(file_path, "a") as the_file:
