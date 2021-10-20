@@ -229,6 +229,10 @@ class GoniometerMeasurement(QtCore.QThread):
         )
         cf.log_message("Calibration spectrum measured")
 
+        # If el measurement was selected, activate the selected pixel already
+        if not self.goniometer_measurement_parameters["el_or_pl"]:
+            self.keithley_source.activate_output()
+
         # If selected by the user, do a first measurement for the degradation check at zero angle.
         if self.goniometer_measurement_parameters["degradation_check"]:
             self.motor.move_to(0)
@@ -296,10 +300,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         progress = 0
 
-        # If el measurement was selected, activate the selected pixel already
-        if not self.goniometer_measurement_parameters["el_or_pl"]:
-            self.keithley_source.activate_output()
-        else:
+        if self.goniometer_measurement_parameters["el_or_pl"]:
             # Check first if user already aborted the measurement
             if self.pause == "return":
                 cf.log_message("Goniometer measurement aborted")
