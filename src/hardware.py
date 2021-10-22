@@ -534,12 +534,17 @@ class ThorlabMotor:
 
         angle_corrected = angle * self.top_emitting_reverse_angles
 
-        if math.isclose(abs(self.read_position()), 180, abs_tol=5):
+        if math.isclose(abs(self.read_position()), 180, abs_tol=50):
+            # Only if the current position is close to 180, allow crossing the 180°
+            # otherwise go the full turn back
             self.motor_run.helper_angle = False
             self.motor.move_to((angle_corrected - float(self.offset_angle)) % 360)
-        elif np.sign(self.read_position()) != np.sign(angle):
+        elif np.sign(np.round(self.read_position(), 2)) != np.sign(angle):
+            # In case of a different sign, use a helper angle to make sure that
+            # the zero is always crossed and the program does not take the
+            # shortest way (friendlier for flexcable)
             self.motor_run.helper_angle = True
-            self.motor.move_to((0 - float(self.offset_angle) % 360))
+            self.motor.move_to((0 - float(self.offset_angle)) % 360)
         else:
             self.motor_run.helper_angle = False
             self.motor.move_to((angle_corrected - float(self.offset_angle)) % 360)
