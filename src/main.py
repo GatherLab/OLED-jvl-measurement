@@ -69,7 +69,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # -------------------------------------------------------------------- #
         # -------------------------- Hardware Setup -------------------------- #
         # -------------------------------------------------------------------- #
-        self.motor_run = MotorMoveThread(0, 45, False, self)
+        self.motor_run = MotorMoveThread(0, 0, False, self)
 
         # Execute initialisation thread
         loading_window = LoadingWindow(self)
@@ -379,12 +379,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_offset_angle_spinBox.setValue(motor_position)
         self.gw_minimum_angle_spinBox.setMaximum(180)
         self.gw_minimum_angle_spinBox.setMinimum(-179)
-        self.gw_minimum_angle_spinBox.setValue(0)
+        self.gw_minimum_angle_spinBox.setValue(-90)
         self.gw_maximum_angle_spinBox.setMaximum(180)
         self.gw_maximum_angle_spinBox.setMinimum(-179)
         self.gw_maximum_angle_spinBox.setValue(90)
         self.gw_step_angle_spinBox.setMaximum(360)
-        self.gw_step_angle_spinBox.setValue(1)
+        self.gw_step_angle_spinBox.setValue(2)
         self.gw_integration_time_spinBox.setMaximum(10000)
         self.gw_integration_time_spinBox.setMinimum(0)
         self.gw_integration_time_spinBox.setValue(300)
