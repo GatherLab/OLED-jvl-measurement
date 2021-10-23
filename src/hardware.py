@@ -158,6 +158,163 @@ class ArduinoUno:
         self.mutex.unlock()
 
 
+class AgilentFunctionGenerator:
+    """
+    Class that manages agilent function generator
+    """
+
+    def __init__(self, source_address, current_compliance):
+        """
+        Initialise Hardware. This function must be improved later as well.
+        For the time being it is probably alright.
+        """
+        # Define a mutex
+        self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
+
+        # Keithley Finding Device
+        rm = pyvisa.ResourceManager()
+        # The actual addresses for the Keithleys can be accessed via rm.list_resources()
+        visa_resources = rm.list_resources()
+
+        # Check if keithley source is present at the given address
+        if source_address not in visa_resources:
+            cf.log_message(
+                "The AgilentFunctionGenerator seems to be absent or switched off."
+            )
+            raise IOError(
+                "The AgilentFunctionGenerator seems to be absent or switched off."
+            )
+
+        self.function_generator = rm.open_resource(source_address)
+
+        # As a standard initialise the Keithley as a voltage source
+        # self.as_voltage_source(current_compliance)
+
+        # Set voltage mode indicator
+        # self.mode = "voltage"
+
+        # Reverse voltages
+        # self.reverse = 1
+
+    def reset(self):
+        """
+        reset instrument
+        """
+        self.mutex.lock()
+        self.function_generator.write("*RST")
+        self.mutex.unlock()
+
+    def set_function(self, function):
+        """
+        Set the function that can be SIN, SQU, RAMP, PULS, NOIS
+        """
+        self.mutex.lock()
+        self.function_generator.write("FUNC " + function)
+        self.mutex.unlock()
+
+    def set_frequency(self, frequency):
+        """
+        Set the frequency given in Hz
+        """
+        self.mutex.lock()
+        self.function_generator.write("FREQ " + str(frequency) + " Hz")
+        self.mutex.unlock()
+
+    def set_voltage(self, vrms):
+        """
+        Set the voltage in vrms
+        """
+        self.mutex.lock()
+        self.function_generator.write("VOLT " + str(vrms) + " VRMS")
+        self.mutex.unlock()
+
+    def activate_output(self):
+        """
+        Activate output
+        """
+        self.mutex.lock()
+        self.function_generator.write("OUTP ON")
+        self.mutex.unlock()
+
+    def deactivate_output(self):
+        """
+        Turn power off
+        """
+        self.mutex.lock()
+        self.function_generator.write("OUTP OFF")
+        self.mutex.unlock()
+
+    def read_voltage(self):
+        """
+        Read voltage on the waveform analyzer
+        """
+        return self.function_generator.query("VOLT?")
+
+
+class InstekWFAnalyzer:
+    """
+    Class that manages the waveform analyzer
+    """
+
+    def __init__(self, source_address):
+        """
+        Initialise Hardware. This function must be improved later as well.
+        For the time being it is probably alright.
+        """
+        # Define a mutex
+        self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
+
+        # Keithley Finding Device
+        rm = pyvisa.ResourceManager()
+        # The actual addresses for the Keithleys can be accessed via rm.list_resources()
+        visa_resources = rm.list_resources()
+
+        # Check if keithley source is present at the given address
+        if source_address not in visa_resources:
+            cf.log_message("The InstekWFAnalyzer seems to be absent or switched off.")
+            raise IOError("The InstekWFAnalyzer seems to be absent or switched off.")
+
+        self.wf_analyzer = rm.open_resource(source_address)
+
+        # As a standard initialise the Keithley as a voltage source
+        # self.as_voltage_source(current_compliance)
+
+        # Set voltage mode indicator
+        # self.mode = "voltage"
+
+        # Reverse voltages
+        # self.reverse = 1
+
+    def reset(self):
+        """
+        reset instrument
+        """
+        self.mutex.lock()
+        self.function_generator.write("*RST")
+        self.mutex.unlock()
+
+    def read_frequency(self):
+        """
+        Read frequency
+        """
+        self.mutex.lock()
+        self.mutex.unlock()
+
+    def read_current(self):
+        """
+        Read Irms
+        """
+        self.mutex.lock()
+        self.mutex.unlock()
+
+    def read_rms(self):
+        """
+        Read Vrms
+        """
+        self.mutex.lock()
+        self.mutex.unlock()
+
+
 class KeithleySource:
     """
     Class that manages all functionality of our Keithley voltage/current source
@@ -249,33 +406,33 @@ class KeithleySource:
         self.keith.write("Source:Volt:ILimit " + str(1.05))
         self.mutex.unlock()
 
-    def init_buffer(self, buffer_name, buffer_length):
-        """
-        Initialise buffer of source meter
-        """
-        self.mutex.lock()
-        # if the buffer already exists, delete it first to prevent the error
-        # "parameter error TRACe:MAKE cannot use an existing reading buffer name keithley"
-        # try:
-        # self.keith.write('TRACe:DELete "' + buffer_name + '"')
-        # except:
-        # cf.log_message("Buffer " + buffer_name + " does not exist yet")
-        self.keith.write(
-            'Trace:Make "' + buffer_name + '", ' + str(max(buffer_length, 10))
-        )
+    # def init_buffer(self, buffer_name, buffer_length):
+    #     """
+    #     Initialise buffer of source meter
+    #     """
+    #     self.mutex.lock()
+    #     # if the buffer already exists, delete it first to prevent the error
+    #     # "parameter error TRACe:MAKE cannot use an existing reading buffer name keithley"
+    #     # try:
+    #     # self.keith.write('TRACe:DELete "' + buffer_name + '"')
+    #     # except:
+    #     # cf.log_message("Buffer " + buffer_name + " does not exist yet")
+    #     self.keith.write(
+    #         'Trace:Make "' + buffer_name + '", ' + str(max(buffer_length, 10))
+    #     )
 
-        # Keithley empties the buffer
-        self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
-        self.buffer_name = buffer_name
-        self.mutex.unlock()
+    #     # Keithley empties the buffer
+    #     self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
+    #     self.buffer_name = buffer_name
+    #     self.mutex.unlock()
 
-    def empty_buffer(self, buffer_name):
-        """
-        Function that empties the Keithley's buffer for the next run
-        """
-        self.mutex.lock()
-        self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
-        self.mutex.unlock()
+    # def empty_buffer(self, buffer_name):
+    #     """
+    #     Function that empties the Keithley's buffer for the next run
+    #     """
+    #     self.mutex.lock()
+    #     self.keith.write("Trace:Clear " + '"' + buffer_name + '"')
+    #     self.mutex.unlock()
 
     def activate_output(self):
         """
@@ -305,8 +462,8 @@ class KeithleySource:
         """
         return self.reverse * float(self.keith.query("MEASure:VOLTage:DC?"))
 
-    def read_buffer(self, buffer_name):
-        return float(self.keith.query('Read? "' + buffer_name + '"')[:-1])
+    # def read_buffer(self, buffer_name):
+    #     return float(self.keith.query('Read? "' + buffer_name + '"')[:-1])
 
     def set_voltage(self, voltage):
         """
