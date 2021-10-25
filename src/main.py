@@ -334,6 +334,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.change_measurement_mode
         )
 
+        # Set true by default
+        self.gw_voltage_or_current_toggleSwitch.setChecked(True)
+        self.gw_degradation_check_toggleSwitch.setChecked(True)
+
         # self.motor_run = motormovethread(0, 45, self)
 
         # -------------------------------------------------------------------- #
@@ -384,7 +388,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gw_maximum_angle_spinBox.setMinimum(-179)
         self.gw_maximum_angle_spinBox.setValue(90)
         self.gw_step_angle_spinBox.setMaximum(360)
-        self.gw_step_angle_spinBox.setValue(2)
+        self.gw_step_angle_spinBox.setValue(3)
         self.gw_integration_time_spinBox.setMaximum(10000)
         self.gw_integration_time_spinBox.setMinimum(0)
         self.gw_integration_time_spinBox.setValue(300)
@@ -524,8 +528,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Function that shall manage the threads that are running when we are
         on a certain tab. For instance the spectrum thread really only must
         run when the user is on the spectrum tab. Otherwise it can be paused.
-        This might become important in the future. The best idea is probably
-        to just kill all unused threads when we change the tab.
+        This might become important in the future.
         """
 
         if self.tabWidget.currentIndex() == 0:
@@ -536,7 +539,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.current_tester.pause = True
         if self.tabWidget.currentIndex() == 2:
             self.spectrum_measurement.pause = False
-            self.current_tester.pause = True
+            self.current_tester.pause = False
         if self.tabWidget.currentIndex() == 3:
             self.spectrum_measurement.pause = True
             self.current_tester.pause = True
