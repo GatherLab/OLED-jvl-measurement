@@ -1689,9 +1689,9 @@ class Ui_MainWindow(object):
         self.gw_el_or_pl_toggleSwitch.setText(_translate("MainWindow", "EL or PL"))
         self.gw_move_pushButton.setText(_translate("MainWindow", "Move"))
         self.gw_step_angle_label.setText(_translate("MainWindow", "Step Angle (°)"))
-        self.gw_vc_value_label.setText(_translate("MainWindow", "Applied Voltage (V)"))
+        self.gw_vc_value_label.setText(_translate("MainWindow", "Applied Current (mA)"))
         self.gw_vc_compliance_label.setText(
-            _translate("MainWindow", "Max. Current (mA)")
+            _translate("MainWindow", "Max. Voltage (V)")
         )
         self.gw_integration_time_label.setText(
             _translate("MainWindow", "Integration Time (ms)")
