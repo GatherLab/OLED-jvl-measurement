@@ -1588,7 +1588,7 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Measurement Parameters")
         )
         self.aw_frequency_label.setText(_translate("MainWindow", "Frequency (Hz)"))
-        self.aw_frequency_label.setSuffix(_translate("MainWindow", " Hz"))
+        self.aw_frequency_spinBox.setSuffix(_translate("MainWindow", " Hz"))
         self.tabWidget.setTabText(
             self.tabWidget.indexOf(self.autotube_widget),
             _translate("MainWindow", "JVL Characterisation"),

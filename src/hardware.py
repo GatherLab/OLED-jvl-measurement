@@ -186,6 +186,7 @@ class AgilentFunctionGenerator:
             )
 
         self.function_generator = rm.open_resource(source_address)
+        print("test")
 
         # As a standard initialise the Keithley as a voltage source
         # self.as_voltage_source(current_compliance)

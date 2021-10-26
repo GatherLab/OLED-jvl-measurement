@@ -53,6 +53,8 @@ pip install -r requirements.txt
 11. On the Keithley source meter (for specs see below) the command set on the Keithley has to be changed to SCPI
 12. Execute the main.py file to start the program
 
+13. Install Keysight I/O libraries https://www.keysight.com/de/de/lib/software-detail/computer-software/io-libraries-suite-downloads-2175637.html
+
 ```terminal
 python3 main.py
 ```
