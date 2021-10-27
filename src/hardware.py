@@ -408,7 +408,7 @@ class ACSource:
         Set the current on the source meter (only in current mode)
         """
         self.mutex.lock()
-        self.function_generator.set_voltage(float(frequency))
+        self.function_generator.set_frequency(float(frequency))
         self.mutex.unlock()
 
 

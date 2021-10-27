@@ -183,6 +183,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sw_ct_voltage_spinBox.valueChanged.connect(
             functools.partial(self.voltage_changed, "sw")
         )
+        self.sw_ct_frequency_spinBox.valueChanged.connect(
+            functools.partial(self.frequency_changed, "sw")
+        )
 
         # Connect automatic functions
         self.sw_select_all_pushButton.clicked.connect(self.select_all_pixels)
@@ -255,6 +258,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         )
         self.specw_integration_time_spinBox.valueChanged.connect(
             self.integration_time_changed
+        )
+
+        self.specw_frequency_spinBox.valueChanged.connect(
+            functools.partial(self.frequency_changed, "specw")
         )
 
         # Connect specw pixel to toggle function
@@ -412,6 +419,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_voltage_spinBox.setValue(0)
         self.specw_voltage_spinBox.setKeyboardTracking(False)
 
+        self.specw_frequency_spinBox.setMinimum(0)
+        self.specw_frequency_spinBox.setMaximum(10e9)
+        self.specw_frequency_spinBox.setValue(50)
+        self.specw_frequency_spinBox.setKeyboardTracking(False)
+
         self.specw_integration_time_spinBox.setMinimum(6)
         self.specw_integration_time_spinBox.setMaximum(10000)
         self.specw_integration_time_spinBox.setSingleStep(50)
@@ -424,6 +436,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sw_ct_voltage_spinBox.setSingleStep(0.1)
         self.sw_ct_voltage_spinBox.setValue(0)
         self.sw_ct_voltage_spinBox.setKeyboardTracking(False)
+
+        self.sw_ct_frequency_spinBox.setMinimum(0)
+        self.sw_ct_frequency_spinBox.setMaximum(10e9)
+        self.sw_ct_frequency_spinBox.setValue(50)
+        self.sw_ct_frequency_spinBox.setKeyboardTracking(False)
 
         # Update statusbar
         cf.log_message("Program ready")
@@ -791,6 +808,41 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update statusbar
         cf.log_message("Voltage Changed to " + str(round(voltage, 2)) + " V")
+
+    def frequency_changed(self, tab, frequency):
+        """
+        Function that changes the real voltage when the voltage was changed
+        in the UI
+        """
+        # Read in voltage from spinBox of the according tab and change the
+        # value of the other one
+        if tab == "sw":
+            frequency = self.sw_ct_frequency_spinBox.value()
+
+            # Block triggering of a signal so that this function is not called twice
+            self.specw_frequency_spinBox.blockSignals(True)
+            self.specw_frequency_spinBox.setValue(frequency)
+            self.specw_frequency_spinBox.blockSignals(False)
+
+        elif tab == "specw":
+            frequency = self.specw_frequency_spinBox.value()
+
+            # Block triggering of a signal so that this function is not called twice
+            self.sw_ct_frequency_spinBox.blockSignals(True)
+            self.sw_ct_frequency_spinBox.setValue(frequency)
+            self.sw_ct_frequency_spinBox.blockSignals(False)
+
+        # Set frequency
+        self.keithley_source.set_frequency(frequency)
+
+        # If the voltage is set to zero, deactivate the output otherwise, activate it
+        if math.isclose(float(frequency), 0):
+            self.keithley_source.deactivate_output()
+        else:
+            self.keithley_source.activate_output()
+
+        # Update statusbar
+        cf.log_message("Frequency Changed to " + str(round(frequency, 2)) + " V")
 
     def select_all_pixels(self):
         """

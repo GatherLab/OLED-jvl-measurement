@@ -395,13 +395,20 @@ class Ui_MainWindow(object):
         self.gridLayout_6.addWidget(self.sw_auto_test_pushButton, 10, 1, 1, 1)
 
         # Setup widget current tester voltage
-
         self.sw_change_voltage_label = QtWidgets.QLabel(self.sw_select_pixel_widget)
         self.sw_change_voltage_label.setObjectName("sw_change_voltage_label")
         self.gridLayout_6.addWidget(self.sw_change_voltage_label, 11, 0, 1, 2)
         self.sw_ct_voltage_spinBox = HumbleDoubleSpinBox(self.sw_select_pixel_widget)
         self.sw_ct_voltage_spinBox.setObjectName("sw_ct_voltage_spinBox")
         self.gridLayout_6.addWidget(self.sw_ct_voltage_spinBox, 12, 0, 1, 2)
+
+        # Setup widget current tester frequency
+        self.sw_change_frequency_label = QtWidgets.QLabel(self.sw_select_pixel_widget)
+        self.sw_change_frequency_label.setObjectName("sw_change_frequency_label")
+        self.gridLayout_6.addWidget(self.sw_change_frequency_label, 13, 0, 1, 2)
+        self.sw_ct_frequency_spinBox = HumbleDoubleSpinBox(self.sw_select_pixel_widget)
+        self.sw_ct_frequency_spinBox.setObjectName("sw_ct_frequency_spinBox")
+        self.gridLayout_6.addWidget(self.sw_ct_frequency_spinBox, 14, 0, 1, 2)
 
         self.gridLayout_7.addWidget(self.sw_select_pixel_widget, 4, 0, 1, 1)
 
@@ -1536,6 +1543,9 @@ class Ui_MainWindow(object):
         self.sw_pixel6_pushButton.setText(_translate("MainWindow", "6"))
         self.sw_pixel5_pushButton.setText(_translate("MainWindow", "5"))
         self.sw_change_voltage_label.setText(_translate("MainWindow", "Voltage (V)"))
+        self.sw_change_frequency_label.setText(
+            _translate("MainWindow", "Frequency (Hz)")
+        )
         # self.sw_documentation_label.setToolTip(
         # _translate(
         # "MainWindow",
