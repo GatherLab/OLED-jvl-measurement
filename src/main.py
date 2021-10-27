@@ -361,15 +361,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # -------------------------------------------------------------------- #
 
         # Set standard parameters for autotube measurement
-        self.aw_min_voltage_spinBox.setMinimum(-200)
-        self.aw_min_voltage_spinBox.setValue(-2)
+        self.aw_min_voltage_spinBox.setMinimum(0)
+        self.aw_min_voltage_spinBox.setValue(0)
         self.aw_max_voltage_spinBox.setMaximum(200)
-        self.aw_max_voltage_spinBox.setValue(4)
+        self.aw_max_voltage_spinBox.setValue(3.5)
         self.aw_changeover_voltage_spinBox.setSingleStep(0.1)
         self.aw_changeover_voltage_spinBox.setValue(2)
-        self.aw_low_voltage_step_spinBox.setSingleStep(0.1)
+        self.aw_low_voltage_step_spinBox.setSingleStep(0.01)
         self.aw_low_voltage_step_spinBox.setValue(0.5)
-        self.aw_high_voltage_step_spinBox.setSingleStep(0.1)
+        self.aw_high_voltage_step_spinBox.setSingleStep(0.01)
         self.aw_high_voltage_step_spinBox.setValue(0.1)
         self.aw_scan_compliance_spinBox.setMaximum(1.05)
         self.aw_scan_compliance_spinBox.setSingleStep(0.05)

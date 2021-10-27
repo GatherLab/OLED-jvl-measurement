@@ -8,7 +8,7 @@ from hardware import (
     KeithleyMultimeter,
     OceanSpectrometer,
     ThorlabMotor,
-    AgilentFunctionGenerator,
+    ACSource,
 )
 from tests.tests import (
     MockArduinoUno,
@@ -149,9 +149,9 @@ class InitThread(QtCore.QThread):
 
         # Check if Keithley source is on and can be used
         try:
-            keithley_source = AgilentFunctionGenerator(
+            keithley_source = ACSource(
+                global_settings["wf_analyzer_address"],
                 global_settings["keithley_source_address"],
-                1050,
             )
             cf.log_message("Keithley SourceMeter successfully initialised")
             keithley_source_init = True

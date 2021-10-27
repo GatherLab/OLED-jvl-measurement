@@ -27,6 +27,9 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         self.keithley_source_address_lineEdit.setText(
             str(default_settings["keithley_source_address"])
         )
+        self.wf_analyzer_address_lineEdit.setText(
+            str(default_settings["wf_analyzer_address"])
+        )
         self.keithley_multimeter_address_lineEdit.setText(
             str(default_settings["keithley_multimeter_address"])
         )
@@ -99,6 +102,7 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
         settings_data["overwrite"] = []
         settings_data["overwrite"] = {
             "keithley_source_address": self.keithley_source_address_lineEdit.text(),
+            "wf_analyzer_address": self.wf_analyzer_address_lineEdit.text(),
             "keithley_multimeter_address": self.keithley_multimeter_address_lineEdit.text(),
             "arduino_com_address": self.arduino_com_address_lineEdit.text(),
             "motor_number": self.motor_number_lineEdit.text(),
@@ -153,6 +157,7 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
             key in reload_window_comparison.keys()
             for key in [
                 "keithley_source_address",
+                "wf_analyzer_address",
                 "keithley_multimeter_address",
                 "arduino_com_addres",
                 "motor_number",
@@ -189,6 +194,9 @@ class Settings(QtWidgets.QDialog, Ui_Settings):
 
         self.keithley_source_address_lineEdit.setText(
             str(default_settings["keithley_source_address"])
+        )
+        self.wf_analyzer_address_lineEdit.setText(
+            str(default_settings["wf_analyzer_address"])
         )
         self.keithley_multimeter_address_lineEdit.setText(
             str(default_settings["keithley_multimeter_address"])

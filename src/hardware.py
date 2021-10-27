@@ -158,75 +158,199 @@ class ArduinoUno:
         self.mutex.unlock()
 
 
-class AgilentFunctionGenerator:
+class ACSource:
     """
-    Class that manages agilent function generator
+    Class that combines the agilent function generator and the GWInstek digital
+    power meter to comply with nomenclature defined by the Keithley source
     """
 
-    def __init__(self, source_address, current_compliance):
+    class AgilentFunctionGenerator:
         """
-        Initialise Hardware. This function must be improved later as well.
-        For the time being it is probably alright.
+        Class that manages agilent function generator
         """
+
+        def __init__(self, source_address):
+            """
+            Initialise Hardware. This function must be improved later as well.
+            For the time being it is probably alright.
+            """
+            # Define a mutex
+
+            # Keithley Finding Device
+            rm = pyvisa.ResourceManager()
+            # The actual addresses for the Keithleys can be accessed via rm.list_resources()
+            visa_resources = rm.list_resources()
+
+            # Check if keithley source is present at the given address
+            if source_address not in visa_resources:
+                cf.log_message(
+                    "The Agilent Function Generator seems to be absent or switched off."
+                )
+                raise IOError(
+                    "The Agilent Function Generator seems to be absent or switched off."
+                )
+
+            self.function_generator = rm.open_resource(source_address)
+            # As a standard initialise the Keithley as a voltage source
+            # self.as_voltage_source(current_compliance)
+
+            # Set voltage mode indicator
+            # self.mode = "voltage"
+
+            # Reverse voltages
+            # self.reverse = 1
+
+        def reset(self):
+            """
+            reset instrument
+            """
+            self.function_generator.write("*RST")
+
+        def set_function(self, function):
+            """
+            Set the function that can be SIN, SQU, RAMP, PULS, NOIS
+            """
+            self.function_generator.write("FUNC " + function)
+
+        def set_frequency(self, frequency):
+            """
+            Set the frequency given in Hz
+            """
+            self.function_generator.write("FREQ " + str(frequency) + " Hz")
+
+        def set_voltage(self, vrms):
+            """
+            Set the voltage in vrms
+            """
+            self.function_generator.write("VOLT " + str(vrms) + " VRMS")
+
+        def activate_output(self):
+            """
+            Activate output
+            """
+            self.function_generator.write("OUTP ON")
+
+        def deactivate_output(self):
+            """
+            Turn power off
+            """
+            self.function_generator.write("OUTP OFF")
+
+        def read_voltage(self):
+            """
+            Read voltage on the waveform analyzer
+            """
+            return self.function_generator.query("VOLT?")
+
+    class InstekWFAnalyzer:
+        """
+        Class that manages the waveform analyzer
+        """
+
+        def __init__(self, source_address):
+            """
+            Initialise Hardware. This function must be improved later as well.
+            For the time being it is probably alright.
+            """
+
+            # Keithley Finding Device
+            rm = pyvisa.ResourceManager()
+            # The actual addresses for the Keithleys can be accessed via rm.list_resources()
+            visa_resources = rm.list_resources()
+
+            # Check if keithley source is present at the given address
+            if source_address not in visa_resources:
+                cf.log_message(
+                    "The InstekWFAnalyzer seems to be absent or switched off."
+                )
+                raise IOError(
+                    "The InstekWFAnalyzer seems to be absent or switched off."
+                )
+
+            self.wf_analyzer = rm.open_resource(source_address)
+
+            # Set the number of returned items to 5 and determine what the items
+            # should be
+            self.wf_analyzer.write(":NUMeric:NUMBer 5")
+            # Voltage
+            self.wf_analyzer.write(":NUMERIC:NORMAL:ITEM1 U")
+            # Current
+            self.wf_analyzer.write(":NUMERIC:NORMAL:ITEM2 I")
+            # Voltage Frequency
+            self.wf_analyzer.write(":NUMERIC:NORMAL:ITEM3 FU")
+            # Power
+            self.wf_analyzer.write(":NUMERIC:NORMAL:ITEM4 P")
+            # Voltage Range
+            self.wf_analyzer.write(":NUMERIC:NORMAL:ITEM5 URANge")
+
+            # As a standard initialise the Keithley as a voltage source
+            # self.as_voltage_source(current_compliance)
+
+            # Set voltage mode indicator
+            # self.mode = "voltage"
+
+            # Reverse voltages
+            # self.reverse = 1
+            time.sleep(1)
+
+        def reset(self):
+            """
+            reset instrument
+            """
+            self.wf_analyzer.write("*RST")
+
+        def read_data(self):
+            """
+            Read frequency
+            """
+            raw_data = self.wf_analyzer.query(":NUMERIC:NORMAL:VALUE?")
+            numeric_data = np.array(raw_data.split(","), dtype="float")
+            voltage = numeric_data[0]
+            current = numeric_data[1]
+            frequency = numeric_data[2]
+            power = numeric_data[3]
+            voltage_range = numeric_data[4]
+
+            return voltage, current, frequency, power, voltage_range
+
+    def __init__(self, gwinstek_address, agilent_address):
+        """
+        Init function generator and waveform analyzer
+        """
+
         # Define a mutex
         self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
-
-        # Keithley Finding Device
-        rm = pyvisa.ResourceManager()
-        # The actual addresses for the Keithleys can be accessed via rm.list_resources()
-        visa_resources = rm.list_resources()
-
-        # Check if keithley source is present at the given address
-        if source_address not in visa_resources:
-            cf.log_message(
-                "The AgilentFunctionGenerator seems to be absent or switched off."
-            )
-            raise IOError(
-                "The AgilentFunctionGenerator seems to be absent or switched off."
-            )
-
-        self.function_generator = rm.open_resource(source_address)
+        self.wf_analyzer = self.InstekWFAnalyzer(gwinstek_address)
+        self.function_generator = self.AgilentFunctionGenerator(agilent_address)
         print("test")
 
-        # As a standard initialise the Keithley as a voltage source
-        # self.as_voltage_source(current_compliance)
+    def as_voltage_source(self, current_compliance):
+        """
+        This function only does a reset for the moment but is needed to comply
+        with the form of the Keithley source class.
+        """
+        self.mutex.lock()
+        # Write operational parameters to Sourcemeter (Voltage to OLED)
+        # self.reset()
+        self.mutex.unlock()
 
-        # Set voltage mode indicator
-        # self.mode = "voltage"
-
-        # Reverse voltages
-        # self.reverse = 1
+    def as_current_source(self, voltage_compliance):
+        """
+        This function only does a reset for the moment but is needed to comply
+        with the form of the Keithley source class.
+        """
+        self.mutex.lock()
+        # Write operational parameters to Sourcemeter (Voltage to OLED)
+        # self.reset()
+        self.mutex.unlock()
 
     def reset(self):
         """
         reset instrument
         """
         self.mutex.lock()
-        self.function_generator.write("*RST")
-        self.mutex.unlock()
-
-    def set_function(self, function):
-        """
-        Set the function that can be SIN, SQU, RAMP, PULS, NOIS
-        """
-        self.mutex.lock()
-        self.function_generator.write("FUNC " + function)
-        self.mutex.unlock()
-
-    def set_frequency(self, frequency):
-        """
-        Set the frequency given in Hz
-        """
-        self.mutex.lock()
-        self.function_generator.write("FREQ " + str(frequency) + " Hz")
-        self.mutex.unlock()
-
-    def set_voltage(self, vrms):
-        """
-        Set the voltage in vrms
-        """
-        self.mutex.lock()
-        self.function_generator.write("VOLT " + str(vrms) + " VRMS")
+        self.wf_analyzer.reset()
+        self.function_generator.reset()
         self.mutex.unlock()
 
     def activate_output(self):
@@ -234,7 +358,7 @@ class AgilentFunctionGenerator:
         Activate output
         """
         self.mutex.lock()
-        self.function_generator.write("OUTP ON")
+        self.function_generator.activate_output()
         self.mutex.unlock()
 
     def deactivate_output(self):
@@ -242,77 +366,49 @@ class AgilentFunctionGenerator:
         Turn power off
         """
         self.mutex.lock()
-        self.function_generator.write("OUTP OFF")
-        self.mutex.unlock()
-
-    def read_voltage(self):
-        """
-        Read voltage on the waveform analyzer
-        """
-        return self.function_generator.query("VOLT?")
-
-
-class InstekWFAnalyzer:
-    """
-    Class that manages the waveform analyzer
-    """
-
-    def __init__(self, source_address):
-        """
-        Initialise Hardware. This function must be improved later as well.
-        For the time being it is probably alright.
-        """
-        # Define a mutex
-        self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
-
-        # Keithley Finding Device
-        rm = pyvisa.ResourceManager()
-        # The actual addresses for the Keithleys can be accessed via rm.list_resources()
-        visa_resources = rm.list_resources()
-
-        # Check if keithley source is present at the given address
-        if source_address not in visa_resources:
-            cf.log_message("The InstekWFAnalyzer seems to be absent or switched off.")
-            raise IOError("The InstekWFAnalyzer seems to be absent or switched off.")
-
-        self.wf_analyzer = rm.open_resource(source_address)
-
-        # As a standard initialise the Keithley as a voltage source
-        # self.as_voltage_source(current_compliance)
-
-        # Set voltage mode indicator
-        # self.mode = "voltage"
-
-        # Reverse voltages
-        # self.reverse = 1
-
-    def reset(self):
-        """
-        reset instrument
-        """
-        self.mutex.lock()
-        self.function_generator.write("*RST")
-        self.mutex.unlock()
-
-    def read_frequency(self):
-        """
-        Read frequency
-        """
-        self.mutex.lock()
+        self.function_generator.deactivate_output()
         self.mutex.unlock()
 
     def read_current(self):
         """
-        Read Irms
+        Read current on Keithley source meter
         """
+        voltage, current, frequency, power, voltage_range = self.wf_analyzer.read_data()
+        return current
+
+    def read_voltage(self):
+        """
+        Read voltage on Keithley source meter
+        """
+        voltage, current, frequency, power, voltage_range = self.wf_analyzer.read_data()
+        return voltage
+
+    # def read_buffer(self, buffer_name):
+    #     return float(self.keith.query('Read? "' + buffer_name + '"')[:-1])
+
+    def set_voltage(self, voltage):
+        """
+        Set the voltage on the source meter (only in voltage mode)
+        """
+
         self.mutex.lock()
+        self.function_generator.set_voltage(float(voltage))
         self.mutex.unlock()
 
-    def read_rms(self):
+    def set_current(self, current):
         """
-        Read Vrms
+        Set the current on the source meter (only in current mode)
         """
         self.mutex.lock()
+        cf.log_message("Current can not be set with the AC sources")
+        self.mutex.unlock()
+
+    def set_frequency(self, frequency):
+        """
+        Set the current on the source meter (only in current mode)
+        """
+        self.mutex.lock()
+        self.function_generator.set_voltage(float(frequency))
         self.mutex.unlock()
 
 

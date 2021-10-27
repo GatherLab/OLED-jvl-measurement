@@ -54,6 +54,8 @@ pip install -r requirements.txt
 12. Execute the main.py file to start the program
 
 13. Install Keysight I/O libraries https://www.keysight.com/de/de/lib/software-detail/computer-software/io-libraries-suite-downloads-2175637.html
+14. Download and install USB Driver and PC software for GWInstek GPM-8213 (https://www.gwinstek.com/de-DE/Produkte/detail/GPM-8213).
+15. On GPM-8213 via System, Config, switch to I/O Model USB to allow for USB connection. You should now be able to control the device via the PC software.
 
 ```terminal
 python3 main.py
