@@ -1024,6 +1024,333 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.spectrum_widget, "")
 
         # -------------------------------------------------------------------- #
+        # ---------------------- Define Autotube Widget ---------------------- #
+        # -------------------------------------------------------------------- #
+        self.frequency_widget = QtWidgets.QWidget()
+        self.frequency_widget.setObjectName("frequency_widget")
+        self.fw_gridLayout_2 = QtWidgets.QGridLayout(self.frequency_widget)
+        self.fw_gridLayout_2.setObjectName("fw_gridLayout_2")
+
+        # --------------- Central Widget with matplotlib graph --------------- #
+        self.fw_graph_widget = QtWidgets.QWidget(self.frequency_widget)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.fw_graph_widget.sizePolicy().hasHeightForWidth()
+        )
+        self.fw_graph_widget.setSizePolicy(sizePolicy)
+        self.fw_graph_widget.setMinimumSize(QtCore.QSize(0, 442))
+        self.fw_graph_widget.setObjectName("fw_graph_widget")
+        self.fw_mpl_graph_gridLayout = QtWidgets.QGridLayout(self.fw_graph_widget)
+        self.fw_mpl_graph_gridLayout.setObjectName("fw_mpl_graph_gridLayout")
+        self.fw_gridLayout_2.addWidget(self.fw_graph_widget, 0, 1, 1, 1)
+
+        # Define figure
+        figureSize = (11, 10)
+        self.fw_fig = FigureCanvas(Figure(figsize=figureSize))
+        self.fw_mpl_graph_gridLayout.addWidget(self.fw_fig)
+
+        self.fw_ax = self.fw_fig.figure.subplots()
+        self.fw_ax.set_facecolor("#FFFFFF")
+        self.fw_ax.grid(True)
+        self.fw_ax.set_yscale("log")
+        self.fw_ax.set_xlabel("Voltage (V)", fontsize=14)
+        self.fw_ax.set_ylabel(
+            "Abs. Current (mA)", color=(68 / 255, 188 / 255, 65 / 255), fontsize=14
+        )
+        self.fw_ax.axhline(linewidth=1, color="black")
+        # self.fw_ax.axvline(linewidth=1, color="black")
+        self.fw_ax2 = self.fw_ax.twinx()
+        self.fw_ax2.set_yscale("log")
+        self.fw_ax2.set_ylabel(
+            "Photodiode Voltage (V)",
+            color=(85 / 255, 170 / 255, 255 / 255),
+            fontsize=14,
+        )
+        self.fw_fig.figure.set_facecolor("#FFFFFF")
+        self.fw_mplToolbar = NavigationToolbar(self.fw_fig, self.fw_graph_widget)
+        self.fw_mplToolbar.setStyleSheet("background-color:#FFFFFF; color:black;")
+        self.fw_mpl_graph_gridLayout.addWidget(self.fw_mplToolbar)
+
+        # ----------------------- Define scroll area ---------------------------
+        self.fw_scrollArea = QtWidgets.QScrollArea(self.frequency_widget)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.fw_scrollArea.sizePolicy().hasHeightForWidth()
+        )
+        self.fw_scrollArea.setSizePolicy(sizePolicy)
+        self.fw_scrollArea.setMinimumSize(QtCore.QSize(200, 0))
+        self.fw_scrollArea.setWidgetResizable(True)
+        self.fw_scrollArea.setObjectName("fw_scrollArea")
+        self.fw_scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.fw_scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 170, 655))
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.fw_scrollAreaWidgetContents.sizePolicy().hasHeightForWidth()
+        )
+        self.fw_scrollAreaWidgetContents.setSizePolicy(sizePolicy)
+        self.fw_scrollAreaWidgetContents.setObjectName("fw_scrollAreaWidgetContents")
+        self.fw_gridLayout_3 = QtWidgets.QGridLayout(self.fw_scrollAreaWidgetContents)
+        self.fw_gridLayout_3.setObjectName("fw_gridLayout_3")
+
+        self.fw_header1_label = QtWidgets.QLabel(self.fw_scrollAreaWidgetContents)
+        self.fw_header1_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.fw_header1_label.setObjectName("fw_header1_label")
+        self.fw_gridLayout_3.addWidget(self.fw_header1_label, 0, 0, 1, 1)
+        self.fw_scrollArea.setWidget(self.fw_scrollAreaWidgetContents)
+        self.fw_gridLayout_2.addWidget(self.fw_scrollArea, 0, 3, 1, 1)
+
+        # Max voltage
+        self.fw_max_voltage_spinBox = HumbleDoubleSpinBox(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_max_voltage_spinBox.setObjectName("fw_max_voltage_spinBox")
+        self.fw_gridLayout_3.addWidget(self.fw_max_voltage_spinBox, 4, 0, 1, 1)
+        self.fw_max_voltage_label = QtWidgets.QLabel(self.fw_scrollAreaWidgetContents)
+        self.fw_max_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.fw_max_voltage_label.setObjectName("fw_max_voltage_label")
+        self.fw_gridLayout_3.addWidget(self.fw_max_voltage_label, 3, 0, 1, 1)
+
+        # High voltage step
+        self.fw_high_voltage_step_label = QtWidgets.QLabel(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_high_voltage_step_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.fw_high_voltage_step_label.setObjectName("fw_high_voltage_step_label")
+        self.fw_gridLayout_3.addWidget(self.fw_high_voltage_step_label, 9, 0, 1, 1)
+        self.fw_high_voltage_step_spinBox = HumbleDoubleSpinBox(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_high_voltage_step_spinBox.setObjectName("fw_high_voltage_step_spinBox")
+        self.fw_gridLayout_3.addWidget(self.fw_high_voltage_step_spinBox, 10, 0, 1, 1)
+
+        # ---------------------- Select pixel widget ------------------------- #
+        self.fw_select_pixel_widget = QtWidgets.QWidget(
+            self.fw_scrollAreaWidgetContents
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.fw_select_pixel_widget.sizePolicy().hasHeightForWidth()
+        )
+        self.fw_select_pixel_widget.setSizePolicy(sizePolicy)
+        self.fw_select_pixel_widget.setMinimumSize(QtCore.QSize(100, 0))
+        self.fw_select_pixel_widget.setMaximumSize(QtCore.QSize(150, 124))
+        self.fw_select_pixel_widget.setObjectName("fw_select_pixel_widget")
+        self.fw_gridLayout_4 = QtWidgets.QGridLayout(self.fw_select_pixel_widget)
+        self.fw_gridLayout_4.setObjectName("fw_gridLayout_4")
+        self.fw_select_pixel_label = QtWidgets.QLabel(self.fw_scrollAreaWidgetContents)
+        self.fw_select_pixel_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.fw_select_pixel_label.setObjectName("fw_select_pixel_label")
+        self.fw_gridLayout_3.addWidget(self.fw_select_pixel_label, 16, 0, 1, 1)
+
+        # Pixel 1
+        self.fw_pixel1_pushButton = QtWidgets.QPushButton(self.fw_select_pixel_widget)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.fw_pixel1_pushButton.sizePolicy().hasHeightForWidth()
+        )
+        self.fw_pixel1_pushButton.setSizePolicy(sizePolicy)
+        self.fw_pixel1_pushButton.setMinimumSize(QtCore.QSize(0, 0))
+        self.fw_pixel1_pushButton.setCheckable(True)
+        # self.fw_pixel1_pushButton.setChecked(True)
+        self.fw_pixel1_pushButton.setAutoRepeat(False)
+        self.fw_pixel1_pushButton.setObjectName("fw_pixel1_pushButton")
+        self.fw_gridLayout_4.addWidget(self.fw_pixel1_pushButton, 0, 0, 1, 1)
+
+        # Pixel 2
+        self.fw_pixel2_pushButton = QtWidgets.QPushButton(self.fw_select_pixel_widget)
+        self.fw_pixel2_pushButton.setCheckable(True)
+        # self.fw_pixel2_pushButton.setChecked(True)
+        self.fw_pixel2_pushButton.setObjectName("fw_pixel2_pushButton")
+        self.fw_gridLayout_4.addWidget(self.fw_pixel2_pushButton, 2, 0, 1, 1)
+
+        # Pixel 3
+        self.fw_pixel3_pushButton = QtWidgets.QPushButton(self.fw_select_pixel_widget)
+        self.fw_pixel3_pushButton.setCheckable(True)
+        # self.fw_pixel3_pushButton.setChecked(True)
+        self.fw_pixel3_pushButton.setObjectName("fw_pixel3_pushButton")
+        self.fw_gridLayout_4.addWidget(self.fw_pixel3_pushButton, 3, 0, 1, 1)
+
+        # Pixel 4
+        self.fw_pixel4_pushButton = QtWidgets.QPushButton(self.fw_select_pixel_widget)
+        self.fw_pixel4_pushButton.setCheckable(True)
+        # self.fw_pixel4_pushButton.setChecked(True)
+        self.fw_pixel4_pushButton.setObjectName("fw_pixel4_pushButton")
+        self.fw_gridLayout_4.addWidget(self.fw_pixel4_pushButton, 4, 0, 1, 1)
+
+        # Pixel 5
+        self.fw_pixel5_pushButton = QtWidgets.QPushButton(self.fw_select_pixel_widget)
+        self.fw_pixel5_pushButton.setCheckable(True)
+        # self.fw_pixel5_pushButton.setChecked(True)
+        self.fw_pixel5_pushButton.setObjectName("fw_pixel5_pushButton")
+        self.fw_gridLayout_4.addWidget(self.fw_pixel5_pushButton, 0, 1, 1, 1)
+
+        # Pixel 6
+        self.fw_pixel6_pushButton = QtWidgets.QPushButton(self.fw_select_pixel_widget)
+        self.fw_pixel6_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.fw_pixel6_pushButton.setCheckable(True)
+        # self.fw_pixel6_pushButton.setChecked(True)
+        self.fw_pixel6_pushButton.setObjectName("fw_pixel6_pushButton")
+        self.fw_gridLayout_4.addWidget(self.fw_pixel6_pushButton, 2, 1, 1, 1)
+
+        # Pixel 7
+        self.fw_pixel7_pushButton = QtWidgets.QPushButton(self.fw_select_pixel_widget)
+        self.fw_pixel7_pushButton.setCheckable(True)
+        # self.fw_pixel7_pushButton.setChecked(True)
+        self.fw_pixel7_pushButton.setObjectName("fw_pixel7_pushButton")
+        self.fw_gridLayout_4.addWidget(self.fw_pixel7_pushButton, 3, 1, 1, 1)
+
+        # Pixel 8
+        self.fw_pixel8_pushButton = QtWidgets.QPushButton(self.fw_select_pixel_widget)
+        self.fw_pixel8_pushButton.setCheckable(True)
+        # self.fw_pixel8_pushButton.setChecked(True)
+        self.fw_pixel8_pushButton.setObjectName("fw_pixel8_pushButton")
+        self.fw_gridLayout_4.addWidget(self.fw_pixel8_pushButton, 4, 1, 1, 1)
+
+        self.fw_gridLayout_3.addWidget(
+            self.fw_select_pixel_widget, 17, 0, 1, 1, QtCore.Qt.AlignHCenter
+        )
+
+        # Min voltage
+        self.fw_min_voltage_label = QtWidgets.QLabel(self.fw_scrollAreaWidgetContents)
+        self.fw_min_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.fw_min_voltage_label.setObjectName("fw_min_voltage_label")
+        self.fw_gridLayout_3.addWidget(self.fw_min_voltage_label, 1, 0, 1, 1)
+        self.fw_min_voltage_spinBox = HumbleDoubleSpinBox(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_min_voltage_spinBox.setObjectName("fw_min_voltage_spinBox")
+        self.fw_gridLayout_3.addWidget(self.fw_min_voltage_spinBox, 2, 0, 1, 1)
+
+        # Low voltage step
+        self.fw_low_voltage_step_label = QtWidgets.QLabel(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_low_voltage_step_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.fw_low_voltage_step_label.setObjectName("fw_low_voltage_step_label")
+        self.fw_gridLayout_3.addWidget(self.fw_low_voltage_step_label, 5, 0, 1, 1)
+        self.fw_low_voltage_step_spinBox = HumbleDoubleSpinBox(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_low_voltage_step_spinBox.setObjectName("fw_low_voltage_step_spinBox")
+        self.fw_gridLayout_3.addWidget(self.fw_low_voltage_step_spinBox, 6, 0, 1, 1)
+
+        # Changeover voltage
+        self.fw_changeover_voltage_label = QtWidgets.QLabel(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_changeover_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.fw_changeover_voltage_label.setObjectName("fw_changeover_voltage_label")
+        self.fw_gridLayout_3.addWidget(self.fw_changeover_voltage_label, 7, 0, 1, 1)
+        self.fw_changeover_voltage_spinBox = HumbleDoubleSpinBox(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_changeover_voltage_spinBox.setObjectName(
+            "fw_changeover_voltage_spinBox"
+        )
+        self.fw_gridLayout_3.addWidget(self.fw_changeover_voltage_spinBox, 8, 0, 1, 1)
+
+        # Scan compliance
+        self.fw_scan_compliance_spinBox = HumbleDoubleSpinBox(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_scan_compliance_spinBox.setObjectName("fw_scan_compliance_spinBox")
+        self.fw_gridLayout_3.addWidget(self.fw_scan_compliance_spinBox, 12, 0, 1, 1)
+        self.fw_scan_compliance_label = QtWidgets.QLabel(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_scan_compliance_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.fw_scan_compliance_label.setObjectName("fw_scan_compliance_label")
+        self.fw_gridLayout_3.addWidget(self.fw_scan_compliance_label, 11, 0, 1, 1)
+
+        # Auto measure spectrum
+        self.fw_auto_measure_HLayout = QtWidgets.QHBoxLayout()
+        self.fw_auto_measure_toggleSwitch = ToggleSwitch()
+        self.fw_auto_measure_label = QtWidgets.QLabel("Auto Position")
+        self.fw_auto_measure_HLayout.addWidget(self.fw_auto_measure_toggleSwitch)
+        self.fw_auto_measure_HLayout.addWidget(self.fw_auto_measure_label)
+        self.fw_gridLayout_3.addLayout(self.fw_auto_measure_HLayout, 13, 0, 1, 1)
+
+        # Frequency
+        self.fw_frequency_label = QtWidgets.QLabel(self.fw_scrollAreaWidgetContents)
+        self.fw_frequency_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.fw_frequency_label.setObjectName("fw_frequency_label")
+        self.fw_gridLayout_3.addWidget(self.fw_frequency_label, 14, 0, 1, 1)
+        self.fw_frequency_spinBox = HumbleDoubleSpinBox(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_frequency_spinBox.setObjectName("fw_frequency_spinBox")
+        self.fw_gridLayout_3.addWidget(self.fw_frequency_spinBox, 15, 0, 1, 1)
+
+        # PD saturation checkbox
+        # self.fw_pd_saturation_HLayout = QtWidgets.QHBoxLayout()
+        # self.fw_pd_saturation_toggleSwitch = ToggleSwitch()
+        # self.fw_pd_saturation_label = QtWidgets.QLabel("PD Saturation")
+        # self.fw_pd_saturation_HLayout.addWidget(self.fw_pd_saturation_toggleSwitch)
+        # self.fw_pd_saturation_HLayout.addWidget(self.fw_pd_saturation_label)
+
+        # self.fw_pd_saturation_checkBox = QtWidgets.QCheckBox(
+        # self.fw_scrollAreaWidgetContents
+        # )
+        # self.fw_pd_saturation_checkBox.setObjectName("fw_pd_saturation_checkBox")
+        # self.fw_gridLayout_3.addLayout(self.fw_pd_saturation_HLayout, 14, 0, 1, 1)
+
+        # Check for bad contacts
+        # self.fw_bad_contacts_HLayout = QtWidgets.QHBoxLayout()
+        # self.fw_bad_contacts_toggleSwitch = ToggleSwitch()
+        # self.fw_bad_contacts_label = QtWidgets.QLabel("Check Bad Contacts")
+        # self.fw_bad_contacts_HLayout.addWidget(self.fw_bad_contacts_toggleSwitch)
+        # self.fw_bad_contacts_HLayout.addWidget(self.fw_bad_contacts_label)
+        # self.fw_gridLayout_3.addLayout(self.fw_bad_contacts_HLayout, 13, 0, 1, 1)
+
+        # Manually set multimeter range
+        # self.fw_set_fixed_multimeter_range_HLayout = QtWidgets.QHBoxLayout()
+        # self.fw_set_fixed_multimeter_range_toggleSwitch = ToggleSwitch()
+        # self.fw_set_fixed_multimeter_range_label = QtWidgets.QLabel("Set Fixed Range")
+        # self.fw_set_fixed_multimeter_range_HLayout.addWidget(
+        # self.fw_set_fixed_multimeter_range_toggleSwitch
+        # )
+        # self.fw_set_fixed_multimeter_range_HLayout.addWidget(
+        # self.fw_set_fixed_multimeter_range_label
+        # )
+        # self.fw_gridLayout_3.addLayout(
+        # self.fw_set_fixed_multimeter_range_HLayout, 13, 0, 1, 1
+        # )
+
+        # Start measurement button
+        self.fw_start_measurement_pushButton = QtWidgets.QPushButton(
+            self.fw_scrollAreaWidgetContents
+        )
+        self.fw_start_measurement_pushButton.setCheckable(True)
+        self.fw_start_measurement_pushButton.setObjectName(
+            "fw_start_measurement_pushButton"
+        )
+        self.fw_gridLayout_3.addWidget(
+            self.fw_start_measurement_pushButton, 18, 0, 1, 1
+        )
+
+        self.tabWidget.addTab(self.frequency_widget, "")
+
+        # -------------------------------------------------------------------- #
         # -------------------- Define Goniometer Window ---------------------- #
         # -------------------------------------------------------------------- #
         self.goniometer_widget = QtWidgets.QWidget()
@@ -1624,7 +1951,6 @@ class Ui_MainWindow(object):
         self.specw_frequency_label.setText(
             _translate("MainWindow", "Set Frequency (Hz)")
         )
-        self.specw_frequency_spinBox.setSuffix(_translate("MainWindow", " Hz"))
 
         self.specw_integration_time_label.setText(
             _translate("MainWindow", "Integration Time (ms)")
@@ -1655,6 +1981,52 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(
             self.tabWidget.indexOf(self.spectrum_widget),
             _translate("MainWindow", "Spectrum"),
+        )
+
+        self.fw_high_voltage_step_label.setText(
+            _translate("MainWindow", "High Frequency Step (Hz)")
+        )
+        self.fw_pixel2_pushButton.setText(_translate("MainWindow", "2"))
+        self.fw_pixel1_pushButton.setText(_translate("MainWindow", "1"))
+        self.fw_pixel4_pushButton.setText(_translate("MainWindow", "4"))
+        self.fw_pixel3_pushButton.setText(_translate("MainWindow", "3"))
+        self.fw_pixel8_pushButton.setText(_translate("MainWindow", "8"))
+        self.fw_pixel7_pushButton.setText(_translate("MainWindow", "7"))
+        self.fw_pixel6_pushButton.setText(_translate("MainWindow", "6"))
+        self.fw_pixel5_pushButton.setText(_translate("MainWindow", "5"))
+        self.fw_max_voltage_label.setText(
+            _translate("MainWindow", "Max Frequency (Hz)")
+        )
+        self.fw_min_voltage_label.setText(
+            _translate("MainWindow", "Min Frequency (Hz)")
+        )
+        self.fw_changeover_voltage_label.setText(
+            _translate("MainWindow", "Changeover Frequency (Hz)")
+        )
+        self.fw_low_voltage_step_label.setText(
+            _translate("MainWindow", "Low Frequency Step (Hz)")
+        )
+        self.fw_scan_compliance_label.setText(
+            _translate("MainWindow", "Max. Current (mA)")
+        )
+        # self.fw_pd_saturation_checkBox.setText(
+        # _translate("MainWindow", "Check for PD Saturation")
+        # )
+        self.fw_select_pixel_label.setText(_translate("MainWindow", "Select Pixels"))
+        # self.fw_bad_contact_checkBox.setText(
+        # _translate("MainWindow", "Check fo Bad Contacts")
+        # )
+        self.fw_start_measurement_pushButton.setText(
+            _translate("MainWindow", "Start Measurement")
+        )
+        self.fw_header1_label.setText(
+            _translate("MainWindow", "Measurement Parameters")
+        )
+        self.fw_frequency_label.setText(_translate("MainWindow", "Voltage (V)"))
+
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.frequency_widget),
+            _translate("MainWindow", "Frequency Scan"),
         )
 
         self.gw_header2.setText(_translate("MainWindow", "Measurement Parameters"))
