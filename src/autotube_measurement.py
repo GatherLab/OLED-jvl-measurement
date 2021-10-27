@@ -160,6 +160,9 @@ class AutotubeMeasurement(QtCore.QThread):
 
         self.update_progress_bar.emit("value", 0)
 
+        # Set frequency
+        self.keithley_source.set_frequency(self.measurement_parameters["frequency"])
+
         # Iterate over all selected pixels
         max_luminances = []
 

@@ -376,6 +376,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.aw_scan_compliance_spinBox.setMinimum(0)
         self.aw_scan_compliance_spinBox.setMaximum(1050)
         self.aw_scan_compliance_spinBox.setValue(1050)
+        self.aw_frequency_spinBox.setMaximum(1000000000)
+        self.aw_frequency_spinBox.setSingleStep(0.001)
+        self.aw_frequency_spinBox.setMinimum(0.0001)
+        self.aw_frequency_spinBox.setMaximum(10e9)
+        self.aw_frequency_spinBox.setValue(50)
 
         # Set standard parameters for Goniometer
         self.gw_offset_angle_spinBox.setMaximum(180)
@@ -1054,6 +1059,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "high_voltage_step": self.aw_high_voltage_step_spinBox.value(),
             "scan_compliance": self.aw_scan_compliance_spinBox.value(),
             "auto_spectrum": self.aw_auto_measure_toggleSwitch.isChecked(),
+            "frequency": self.aw_frequency_spinBox.value(),
             # "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
             # "fixed_multimeter_range": self.aw_set_fixed_multimeter_range_toggleSwitch.isChecked(),
             "photodiode_saturation": float(global_parameters["photodiode_saturation"]),
