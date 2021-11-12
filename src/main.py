@@ -407,7 +407,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_voltage_spinBox.setValue(0)
         self.specw_voltage_spinBox.setKeyboardTracking(False)
 
-        self.specw_integration_time_spinBox.setMinimum(6)
+        self.specw_integration_time_spinBox.setMinimum(8)
         self.specw_integration_time_spinBox.setMaximum(10000)
         self.specw_integration_time_spinBox.setSingleStep(50)
         self.specw_integration_time_spinBox.setValue(100)
