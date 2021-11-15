@@ -334,18 +334,23 @@ class GoniometerMeasurement(QtCore.QThread):
         # than the maximum angle
         if (
             self.goniometer_measurement_parameters["minimum_angle"]
-            <= self.goniometer_measurement_parameters["maximum_angle"] + 1
+            <= self.goniometer_measurement_parameters["maximum_angle"]
         ):
             step_angle = self.goniometer_measurement_parameters["step_angle"]
         else:
             step_angle = -1 * self.goniometer_measurement_parameters["step_angle"]
 
-        # Move motor by given increment while giving current to OLED and reading spectrum
-        for angle in np.arange(
+        # Unfortunately, the arange function is very annoying with endpoints
+        all_angles = np.arange(
             self.goniometer_measurement_parameters["minimum_angle"],
-            self.goniometer_measurement_parameters["maximum_angle"] + 1,
+            self.goniometer_measurement_parameters["maximum_angle"]
+            + np.sign(self.goniometer_measurement_parameters["maximum_angle"]) * 0.5
+            - np.sign(self.goniometer_measurement_parameters["minimum_angle"]) * 0.1,
             step_angle,
-        ):
+        )
+
+        # Move motor by given increment while giving current to OLED and reading spectrum
+        for angle in all_angles:
 
             # This is checked in each iteration so that the user can interrupt
             # the measurement after each iterration by simply pressing the
@@ -450,15 +455,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
             self.update_progress_bar.emit(
                 "value",
-                progress
-                / np.size(
-                    np.arange(
-                        self.goniometer_measurement_parameters["minimum_angle"],
-                        self.goniometer_measurement_parameters["maximum_angle"] + 1,
-                        self.goniometer_measurement_parameters["step_angle"],
-                    )
-                )
-                * 100,
+                progress / np.size(all_angles) * 100,
             )
 
         # If the user wants it, move again back to zero angle
