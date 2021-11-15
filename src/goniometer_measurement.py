@@ -330,11 +330,21 @@ class GoniometerMeasurement(QtCore.QThread):
                     )
                     return
 
+        # Revert the sign of the step angle in case the minimum angle is greater
+        # than the maximum angle
+        if (
+            self.goniometer_measurement_parameters["minimum_angle"]
+            <= self.goniometer_measurement_parameters["maximum_angle"] + 1
+        ):
+            step_angle = self.goniometer_measurement_parameters["step_angle"]
+        else:
+            step_angle = -1 * self.goniometer_measurement_parameters["step_angle"]
+
         # Move motor by given increment while giving current to OLED and reading spectrum
         for angle in np.arange(
             self.goniometer_measurement_parameters["minimum_angle"],
             self.goniometer_measurement_parameters["maximum_angle"] + 1,
-            self.goniometer_measurement_parameters["step_angle"],
+            step_angle,
         ):
 
             # This is checked in each iteration so that the user can interrupt
