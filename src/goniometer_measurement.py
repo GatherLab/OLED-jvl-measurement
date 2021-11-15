@@ -306,6 +306,8 @@ class GoniometerMeasurement(QtCore.QThread):
                 cf.log_message("Goniometer measurement aborted")
                 self.hide_progress_bar.emit()
                 self.reset_start_button.emit(False)
+                self.keithley_source.as_voltage_source(1050)
+                self.keithley_source.set_voltage(self.setup_parameters["test_voltage"])
                 return
 
             # If not, in the case of PL open up a pop-up window that the UV lamp can
@@ -322,6 +324,10 @@ class GoniometerMeasurement(QtCore.QThread):
                     absolute_starting_time = time.time()
                     break
                 elif self.pause == "return":
+                    self.keithley_source.as_voltage_source(1050)
+                    self.keithley_source.set_voltage(
+                        self.setup_parameters["test_voltage"]
+                    )
                     return
 
         # Move motor by given increment while giving current to OLED and reading spectrum
@@ -340,6 +346,8 @@ class GoniometerMeasurement(QtCore.QThread):
                 )
                 self.hide_progress_bar.emit()
                 self.reset_start_button.emit(False)
+                self.keithley_source.as_voltage_source(1050)
+                self.keithley_source.set_voltage(self.setup_parameters["test_voltage"])
                 return
 
             self.motor.move_to(angle)
@@ -499,7 +507,7 @@ class GoniometerMeasurement(QtCore.QThread):
             # Only save iv data for el measurement, because it otherwise does not exist
             self.iv_data = pd.DataFrame(rows_list)
             self.save_iv_data()
-            self.keithley_source.reset()
+            self.keithley_source.as_voltage_source(1050)
             self.keithley_source.set_voltage(self.setup_parameters["test_voltage"])
 
         else:
