@@ -233,41 +233,41 @@ class GoniometerMeasurement(QtCore.QThread):
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             self.keithley_source.activate_output()
 
-        # Let user turn on the lamp
-        if self.goniometer_measurement_parameters["el_or_pl"]:
-            # Check first if user already aborted the measurement
-            if self.pause == "return":
-                cf.log_message("Goniometer measurement aborted")
-                self.hide_progress_bar.emit()
-                self.reset_start_button.emit(False)
-                return
-
-            # If not, in the case of PL open up a pop-up window that the UV lamp can
-            # now be turned on, only continue if the continue button was
-            # pressed
-            self.pause = "True"
-            self.pause_thread_pl.emit("on")
-
-            while self.pause == "True":
-                time.sleep(0.1)
-                if self.pause == "break":
-                    # Take the time at the beginning to measure the length of the entire
-                    # measurement
-                    absolute_starting_time = time.time()
-                    break
-                elif self.pause == "return":
-                    return
-
         # If selected by the user, do a first measurement for the degradation check at zero angle.
         if self.goniometer_measurement_parameters["degradation_check"]:
+            # first move to zero for degradation check and turn on lamp before (or just turn on the oled)
             self.motor.move_to(0)
 
             # Wait until the motor move is finished
             while not self.parent.motor_run.isFinished():
                 time.sleep(0.1)
 
-            # Only activate output for el
-            if not self.goniometer_measurement_parameters["el_or_pl"]:
+            # Let user turn on the lamp
+            if self.goniometer_measurement_parameters["el_or_pl"]:
+                # Check first if user already aborted the measurement
+                if self.pause == "return":
+                    cf.log_message("Goniometer measurement aborted")
+                    self.hide_progress_bar.emit()
+                    self.reset_start_button.emit(False)
+                    return
+
+                # If not, in the case of PL open up a pop-up window that the UV lamp can
+                # now be turned on, only continue if the continue button was
+                # pressed
+                self.pause = "True"
+                self.pause_thread_pl.emit("on")
+
+                while self.pause == "True":
+                    time.sleep(0.1)
+                    if self.pause == "break":
+                        # Take the time at the beginning to measure the length of the entire
+                        # measurement
+                        absolute_starting_time = time.time()
+                        break
+                    elif self.pause == "return":
+                        return
+
+            else:
                 self.uno.trigger_relay(self.pixel[0])
                 oled_on_time_start = time.time()
 
@@ -281,75 +281,49 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.uno.trigger_relay(self.pixel[0])
                 self.total_oled_on_time += time.time() - oled_on_time_start
 
-        # PL from here on
-        self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
+        else:
+            # first move to minimum angle and only then turn on the lamp
+            self.motor.move_to(self.goniometer_measurement_parameters["minimum_angle"])
 
-        # Wait until the motor move is finished
-        while not self.parent.motor_run.isFinished():
-            time.sleep(0.1)
-
-        # Instead of defining a homeing time, just read the motor position and
-        # only start the measurement when the motor is at the right position
-        # motor_position = self.motor.read_position()
-
-        # while not math.isclose(
-        #     motor_position,
-        #     self.goniometer_measurement_parameters["minimum_angle"],
-        #     abs_tol=0.01,
-        # ):
-        #     motor_position = self.motor.read_position()
-        #     self.update_animation.emit(motor_position)
-        #     time.sleep(0.05)
-
-        # Update animation once more since the position might be 0.9 at this
-        # point (int comparison in the above while loop)
-        # self.update_animation.emit(motor_position)
-
-        # cf.log_message(
-        # "Motor moved to minimum angle: "
-        # + str(self.goniometer_measurement_parameters["minimum_angle"])
-        # + " °"
-        # )
-        # time.sleep(self.goniometer_measurement_parameters["homing_time"])
-
-        # Initial processing time in seconds
-        # I am not quite sure why this is done and if there is no better way of doing it
-        # processing_time = 0.5
-
-        # Empty list, stores the data as multiple dicts to later generate a pd dataframe
-        rows_list = []
-
-        progress = 0
-
-        if self.goniometer_measurement_parameters["el_or_pl"]:
-            # Check first if user already aborted the measurement
-            if self.pause == "return":
-                cf.log_message("Goniometer measurement aborted")
-                self.hide_progress_bar.emit()
-                self.reset_start_button.emit(False)
-                self.keithley_source.as_voltage_source(1050)
-                self.keithley_source.set_voltage(self.setup_parameters["test_voltage"])
-                return
-
-            # If not, in the case of PL open up a pop-up window that the UV lamp can
-            # now be turned on, only continue if the continue button was
-            # pressed
-            self.pause = "True"
-            self.pause_thread_pl.emit("on")
-
-            while self.pause == "True":
+            # Wait until the motor move is finished
+            while not self.parent.motor_run.isFinished():
                 time.sleep(0.1)
-                if self.pause == "break":
-                    # Take the time at the beginning to measure the length of the entire
-                    # measurement
-                    absolute_starting_time = time.time()
-                    break
-                elif self.pause == "return":
+
+            if self.goniometer_measurement_parameters["el_or_pl"]:
+                # Check first if user already aborted the measurement
+                if self.pause == "return":
+                    cf.log_message("Goniometer measurement aborted")
+                    self.hide_progress_bar.emit()
+                    self.reset_start_button.emit(False)
                     self.keithley_source.as_voltage_source(1050)
                     self.keithley_source.set_voltage(
                         self.setup_parameters["test_voltage"]
                     )
                     return
+
+                # If not, in the case of PL open up a pop-up window that the UV lamp can
+                # now be turned on, only continue if the continue button was
+                # pressed
+                self.pause = "True"
+                self.pause_thread_pl.emit("on")
+
+                while self.pause == "True":
+                    time.sleep(0.1)
+                    if self.pause == "break":
+                        # Take the time at the beginning to measure the length of the entire
+                        # measurement
+                        absolute_starting_time = time.time()
+                        break
+                    elif self.pause == "return":
+                        self.keithley_source.as_voltage_source(1050)
+                        self.keithley_source.set_voltage(
+                            self.setup_parameters["test_voltage"]
+                        )
+                        return
+
+        # Empty list, stores the data as multiple dicts to later generate a pd dataframe
+        rows_list = []
+        progress = 0
 
         # Revert the sign of the step angle in case the minimum angle is greater
         # than the maximum angle
