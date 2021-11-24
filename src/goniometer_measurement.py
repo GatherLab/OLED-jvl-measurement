@@ -321,12 +321,57 @@ class GoniometerMeasurement(QtCore.QThread):
 
         progress = 0
 
-        # Move motor by given increment while giving current to OLED and reading spectrum
-        for angle in np.arange(
-            self.goniometer_measurement_parameters["minimum_angle"],
-            self.goniometer_measurement_parameters["maximum_angle"] + 1,
-            self.goniometer_measurement_parameters["step_angle"],
+        if self.goniometer_measurement_parameters["el_or_pl"]:
+            # Check first if user already aborted the measurement
+            if self.pause == "return":
+                cf.log_message("Goniometer measurement aborted")
+                self.hide_progress_bar.emit()
+                self.reset_start_button.emit(False)
+                self.keithley_source.as_voltage_source(1050)
+                self.keithley_source.set_voltage(self.setup_parameters["test_voltage"])
+                return
+
+            # If not, in the case of PL open up a pop-up window that the UV lamp can
+            # now be turned on, only continue if the continue button was
+            # pressed
+            self.pause = "True"
+            self.pause_thread_pl.emit("on")
+
+            while self.pause == "True":
+                time.sleep(0.1)
+                if self.pause == "break":
+                    # Take the time at the beginning to measure the length of the entire
+                    # measurement
+                    absolute_starting_time = time.time()
+                    break
+                elif self.pause == "return":
+                    self.keithley_source.as_voltage_source(1050)
+                    self.keithley_source.set_voltage(
+                        self.setup_parameters["test_voltage"]
+                    )
+                    return
+
+        # Revert the sign of the step angle in case the minimum angle is greater
+        # than the maximum angle
+        if (
+            self.goniometer_measurement_parameters["minimum_angle"]
+            <= self.goniometer_measurement_parameters["maximum_angle"]
         ):
+            step_angle = self.goniometer_measurement_parameters["step_angle"]
+        else:
+            step_angle = -1 * self.goniometer_measurement_parameters["step_angle"]
+
+        # Unfortunately, the arange function is very annoying with endpoints
+        all_angles = np.arange(
+            self.goniometer_measurement_parameters["minimum_angle"],
+            self.goniometer_measurement_parameters["maximum_angle"]
+            + np.sign(self.goniometer_measurement_parameters["maximum_angle"]) * 0.5
+            - np.sign(self.goniometer_measurement_parameters["minimum_angle"]) * 0.1,
+            step_angle,
+        )
+
+        # Move motor by given increment while giving current to OLED and reading spectrum
+        for angle in all_angles:
 
             # This is checked in each iteration so that the user can interrupt
             # the measurement after each iterration by simply pressing the
@@ -337,6 +382,8 @@ class GoniometerMeasurement(QtCore.QThread):
                 )
                 self.hide_progress_bar.emit()
                 self.reset_start_button.emit(False)
+                self.keithley_source.as_voltage_source(1050)
+                self.keithley_source.set_voltage(self.setup_parameters["test_voltage"])
                 return
 
             self.motor.move_to(angle)
@@ -429,15 +476,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
             self.update_progress_bar.emit(
                 "value",
-                progress
-                / np.size(
-                    np.arange(
-                        self.goniometer_measurement_parameters["minimum_angle"],
-                        self.goniometer_measurement_parameters["maximum_angle"] + 1,
-                        self.goniometer_measurement_parameters["step_angle"],
-                    )
-                )
-                * 100,
+                progress / np.size(all_angles) * 100,
             )
 
         # If the user wants it, move again back to zero angle
@@ -496,7 +535,7 @@ class GoniometerMeasurement(QtCore.QThread):
             # Only save iv data for el measurement, because it otherwise does not exist
             self.iv_data = pd.DataFrame(rows_list)
             self.save_iv_data()
-            self.keithley_source.reset()
+            self.keithley_source.as_voltage_source(1050)
             self.keithley_source.set_voltage(self.setup_parameters["test_voltage"])
 
         else:
