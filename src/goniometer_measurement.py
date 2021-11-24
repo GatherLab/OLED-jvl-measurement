@@ -233,6 +233,31 @@ class GoniometerMeasurement(QtCore.QThread):
         if not self.goniometer_measurement_parameters["el_or_pl"]:
             self.keithley_source.activate_output()
 
+        # Let user turn on the lamp
+        if self.goniometer_measurement_parameters["el_or_pl"]:
+            # Check first if user already aborted the measurement
+            if self.pause == "return":
+                cf.log_message("Goniometer measurement aborted")
+                self.hide_progress_bar.emit()
+                self.reset_start_button.emit(False)
+                return
+
+            # If not, in the case of PL open up a pop-up window that the UV lamp can
+            # now be turned on, only continue if the continue button was
+            # pressed
+            self.pause = "True"
+            self.pause_thread_pl.emit("on")
+
+            while self.pause == "True":
+                time.sleep(0.1)
+                if self.pause == "break":
+                    # Take the time at the beginning to measure the length of the entire
+                    # measurement
+                    absolute_starting_time = time.time()
+                    break
+                elif self.pause == "return":
+                    return
+
         # If selected by the user, do a first measurement for the degradation check at zero angle.
         if self.goniometer_measurement_parameters["degradation_check"]:
             self.motor.move_to(0)
@@ -280,10 +305,6 @@ class GoniometerMeasurement(QtCore.QThread):
         # point (int comparison in the above while loop)
         # self.update_animation.emit(motor_position)
 
-        # Wait one additional second (not really needed but only to be on the
-        # save side)
-        time.sleep(0.5)
-
         # cf.log_message(
         # "Motor moved to minimum angle: "
         # + str(self.goniometer_measurement_parameters["minimum_angle"])
@@ -299,30 +320,6 @@ class GoniometerMeasurement(QtCore.QThread):
         rows_list = []
 
         progress = 0
-
-        if self.goniometer_measurement_parameters["el_or_pl"]:
-            # Check first if user already aborted the measurement
-            if self.pause == "return":
-                cf.log_message("Goniometer measurement aborted")
-                self.hide_progress_bar.emit()
-                self.reset_start_button.emit(False)
-                return
-
-            # If not, in the case of PL open up a pop-up window that the UV lamp can
-            # now be turned on, only continue if the continue button was
-            # pressed
-            self.pause = "True"
-            self.pause_thread_pl.emit("on")
-
-            while self.pause == "True":
-                time.sleep(0.1)
-                if self.pause == "break":
-                    # Take the time at the beginning to measure the length of the entire
-                    # measurement
-                    absolute_starting_time = time.time()
-                    break
-                elif self.pause == "return":
-                    return
 
         # Move motor by given increment while giving current to OLED and reading spectrum
         for angle in np.arange(
@@ -516,7 +513,7 @@ class GoniometerMeasurement(QtCore.QThread):
                         time.time() - absolute_starting_time, 2
                     )
                     cf.log_message(
-                        str(self.absolute_elapsed_time)
+                        str(self.pl_elapsed_time)
                         + " s passed since PL lamp was turned on."
                     )
                     break
