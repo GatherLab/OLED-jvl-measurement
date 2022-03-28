@@ -4,6 +4,7 @@ from settings import Settings
 from autotube_measurement import AutotubeMeasurement
 from current_tester import CurrentTester
 from spectrum_measurement import SpectrumMeasurement
+from lifetime_measurement import LifetimeMeasurement
 from goniometer_measurement import GoniometerMeasurement
 from loading_window import LoadingWindow
 
@@ -310,6 +311,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_pixel8_pushButton.setShortcut("8")
 
         # -------------------------------------------------------------------- #
+        # ---------------------- Lifetime Measurement  ----------------------- #
+        # -------------------------------------------------------------------- #
+
+        # Link actions to buttons
+        self.ltw_start_measurement_pushButton.clicked.connect(
+            self.start_lifetime_measurement
+        )
+
+        # Assign shortcuts to the pushbuttons
+        self.ltw_pixel1_pushButton.setShortcut("1")
+        self.ltw_pixel2_pushButton.setShortcut("2")
+        self.ltw_pixel3_pushButton.setShortcut("3")
+        self.ltw_pixel4_pushButton.setShortcut("4")
+        self.ltw_pixel5_pushButton.setShortcut("5")
+        self.ltw_pixel6_pushButton.setShortcut("6")
+        self.ltw_pixel7_pushButton.setShortcut("7")
+        self.ltw_pixel8_pushButton.setShortcut("8")
+
+        # -------------------------------------------------------------------- #
         # --------------------- Goniometer Measurement  ---------------------- #
         # -------------------------------------------------------------------- #
         self.gw_start_measurement_pushButton.clicked.connect(
@@ -419,6 +439,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sw_ct_voltage_spinBox.setSingleStep(0.1)
         self.sw_ct_voltage_spinBox.setValue(0)
         self.sw_ct_voltage_spinBox.setKeyboardTracking(False)
+
+        # Set standard parameters for lifetime measurement
+        self.ltw_voltage_spinBox.setMinimum(0.1)
+        self.ltw_voltage_spinBox.setMaximum(10)
+        self.ltw_voltage_spinBox.setValue(3.5)
+        self.ltw_max_current_spinBox.setMinimum(0.1)
+        self.ltw_max_current_spinBox.setMaximum(1050)
+        self.ltw_max_current_spinBox.setValue(10)
+        self.ltw_on_time_spinBox.setMinimum(1)
+        self.ltw_on_time_spinBox.setMaximum(10000)
+        self.ltw_on_time_spinBox.setValue(120)
+        self.ltw_measurement_interval_spinBox.setMinimum(1)
+        self.ltw_measurement_interval_spinBox.setMaximum(10000)
+        self.ltw_measurement_interval_spinBox.setValue(10)
 
         # Update statusbar
         cf.log_message("Program ready")
@@ -1358,6 +1392,128 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.specw_fig.draw()
 
     # -------------------------------------------------------------------- #
+    # ---------------------- Lifetime Measurement  ----------------------- #
+    # -------------------------------------------------------------------- #
+
+    def read_lifetime_parameters(self):
+        """
+        Function to read out the current measurement parameters that are
+        present when clicking the Start Measurement button
+        """
+        global_parameters = cf.read_global_settings()
+        measurement_parameters = {
+            "voltage": self.ltw_voltage_spinBox.value(),
+            "max_current": self.ltw_max_current_spinBox.value(),
+            "on_time": self.ltw_on_time_spinBox.value(),
+            "measurement_interval": self.ltw_measurement_interval_spinBox.value(),
+            # "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
+            # "fixed_multimeter_range": self.aw_set_fixed_multimeter_range_toggleSwitch.isChecked(),
+            "photodiode_saturation": float(global_parameters["photodiode_saturation"]),
+            # "check_pd_saturation": self.aw_pd_saturation_toggleSwitch.isChecked(),
+        }
+
+        # Boolean list for selected pixels
+        selected_pixels = [
+            self.ltw_pixel1_pushButton.isChecked(),
+            self.ltw_pixel2_pushButton.isChecked(),
+            self.ltw_pixel3_pushButton.isChecked(),
+            self.ltw_pixel4_pushButton.isChecked(),
+            self.ltw_pixel5_pushButton.isChecked(),
+            self.ltw_pixel6_pushButton.isChecked(),
+            self.ltw_pixel7_pushButton.isChecked(),
+            self.ltw_pixel8_pushButton.isChecked(),
+        ]
+
+        # Return only the pixel numbers of the selected pixels
+        selected_pixels_numbers = [i + 1 for i, x in enumerate(selected_pixels) if x]
+
+        # Update statusbar
+        cf.log_message("Lifetime parameters read")
+
+        return measurement_parameters, selected_pixels_numbers
+
+    @QtCore.Slot(list, list)
+    def plot_lifetime_measurement(self, time, pd_voltage):
+        """
+        Function to plot the results from the lifetime measurement to the central graph.
+        """
+        # self.aw_fig.figure()
+
+        # Clear axis
+        # try:
+        #     del self.aw_ax.lines
+        #     del self.aw_ax2.lines
+        # except AttributeError:
+        #     print("Start Plotting")
+        ax1_scale = self.ltw_ax.get_yaxis().get_scale()
+
+        self.ltw_ax.cla()
+
+        # Plot current
+        self.ltw_ax.plot(
+            time,
+            np.abs(pd_voltage),
+            color=(68 / 255, 188 / 255, 65 / 255),
+            marker="o",
+        )
+
+        self.ltw_ax.grid(True)
+        self.ltw_ax.set_xlabel("Time (s)", fontsize=14)
+        self.ltw_ax.set_ylabel("Photodiode Voltage (V)", fontsize=14)
+
+        # If the axis was previously a log, keep it as a log
+        self.ltw_ax.set_yscale(ax1_scale)
+
+        self.ltw_fig.draw()
+
+        # Update statusbar
+        cf.log_message("Lifetime measurement plotted")
+
+    def start_lifetime_measurement(self):
+        """
+        Function that executes the actual measurement (the logic of which is
+        stored in lifetime_measurement.py). Iteration over the selected
+        pixels as well as a call for the plotting happens here.
+        """
+        # If the measurement was already started and the button is clicked
+        # again, stop the measurement
+        if not self.ltw_start_measurement_pushButton.isChecked():
+            self.lifetime_measurement.stop = True
+            return
+
+        # Save read setup parameters
+        setup_parameters = self.safe_read_setup_parameters()
+
+        # Read global parameters
+        global_settings = cf.read_global_settings()
+
+        # Update statusbar
+        cf.log_message("Lifetime measurement started")
+
+        measurement_parameters, selected_pixels = self.read_lifetime_parameters()
+
+        # Set progress bar to zero
+        self.progressBar.show()
+        self.progressBar.setProperty("value", 0)
+
+        # Now read in the global settings from file
+        # global_settings = cf.read_global_settings()
+
+        # Instantiate our class
+        self.lifetime_measurement = LifetimeMeasurement(
+            self.keithley_source,
+            self.keithley_multimeter,
+            self.arduino_uno,
+            measurement_parameters,
+            setup_parameters,
+            selected_pixels,
+            self,
+        )
+
+        # Start thread to run measurement
+        self.lifetime_measurement.start()
+
+    # -------------------------------------------------------------------- #
     # --------------------- Goniometer Measurement  ---------------------- #
     # -------------------------------------------------------------------- #
     def read_goniometer_parameters(self):
@@ -1805,7 +1961,7 @@ if __name__ == "__main__":
     import ctypes
 
     if not sys.platform.startswith("linux"):
-        myappid = u"mycompan.myproduct.subproduct.version"  # arbitrary string
+        myappid = "mycompan.myproduct.subproduct.version"  # arbitrary string
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
     app_icon = QtGui.QIcon()

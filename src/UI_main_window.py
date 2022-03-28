@@ -989,6 +989,248 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.spectrum_widget, "")
 
         # -------------------------------------------------------------------- #
+        # ------------------- Define Stability Scan Widget ------------------- #
+        # -------------------------------------------------------------------- #
+        self.stability_widget = QtWidgets.QWidget()
+        self.stability_widget.setObjectName("stability_widget")
+        self.ltw_gridLayout_2 = QtWidgets.QGridLayout(self.stability_widget)
+        self.ltw_gridLayout_2.setObjectName("ltw_gridLayout_2")
+
+        # --------------- Central Widget with matplotlib graph --------------- #
+        self.ltw_graph_widget = QtWidgets.QWidget(self.stability_widget)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.ltw_graph_widget.sizePolicy().hasHeightForWidth()
+        )
+        self.ltw_graph_widget.setSizePolicy(sizePolicy)
+        self.ltw_graph_widget.setMinimumSize(QtCore.QSize(0, 442))
+        self.ltw_graph_widget.setObjectName("ltw_graph_widget")
+        self.ltw_mpl_graph_gridLayout = QtWidgets.QGridLayout(self.ltw_graph_widget)
+        self.ltw_mpl_graph_gridLayout.setObjectName("ltw_mpl_graph_gridLayout")
+        self.ltw_gridLayout_2.addWidget(self.ltw_graph_widget, 0, 1, 1, 1)
+
+        # Define figure
+        figureSize = (11, 10)
+        self.ltw_fig = FigureCanvas(Figure(figsize=figureSize))
+        self.ltw_mpl_graph_gridLayout.addWidget(self.ltw_fig)
+
+        self.ltw_ax = self.ltw_fig.figure.subplots()
+        self.ltw_ax.set_facecolor("#FFFFFF")
+        self.ltw_ax.grid(True)
+        # self.ltw_ax.set_yscale("log")
+        self.ltw_ax.set_xlabel("Time (s)", fontsize=14)
+        self.ltw_ax.set_ylabel("Photodiode Voltage (V)", fontsize=14)
+        self.ltw_ax.axhline(linewidth=1, color="black")
+        # self.ltw_ax.axvline(linewidth=1, color="black")
+        self.ltw_fig.figure.set_facecolor("#FFFFFF")
+        self.ltw_mplToolbar = NavigationToolbar(self.ltw_fig, self.ltw_graph_widget)
+        self.ltw_mplToolbar.setStyleSheet("background-color:#FFFFFF; color:black;")
+        self.ltw_mpl_graph_gridLayout.addWidget(self.ltw_mplToolbar)
+
+        # ----------------------- Define scroll area ---------------------------
+        self.ltw_scrollArea = QtWidgets.QScrollArea(self.stability_widget)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.ltw_scrollArea.sizePolicy().hasHeightForWidth()
+        )
+        self.ltw_scrollArea.setSizePolicy(sizePolicy)
+        self.ltw_scrollArea.setMinimumSize(QtCore.QSize(200, 0))
+        self.ltw_scrollArea.setWidgetResizable(True)
+        self.ltw_scrollArea.setObjectName("ltw_scrollArea")
+        self.ltw_scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.ltw_scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 170, 655))
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.ltw_scrollAreaWidgetContents.sizePolicy().hasHeightForWidth()
+        )
+        self.ltw_scrollAreaWidgetContents.setSizePolicy(sizePolicy)
+        self.ltw_scrollAreaWidgetContents.setObjectName("ltw_scrollAreaWidgetContents")
+        self.ltw_gridLayout_3 = QtWidgets.QGridLayout(self.ltw_scrollAreaWidgetContents)
+        self.ltw_gridLayout_3.setObjectName("ltw_gridLayout_3")
+
+        self.ltw_header1_label = QtWidgets.QLabel(self.ltw_scrollAreaWidgetContents)
+        self.ltw_header1_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.ltw_header1_label.setObjectName("ltw_header1_label")
+        self.ltw_gridLayout_3.addWidget(self.ltw_header1_label, 0, 0, 1, 1)
+        self.ltw_scrollArea.setWidget(self.ltw_scrollAreaWidgetContents)
+        self.ltw_gridLayout_2.addWidget(self.ltw_scrollArea, 0, 3, 1, 1)
+
+        # ---------------------- Select pixel widget ------------------------- #
+        self.ltw_select_pixel_widget = QtWidgets.QWidget(
+            self.ltw_scrollAreaWidgetContents
+        )
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.ltw_select_pixel_widget.sizePolicy().hasHeightForWidth()
+        )
+        self.ltw_select_pixel_widget.setSizePolicy(sizePolicy)
+        self.ltw_select_pixel_widget.setMinimumSize(QtCore.QSize(100, 0))
+        self.ltw_select_pixel_widget.setMaximumSize(QtCore.QSize(150, 124))
+        self.ltw_select_pixel_widget.setObjectName("ltw_select_pixel_widget")
+        self.ltw_gridLayout_4 = QtWidgets.QGridLayout(self.ltw_select_pixel_widget)
+        self.ltw_gridLayout_4.setObjectName("ltw_gridLayout_4")
+        self.ltw_select_pixel_label = QtWidgets.QLabel(
+            self.ltw_scrollAreaWidgetContents
+        )
+        self.ltw_select_pixel_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.ltw_select_pixel_label.setObjectName("ltw_select_pixel_label")
+        self.ltw_gridLayout_3.addWidget(self.ltw_select_pixel_label, 10, 0, 1, 1)
+
+        # Pixel 1
+        self.ltw_pixel1_pushButton = QtWidgets.QPushButton(self.ltw_select_pixel_widget)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
+        )
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(
+            self.ltw_pixel1_pushButton.sizePolicy().hasHeightForWidth()
+        )
+        self.ltw_pixel1_pushButton.setSizePolicy(sizePolicy)
+        self.ltw_pixel1_pushButton.setMinimumSize(QtCore.QSize(0, 0))
+        self.ltw_pixel1_pushButton.setCheckable(True)
+        self.ltw_pixel1_pushButton.setAutoRepeat(False)
+        self.ltw_pixel1_pushButton.setObjectName("ltw_pixel1_pushButton")
+        self.ltw_gridLayout_4.addWidget(self.ltw_pixel1_pushButton, 0, 0, 1, 1)
+
+        # Pixel 2
+        self.ltw_pixel2_pushButton = QtWidgets.QPushButton(self.ltw_select_pixel_widget)
+        self.ltw_pixel2_pushButton.setCheckable(True)
+        self.ltw_pixel2_pushButton.setObjectName("ltw_pixel2_pushButton")
+        self.ltw_gridLayout_4.addWidget(self.ltw_pixel2_pushButton, 2, 0, 1, 1)
+
+        # Pixel 3
+        self.ltw_pixel3_pushButton = QtWidgets.QPushButton(self.ltw_select_pixel_widget)
+        self.ltw_pixel3_pushButton.setCheckable(True)
+        # self.ltw_pixel3_pushButton.setChecked(True)
+        self.ltw_pixel3_pushButton.setObjectName("ltw_pixel3_pushButton")
+        self.ltw_gridLayout_4.addWidget(self.ltw_pixel3_pushButton, 3, 0, 1, 1)
+
+        # Pixel 4
+        self.ltw_pixel4_pushButton = QtWidgets.QPushButton(self.ltw_select_pixel_widget)
+        self.ltw_pixel4_pushButton.setCheckable(True)
+        # self.ltw_pixel4_pushButton.setChecked(True)
+        self.ltw_pixel4_pushButton.setObjectName("ltw_pixel4_pushButton")
+        self.ltw_gridLayout_4.addWidget(self.ltw_pixel4_pushButton, 4, 0, 1, 1)
+
+        # Pixel 5
+        self.ltw_pixel5_pushButton = QtWidgets.QPushButton(self.ltw_select_pixel_widget)
+        self.ltw_pixel5_pushButton.setCheckable(True)
+        # self.ltw_pixel5_pushButton.setChecked(True)
+        self.ltw_pixel5_pushButton.setObjectName("ltw_pixel5_pushButton")
+        self.ltw_gridLayout_4.addWidget(self.ltw_pixel5_pushButton, 0, 1, 1, 1)
+
+        # Pixel 6
+        self.ltw_pixel6_pushButton = QtWidgets.QPushButton(self.ltw_select_pixel_widget)
+        self.ltw_pixel6_pushButton.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.ltw_pixel6_pushButton.setCheckable(True)
+        # self.ltw_pixel6_pushButton.setChecked(True)
+        self.ltw_pixel6_pushButton.setObjectName("ltw_pixel6_pushButton")
+        self.ltw_gridLayout_4.addWidget(self.ltw_pixel6_pushButton, 2, 1, 1, 1)
+
+        # Pixel 7
+        self.ltw_pixel7_pushButton = QtWidgets.QPushButton(self.ltw_select_pixel_widget)
+        self.ltw_pixel7_pushButton.setCheckable(True)
+        # self.ltw_pixel7_pushButton.setChecked(True)
+        self.ltw_pixel7_pushButton.setObjectName("ltw_pixel7_pushButton")
+        self.ltw_gridLayout_4.addWidget(self.ltw_pixel7_pushButton, 3, 1, 1, 1)
+
+        # Pixel 8
+        self.ltw_pixel8_pushButton = QtWidgets.QPushButton(self.ltw_select_pixel_widget)
+        self.ltw_pixel8_pushButton.setCheckable(True)
+        # self.ltw_pixel8_pushButton.setChecked(True)
+        self.ltw_pixel8_pushButton.setObjectName("ltw_pixel8_pushButton")
+        self.ltw_gridLayout_4.addWidget(self.ltw_pixel8_pushButton, 4, 1, 1, 1)
+
+        self.ltw_gridLayout_3.addWidget(
+            self.ltw_select_pixel_widget, 11, 0, 1, 1, QtCore.Qt.AlignHCenter
+        )
+
+        # Set Voltage
+        self.ltw_voltage_label = QtWidgets.QLabel(self.ltw_scrollAreaWidgetContents)
+        self.ltw_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.ltw_voltage_label.setObjectName("ltw_voltage_label")
+        self.ltw_gridLayout_3.addWidget(self.ltw_voltage_label, 1, 0, 1, 1)
+        self.ltw_voltage_spinBox = HumbleDoubleSpinBox(
+            self.ltw_scrollAreaWidgetContents
+        )
+        self.ltw_voltage_spinBox.setObjectName("ltw_voltage_spinBox")
+        self.ltw_gridLayout_3.addWidget(self.ltw_voltage_spinBox, 2, 0, 1, 1)
+
+        # Set maximum current
+        self.ltw_max_current_label = QtWidgets.QLabel(self.ltw_scrollAreaWidgetContents)
+        self.ltw_max_current_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.ltw_max_current_label.setObjectName("ltw_max_current_label")
+        self.ltw_gridLayout_3.addWidget(self.ltw_max_current_label, 3, 0, 1, 1)
+        self.ltw_max_current_spinBox = HumbleDoubleSpinBox(
+            self.ltw_scrollAreaWidgetContents
+        )
+        self.ltw_max_current_spinBox.setObjectName("ltw_max_current_spinBox")
+        self.ltw_gridLayout_3.addWidget(self.ltw_max_current_spinBox, 4, 0, 1, 1)
+
+        # Total on time
+        self.ltw_on_time_label = QtWidgets.QLabel(self.ltw_scrollAreaWidgetContents)
+        self.ltw_on_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
+        self.ltw_on_time_label.setObjectName("ltw_on_time_label")
+        self.ltw_gridLayout_3.addWidget(self.ltw_on_time_label, 5, 0, 1, 1)
+        self.ltw_on_time_spinBox = HumbleDoubleSpinBox(
+            self.ltw_scrollAreaWidgetContents
+        )
+        self.ltw_on_time_spinBox.setObjectName("ltw_on_time_spinBox")
+        self.ltw_gridLayout_3.addWidget(self.ltw_on_time_spinBox, 6, 0, 1, 1)
+
+        # Measurement Interval
+        self.ltw_measurement_interval_label = QtWidgets.QLabel(
+            self.ltw_scrollAreaWidgetContents
+        )
+        self.ltw_measurement_interval_label.setStyleSheet(
+            'font: 63 bold 10pt "Segoe UI";'
+        )
+        self.ltw_measurement_interval_label.setObjectName(
+            "ltw_measurement_interval_label"
+        )
+        self.ltw_gridLayout_3.addWidget(self.ltw_measurement_interval_label, 7, 0, 1, 1)
+        self.ltw_measurement_interval_spinBox = HumbleDoubleSpinBox(
+            self.ltw_scrollAreaWidgetContents
+        )
+        self.ltw_measurement_interval_spinBox.setObjectName(
+            "ltw_measurement_interval_spinBox"
+        )
+        self.ltw_gridLayout_3.addWidget(
+            self.ltw_measurement_interval_spinBox, 8, 0, 1, 1
+        )
+
+        # Start measurement button
+        self.ltw_start_measurement_pushButton = QtWidgets.QPushButton(
+            self.ltw_scrollAreaWidgetContents
+        )
+        self.ltw_start_measurement_pushButton.setCheckable(True)
+        self.ltw_start_measurement_pushButton.setObjectName(
+            "ltw_start_measurement_pushButton"
+        )
+        self.ltw_gridLayout_3.addWidget(
+            self.ltw_start_measurement_pushButton, 12, 0, 1, 1
+        )
+
+        self.tabWidget.addTab(self.stability_widget, "")
+
+        # -------------------------------------------------------------------- #
         # -------------------- Define Goniometer Window ---------------------- #
         # -------------------------------------------------------------------- #
         self.goniometer_widget = QtWidgets.QWidget()
@@ -1610,6 +1852,40 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(
             self.tabWidget.indexOf(self.spectrum_widget),
             _translate("MainWindow", "Spectrum"),
+        )
+
+        self.ltw_pixel1_pushButton.setText(_translate("MainWindow", "1"))
+        self.ltw_pixel2_pushButton.setText(_translate("MainWindow", "2"))
+        self.ltw_pixel3_pushButton.setText(_translate("MainWindow", "3"))
+        self.ltw_pixel4_pushButton.setText(_translate("MainWindow", "4"))
+        self.ltw_pixel5_pushButton.setText(_translate("MainWindow", "5"))
+        self.ltw_pixel6_pushButton.setText(_translate("MainWindow", "6"))
+        self.ltw_pixel7_pushButton.setText(_translate("MainWindow", "7"))
+        self.ltw_pixel8_pushButton.setText(_translate("MainWindow", "8"))
+        self.ltw_on_time_label.setText(_translate("MainWindow", "On Time (s)"))
+        self.ltw_measurement_interval_label.setText(
+            _translate("MainWindow", "Measurement Interval (s)")
+        )
+        # self.ltw_pd_saturation_checkBox.setText(
+        # _translate("MainWindow", "Check for PD Saturation")
+        # )
+        self.ltw_select_pixel_label.setText(_translate("MainWindow", "Select Pixels"))
+        # self.ltw_bad_contact_checkBox.setText(
+        # _translate("MainWindow", "Check fo Bad Contacts")
+        # )
+        self.ltw_start_measurement_pushButton.setText(
+            _translate("MainWindow", "Start Measurement")
+        )
+        self.ltw_header1_label.setText(
+            _translate("MainWindow", "Measurement Parameters")
+        )
+
+        self.ltw_voltage_label.setText(_translate("MainWindow", "Voltage (V)"))
+        self.ltw_max_current_label.setText(_translate("MainWindow", "Max. Current (mA)"))
+
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.stability_widget),
+            _translate("MainWindow", "Lifetime"),
         )
 
         self.gw_header2.setText(_translate("MainWindow", "Measurement Parameters"))
