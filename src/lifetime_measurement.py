@@ -123,6 +123,8 @@ class LifetimeMeasurement(QtCore.QThread):
             while (
                 time.time() - starting_time < self.measurement_parameters["on_time"] + 1
             ):
+                beginning_time = time.time()
+
                 # Take PD voltage reading from Multimeter
                 # if self.measurement_parameters["fixed_multimeter_range"]:
                 # diode_voltage = self.keithley_multimeter.measure_voltage(1)
@@ -144,6 +146,9 @@ class LifetimeMeasurement(QtCore.QThread):
                     time.sleep(1)
                     break
 
+                if i == 0:
+                    starting_time = time.time()
+
                 # Current should be in mA
                 self.df_data.loc[i, "time"] = time.time() - starting_time
                 self.df_data.loc[i, "pd_voltage"] = (
@@ -162,7 +167,15 @@ class LifetimeMeasurement(QtCore.QThread):
                     break
 
                 # Sleep for the time of measurement interval
-                time.sleep(self.measurement_parameters["measurement_interval"])
+                if (
+                    self.measurement_parameters["measurement_interval"]
+                    - (time.time() - beginning_time)
+                    > 0
+                ):
+                    time.sleep(
+                        self.measurement_parameters["measurement_interval"]
+                        - (time.time() - beginning_time)
+                    )
 
             # If a bad contact was detected, jump this iteration (no saving etc.)
             # if bad_contact == True:
