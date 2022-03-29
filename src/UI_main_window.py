@@ -1234,6 +1234,14 @@ class Ui_MainWindow(object):
             self.ltw_measurement_interval_spinBox, 9, 0, 1, 1
         )
 
+        # All pixel mode
+        self.ltw_all_pixel_mode_HLayout = QtWidgets.QHBoxLayout()
+        self.ltw_all_pixel_mode_toggleSwitch = ToggleSwitch()
+        self.ltw_all_pixel_mode_label = QtWidgets.QLabel("Turn all Pixels on")
+        self.ltw_all_pixel_mode_HLayout.addWidget(self.ltw_all_pixel_mode_toggleSwitch)
+        self.ltw_all_pixel_mode_HLayout.addWidget(self.ltw_all_pixel_mode_label)
+        self.ltw_gridLayout_3.addLayout(self.ltw_all_pixel_mode_HLayout, 12, 0, 1, 1)
+
         # Start measurement button
         self.ltw_start_measurement_pushButton = QtWidgets.QPushButton(
             self.ltw_scrollAreaWidgetContents
@@ -1243,7 +1251,7 @@ class Ui_MainWindow(object):
             "ltw_start_measurement_pushButton"
         )
         self.ltw_gridLayout_3.addWidget(
-            self.ltw_start_measurement_pushButton, 12, 0, 1, 1
+            self.ltw_start_measurement_pushButton, 13, 0, 1, 1
         )
 
         self.tabWidget.addTab(self.stability_widget, "")

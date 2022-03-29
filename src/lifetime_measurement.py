@@ -115,9 +115,6 @@ class LifetimeMeasurement(QtCore.QThread):
             self.keithley_source.set_current(self.measurement_parameters["max_current"])
             cf.log_message("Keithley source initialised as current source")
 
-        # Set voltage
-        self.keithley_source.set_voltage(self.measurement_parameters["voltage"])
-
         # Iterate over all selected pixels
         for pixel in self.selected_pixels:
             # self.keithley_source.empty_buffer("OLEDbuffer")
@@ -128,7 +125,11 @@ class LifetimeMeasurement(QtCore.QThread):
             background_diodevoltage = self.keithley_multimeter.measure_voltage()
 
             # Activate the relay of the selected pixel
-            self.uno.trigger_relay(pixel)
+            if self.measurement_parameters["all_pixel_mode"]:
+                for pixel in self.selected_pixels:
+                    self.uno.trigger_relay(pixel)
+            else:
+                self.uno.trigger_relay(pixel)
 
             # Turn on the voltage
             self.keithley_source.activate_output()
@@ -228,12 +229,12 @@ class LifetimeMeasurement(QtCore.QThread):
                 "value", int(progress / len(self.selected_pixels) * 100)
             )
 
+            if self.measurement_parameters["all_pixel_mode"]:
+                break
+
             # Update GUI while being in a loop. It would be better to use
             # separate threads but for now this is the easiest way
             # app.processEvents()
-
-            # Wait a few seconds so that the user can have a look at the graph
-            time.sleep(1)
 
         # Breaks the pixel loop so that only the output is deactivated etc.
         if self.stop == True:

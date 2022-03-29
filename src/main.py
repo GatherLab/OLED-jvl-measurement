@@ -336,6 +336,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Set true by default
         self.ltw_voltage_or_current_toggleSwitch.setChecked(True)
 
+        # All pixels mode
+        self.ltw_all_pixel_mode_toggleSwitch.clicked.connect(
+            self.disable_pixel_selection
+        )
+
         # -------------------------------------------------------------------- #
         # --------------------- Goniometer Measurement  ---------------------- #
         # -------------------------------------------------------------------- #
@@ -1414,6 +1419,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "max_current": self.ltw_max_current_spinBox.value(),
             "on_time": self.ltw_on_time_spinBox.value(),
             "measurement_interval": self.ltw_measurement_interval_spinBox.value(),
+            "all_pixel_mode": self.ltw_all_pixel_mode_toggleSwitch.isChecked(),
             # "check_bad_contacts": self.aw_bad_contacts_toggleSwitch.isChecked(),
             # "fixed_multimeter_range": self.aw_set_fixed_multimeter_range_toggleSwitch.isChecked(),
             "photodiode_saturation": float(global_parameters["photodiode_saturation"]),
@@ -1547,6 +1553,42 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Start thread to run measurement
         self.lifetime_measurement.start()
+
+    def disable_pixel_selection(self):
+        """
+        Function to disable all options that are only needed for el in case
+        the pl switch was toggled.
+        """
+        # If it is checked, disable buttons. Else enable them
+        if self.ltw_all_pixel_mode_toggleSwitch.isChecked():
+            self.ltw_pixel1_pushButton.setEnabled(False)
+            self.ltw_pixel2_pushButton.setEnabled(False)
+            self.ltw_pixel3_pushButton.setEnabled(False)
+            self.ltw_pixel4_pushButton.setEnabled(False)
+            self.ltw_pixel5_pushButton.setEnabled(False)
+            self.ltw_pixel6_pushButton.setEnabled(False)
+            self.ltw_pixel7_pushButton.setEnabled(False)
+            self.ltw_pixel8_pushButton.setEnabled(False)
+
+            self.ltw_pixel1_pushButton.setChecked(True)
+            self.ltw_pixel2_pushButton.setChecked(True)
+            self.ltw_pixel3_pushButton.setChecked(True)
+            self.ltw_pixel4_pushButton.setChecked(True)
+            self.ltw_pixel5_pushButton.setChecked(True)
+            self.ltw_pixel6_pushButton.setChecked(True)
+            self.ltw_pixel7_pushButton.setChecked(True)
+            self.ltw_pixel8_pushButton.setChecked(True)
+
+        else:
+            # Enable all options that are only relevant for EL measurements
+            self.ltw_pixel1_pushButton.setEnabled(True)
+            self.ltw_pixel2_pushButton.setEnabled(True)
+            self.ltw_pixel3_pushButton.setEnabled(True)
+            self.ltw_pixel4_pushButton.setEnabled(True)
+            self.ltw_pixel5_pushButton.setEnabled(True)
+            self.ltw_pixel6_pushButton.setEnabled(True)
+            self.ltw_pixel7_pushButton.setEnabled(True)
+            self.ltw_pixel8_pushButton.setEnabled(True)
 
     # -------------------------------------------------------------------- #
     # --------------------- Goniometer Measurement  ---------------------- #
