@@ -329,6 +329,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ltw_pixel7_pushButton.setShortcut("7")
         self.ltw_pixel8_pushButton.setShortcut("8")
 
+        self.ltw_voltage_or_current_toggleSwitch.clicked.connect(
+            self.change_measurement_mode_ltw
+        )
+
+        # Set true by default
+        self.ltw_voltage_or_current_toggleSwitch.setChecked(True)
+
         # -------------------------------------------------------------------- #
         # --------------------- Goniometer Measurement  ---------------------- #
         # -------------------------------------------------------------------- #
@@ -1402,6 +1409,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         global_parameters = cf.read_global_settings()
         measurement_parameters = {
+            "current_mode": self.ltw_voltage_or_current_toggleSwitch.isChecked(),
             "voltage": self.ltw_voltage_spinBox.value(),
             "max_current": self.ltw_max_current_spinBox.value(),
             "on_time": self.ltw_on_time_spinBox.value(),
@@ -1432,8 +1440,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return measurement_parameters, selected_pixels_numbers
 
-    @QtCore.Slot(list, list)
-    def plot_lifetime_measurement(self, time, pd_voltage):
+    @QtCore.Slot(list, list, list, bool)
+    def plot_lifetime_measurement(
+        self, time, pd_voltage, current_or_voltage, current_mode
+    ):
         """
         Function to plot the results from the lifetime measurement to the central graph.
         """
@@ -1446,8 +1456,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # except AttributeError:
         #     print("Start Plotting")
         ax1_scale = self.ltw_ax.get_yaxis().get_scale()
+        ax2_scale = self.ltw_ax2.get_yaxis().get_scale()
 
         self.ltw_ax.cla()
+        self.ltw_ax2.cla()
 
         # Plot current
         self.ltw_ax.plot(
@@ -1456,13 +1468,36 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             color=(68 / 255, 188 / 255, 65 / 255),
             marker="o",
         )
+        # twin object for two different y-axis on the sample plot
+        # make a plot with different y-axis using second axis object
+        self.ltw_ax2.plot(
+            time,
+            current_or_voltage,
+            color=(85 / 255, 170 / 255, 255 / 255),
+            marker="o",
+        )
+        self.ltw_ax2.format_coord = self.make_format(self.ltw_ax, self.ltw_ax2)
 
         self.ltw_ax.grid(True)
         self.ltw_ax.set_xlabel("Time (s)", fontsize=14)
         self.ltw_ax.set_ylabel("Photodiode Voltage (V)", fontsize=14)
 
+        if current_mode:
+            self.ltw_ax2.set_ylabel(
+                "Voltage (V)",
+                color=(85 / 255, 170 / 255, 255 / 255),
+                fontsize=14,
+            )
+        else:
+            self.ltw_ax2.set_ylabel(
+                "Current (A)",
+                color=(85 / 255, 170 / 255, 255 / 255),
+                fontsize=14,
+            )
+
         # If the axis was previously a log, keep it as a log
         self.ltw_ax.set_yscale(ax1_scale)
+        self.ltw_ax2.set_yscale(ax2_scale)
 
         self.ltw_fig.draw()
 
@@ -1852,6 +1887,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gw_vc_compliance_spinBox.setValue(1050)
             self.gw_vc_compliance_label.setText("Max. Current (mA)")
             self.gw_vc_value_label.setText("Applied Voltage (V)")
+
+    def change_measurement_mode_ltw(self):
+        """
+        Function that does some visual changes if the user selects current or
+        voltage mode in AR measurements.
+        """
+        if self.ltw_voltage_or_current_toggleSwitch.isChecked():
+            # Current mode
+            # Set compliance to 5V
+            self.ltw_voltage_spinBox.setValue(5)
+            self.ltw_voltage_label.setText("Max. Voltage (V)")
+            self.ltw_max_current_label.setText("Applied Current (mA)")
+
+        else:
+            # Voltage mode
+            # Set compliance to 1.05 A
+            self.ltw_max_current_spinBox.setValue(1050)
+            self.ltw_max_current_label.setText("Max. Current (mA)")
+            self.ltw_voltage_label.setText("Applied Voltage (V)")
 
     def closeEvent(self, event):
         """

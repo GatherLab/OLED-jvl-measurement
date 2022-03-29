@@ -1025,6 +1025,14 @@ class Ui_MainWindow(object):
         self.ltw_ax.set_xlabel("Time (s)", fontsize=14)
         self.ltw_ax.set_ylabel("Photodiode Voltage (V)", fontsize=14)
         self.ltw_ax.axhline(linewidth=1, color="black")
+
+        self.ltw_ax2 = self.aw_ax.twinx()
+        self.ltw_ax2.set_ylabel(
+            "Voltage (V)",
+            color=(85 / 255, 170 / 255, 255 / 255),
+            fontsize=14,
+        )
+
         # self.ltw_ax.axvline(linewidth=1, color="black")
         self.ltw_fig.figure.set_facecolor("#FFFFFF")
         self.ltw_mplToolbar = NavigationToolbar(self.ltw_fig, self.ltw_graph_widget)
@@ -1162,38 +1170,48 @@ class Ui_MainWindow(object):
             self.ltw_select_pixel_widget, 11, 0, 1, 1, QtCore.Qt.AlignHCenter
         )
 
+        # Voltage or current
+        self.ltw_voltage_or_current_HLayout = QtWidgets.QHBoxLayout()
+        self.ltw_voltage_or_current_toggleSwitch = ToggleSwitch()
+        self.ltw_voltage_or_current_label = QtWidgets.QLabel("Current Bias")
+        self.ltw_voltage_or_current_HLayout.addWidget(
+            self.ltw_voltage_or_current_toggleSwitch
+        )
+        self.ltw_voltage_or_current_HLayout.addWidget(self.ltw_voltage_or_current_label)
+        self.ltw_gridLayout_3.addLayout(self.ltw_voltage_or_current_HLayout, 1, 0, 1, 1)
+
         # Set Voltage
         self.ltw_voltage_label = QtWidgets.QLabel(self.ltw_scrollAreaWidgetContents)
         self.ltw_voltage_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.ltw_voltage_label.setObjectName("ltw_voltage_label")
-        self.ltw_gridLayout_3.addWidget(self.ltw_voltage_label, 1, 0, 1, 1)
+        self.ltw_gridLayout_3.addWidget(self.ltw_voltage_label, 2, 0, 1, 1)
         self.ltw_voltage_spinBox = HumbleDoubleSpinBox(
             self.ltw_scrollAreaWidgetContents
         )
         self.ltw_voltage_spinBox.setObjectName("ltw_voltage_spinBox")
-        self.ltw_gridLayout_3.addWidget(self.ltw_voltage_spinBox, 2, 0, 1, 1)
+        self.ltw_gridLayout_3.addWidget(self.ltw_voltage_spinBox, 3, 0, 1, 1)
 
         # Set maximum current
         self.ltw_max_current_label = QtWidgets.QLabel(self.ltw_scrollAreaWidgetContents)
         self.ltw_max_current_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.ltw_max_current_label.setObjectName("ltw_max_current_label")
-        self.ltw_gridLayout_3.addWidget(self.ltw_max_current_label, 3, 0, 1, 1)
+        self.ltw_gridLayout_3.addWidget(self.ltw_max_current_label, 4, 0, 1, 1)
         self.ltw_max_current_spinBox = HumbleDoubleSpinBox(
             self.ltw_scrollAreaWidgetContents
         )
         self.ltw_max_current_spinBox.setObjectName("ltw_max_current_spinBox")
-        self.ltw_gridLayout_3.addWidget(self.ltw_max_current_spinBox, 4, 0, 1, 1)
+        self.ltw_gridLayout_3.addWidget(self.ltw_max_current_spinBox, 5, 0, 1, 1)
 
         # Total on time
         self.ltw_on_time_label = QtWidgets.QLabel(self.ltw_scrollAreaWidgetContents)
         self.ltw_on_time_label.setStyleSheet('font: 63 bold 10pt "Segoe UI";')
         self.ltw_on_time_label.setObjectName("ltw_on_time_label")
-        self.ltw_gridLayout_3.addWidget(self.ltw_on_time_label, 5, 0, 1, 1)
+        self.ltw_gridLayout_3.addWidget(self.ltw_on_time_label, 6, 0, 1, 1)
         self.ltw_on_time_spinBox = HumbleDoubleSpinBox(
             self.ltw_scrollAreaWidgetContents
         )
         self.ltw_on_time_spinBox.setObjectName("ltw_on_time_spinBox")
-        self.ltw_gridLayout_3.addWidget(self.ltw_on_time_spinBox, 6, 0, 1, 1)
+        self.ltw_gridLayout_3.addWidget(self.ltw_on_time_spinBox, 7, 0, 1, 1)
 
         # Measurement Interval
         self.ltw_measurement_interval_label = QtWidgets.QLabel(
@@ -1205,7 +1223,7 @@ class Ui_MainWindow(object):
         self.ltw_measurement_interval_label.setObjectName(
             "ltw_measurement_interval_label"
         )
-        self.ltw_gridLayout_3.addWidget(self.ltw_measurement_interval_label, 7, 0, 1, 1)
+        self.ltw_gridLayout_3.addWidget(self.ltw_measurement_interval_label, 8, 0, 1, 1)
         self.ltw_measurement_interval_spinBox = HumbleDoubleSpinBox(
             self.ltw_scrollAreaWidgetContents
         )
@@ -1213,7 +1231,7 @@ class Ui_MainWindow(object):
             "ltw_measurement_interval_spinBox"
         )
         self.ltw_gridLayout_3.addWidget(
-            self.ltw_measurement_interval_spinBox, 8, 0, 1, 1
+            self.ltw_measurement_interval_spinBox, 9, 0, 1, 1
         )
 
         # Start measurement button
@@ -1880,8 +1898,10 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Measurement Parameters")
         )
 
-        self.ltw_voltage_label.setText(_translate("MainWindow", "Voltage (V)"))
-        self.ltw_max_current_label.setText(_translate("MainWindow", "Max. Current (mA)"))
+        self.ltw_voltage_label.setText(_translate("MainWindow", "Max. Voltage (V)"))
+        self.ltw_max_current_label.setText(
+            _translate("MainWindow", "Applied Current (mA)")
+        )
 
         self.tabWidget.setTabText(
             self.tabWidget.indexOf(self.stability_widget),

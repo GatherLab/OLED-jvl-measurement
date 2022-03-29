@@ -28,7 +28,7 @@ class LifetimeMeasurement(QtCore.QThread):
     Class that contains all the relevant functions for a lifetime measurement
     """
 
-    update_plot = QtCore.Signal(list, list)
+    update_plot = QtCore.Signal(list, list, list, bool)
     update_progress_bar = QtCore.Signal(str, float)
     # show_progress_bar = QtCore.Signal()
     hide_progress_bar = QtCore.Signal()
@@ -99,6 +99,21 @@ class LifetimeMeasurement(QtCore.QThread):
         self.parent.unselect_all_pixels()
 
         self.update_progress_bar.emit("value", 0)
+        # Depending on if the user selected constant current or constant
+        # voltage it is selected in the following what the Keithley source
+        # should be
+        if not self.measurement_parameters["current_mode"]:
+            self.keithley_source.as_voltage_source(
+                self.measurement_parameters["max_current"]
+            )
+            self.keithley_source.set_voltage(self.measurement_parameters["voltage"])
+            cf.log_message("Keithley source initialised as voltage source")
+        else:
+            self.keithley_source.as_current_source(
+                self.measurement_parameters["voltage"]
+            )
+            self.keithley_source.set_current(self.measurement_parameters["max_current"])
+            cf.log_message("Keithley source initialised as current source")
 
         # Set voltage
         self.keithley_source.set_voltage(self.measurement_parameters["voltage"])
@@ -127,6 +142,9 @@ class LifetimeMeasurement(QtCore.QThread):
             ):
                 beginning_time = time.time()
 
+                # Time is recorded before the measurement
+                self.df_data.loc[i, "time"] = time.time() - starting_time
+
                 # Take PD voltage reading from Multimeter
                 # if self.measurement_parameters["fixed_multimeter_range"]:
                 # diode_voltage = self.keithley_multimeter.measure_voltage(1)
@@ -149,20 +167,23 @@ class LifetimeMeasurement(QtCore.QThread):
                     time.sleep(1)
                     break
 
-                if i == 0:
-                    starting_time = time.time()
-
                 # Current should be in mA
-                self.df_data.loc[i, "time"] = time.time() - starting_time
                 self.df_data.loc[i, "pd_voltage"] = (
                     diode_voltage - background_diodevoltage
                 )
 
                 self.df_data.loc[i, "oled_current"] = oled_current
                 self.df_data.loc[i, "oled_voltage"] = oled_voltage
+                if self.measurement_parameters["current_mode"]:
+                    additional_data = self.df_data.oled_voltage
+                else:
+                    additional_data = self.df_data.oled_current
+
                 self.update_plot.emit(
                     self.df_data.time.to_numpy(dtype=float),
                     self.df_data.pd_voltage.to_numpy(dtype=float),
+                    additional_data,
+                    self.measurement_parameters["current_mode"],
                 )
 
                 # increment counter
@@ -253,8 +274,8 @@ class LifetimeMeasurement(QtCore.QThread):
             + " s"
         )
         line02 = "### Measurement data ###"
-        line03 = "Time\t Photodiode Voltage\t OLED Voltage\t OLED Current"
-        line04 = "s\t V\t V\t A\n"
+        line03 = "Time\t Photodiode Voltage\t OLED Current\t OLED Voltage"
+        line04 = "s\t V\t A\t V\n"
 
         header_lines = [
             line01,
@@ -281,11 +302,11 @@ class LifetimeMeasurement(QtCore.QThread):
         self.df_data["pd_voltage"] = self.df_data["pd_voltage"].map(
             lambda x: "{0:.7f}".format(x)
         )
-        self.df_data["oled_voltage"] = self.df_data["pd_voltage"].map(
+        self.df_data["oled_voltage"] = self.df_data["oled_voltage"].map(
             lambda x: "{0:.4f}".format(x)
         )
-        self.df_data["oled_current"] = self.df_data["pd_voltage"].map(
-            lambda x: "{0:.4f}".format(x)
+        self.df_data["oled_current"] = self.df_data["oled_current"].map(
+            lambda x: "{0:.6f}".format(x)
         )
 
         # Save file
