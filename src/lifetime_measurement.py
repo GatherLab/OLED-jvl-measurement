@@ -118,6 +118,8 @@ class LifetimeMeasurement(QtCore.QThread):
         # Iterate over all selected pixels
         for pixel in self.selected_pixels:
             # self.keithley_source.empty_buffer("OLEDbuffer")
+            # Empty dataframe
+            self.df_data = self.df_data.iloc[0:0]
 
             cf.log_message("Running on Pixel " + str(pixel))
 
