@@ -66,7 +66,9 @@ class LifetimeMeasurement(QtCore.QThread):
         # Since the data shall be plotted after each measurement (it could also
         # be done while measuring but I think there is not much benefit and the
         # programming is uglier), only one pixel is scanned at a time
-        self.df_data = pd.DataFrame(columns=["time", "pd_voltage"])
+        self.df_data = pd.DataFrame(
+            columns=["time", "pd_voltage", "oled_current", "oled_voltage"]
+        )
 
         # Connect the signals
         self.update_plot.connect(parent.plot_lifetime_measurement)
@@ -130,8 +132,9 @@ class LifetimeMeasurement(QtCore.QThread):
                 # diode_voltage = self.keithley_multimeter.measure_voltage(1)
                 # else:
                 # Take OLED current reading from Sourcemeter
-                oled_current = self.keithley_source.read_current()
                 diode_voltage = self.keithley_multimeter.measure_voltage()
+                oled_current = self.keithley_source.read_current()
+                oled_voltage = self.keithley_source.read_voltage()
 
                 # Check if PD saturation is reached
                 if (
@@ -154,6 +157,9 @@ class LifetimeMeasurement(QtCore.QThread):
                 self.df_data.loc[i, "pd_voltage"] = (
                     diode_voltage - background_diodevoltage
                 )
+
+                self.df_data.loc[i, "oled_current"] = oled_current
+                self.df_data.loc[i, "oled_voltage"] = oled_voltage
                 self.update_plot.emit(
                     self.df_data.time.to_numpy(dtype=float),
                     self.df_data.pd_voltage.to_numpy(dtype=float),
@@ -247,8 +253,8 @@ class LifetimeMeasurement(QtCore.QThread):
             + " s"
         )
         line02 = "### Measurement data ###"
-        line03 = "Time\t Photodiode Voltage"
-        line04 = "s\t V\n"
+        line03 = "Time\t Photodiode Voltage\t OLED Voltage\t OLED Current"
+        line04 = "s\t V\t V\t A\n"
 
         header_lines = [
             line01,
@@ -274,6 +280,12 @@ class LifetimeMeasurement(QtCore.QThread):
         self.df_data["time"] = self.df_data["time"].map(lambda x: "{0:.2f}".format(x))
         self.df_data["pd_voltage"] = self.df_data["pd_voltage"].map(
             lambda x: "{0:.7f}".format(x)
+        )
+        self.df_data["oled_voltage"] = self.df_data["pd_voltage"].map(
+            lambda x: "{0:.4f}".format(x)
+        )
+        self.df_data["oled_current"] = self.df_data["pd_voltage"].map(
+            lambda x: "{0:.4f}".format(x)
         )
 
         # Save file
