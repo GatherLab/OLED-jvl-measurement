@@ -1026,7 +1026,7 @@ class Ui_MainWindow(object):
         self.ltw_ax.set_ylabel("Photodiode Voltage (V)", fontsize=14)
         self.ltw_ax.axhline(linewidth=1, color="black")
 
-        self.ltw_ax2 = self.aw_ax.twinx()
+        self.ltw_ax2 = self.ltw_ax.twinx()
         self.ltw_ax2.set_ylabel(
             "Voltage (V)",
             color=(85 / 255, 170 / 255, 255 / 255),
