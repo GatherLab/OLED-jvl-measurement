@@ -428,8 +428,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.gw_moving_time_spinBox.setValue(1)
         # self.gw_oled_on_time_spinBox.setValue(2)
         self.gw_vc_value_spinBox.setValue(3.5)
+        self.gw_vc_value_spinBox.setMinimum(0)
+        self.gw_vc_value_spinBox.setMaximum(1050)
         self.gw_vc_compliance_spinBox.setMinimum(0)
-        self.gw_vc_compliance_spinBox.setMaximum(5)
+        self.gw_vc_compliance_spinBox.setMaximum(1050)
         self.gw_vc_compliance_spinBox.setValue(5)
 
         # Set standard parameters for Spectral Measurement

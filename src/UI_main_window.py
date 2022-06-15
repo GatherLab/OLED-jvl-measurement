@@ -280,7 +280,7 @@ class Ui_MainWindow(object):
         # pin or nip
         self.sw_nip_HLayout = QtWidgets.QHBoxLayout()
         self.sw_nip_toggleSwitch = ToggleSwitch()
-        self.sw_nip_label = QtWidgets.QLabel("nip configuration")
+        self.sw_nip_label = QtWidgets.QLabel("common cathode")
         self.sw_nip_HLayout.addWidget(self.sw_nip_toggleSwitch)
         self.sw_nip_HLayout.addWidget(self.sw_nip_label)
         self.gridLayout_6.addLayout(self.sw_nip_HLayout, 2, 0, 1, 2)
