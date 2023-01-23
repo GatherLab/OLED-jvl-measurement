@@ -103,7 +103,8 @@ class GoniometerMeasurement(QtCore.QThread):
         # Introduce a pause variable
         self.pause = "False"
 
-        self.pl_elapsed_time = 0
+        self.pl_total_on_time = 0
+        self.pl_zero_to_90_on_time = 0
         self.total_oled_on_time = 0
 
     def run(self):
@@ -453,6 +454,8 @@ class GoniometerMeasurement(QtCore.QThread):
                 progress / np.size(all_angles) * 100,
             )
 
+        self.pl_zero_to_90_on_time = round(time.time() - absolute_starting_time, 2)
+
         # If the user wants it, move again back to zero angle
         # another spectrum to see if the device degraded already
         if self.goniometer_measurement_parameters["degradation_check"]:
@@ -518,17 +521,16 @@ class GoniometerMeasurement(QtCore.QThread):
             self.pause = "True"
             self.pause_thread_pl.emit("off")
 
+            self.pl_total_on_time = round(time.time() - absolute_starting_time, 2)
+
+            cf.log_message(
+                str(self.pl_total_on_time) + " s passed since PL lamp was turned on."
+            )
+
             while self.pause == "True":
                 time.sleep(0.1)
                 if self.pause == "break":
                     # Print total time elapsed
-                    self.pl_elapsed_time = round(
-                        time.time() - absolute_starting_time, 2
-                    )
-                    cf.log_message(
-                        str(self.pl_elapsed_time)
-                        + " s passed since PL lamp was turned on."
-                    )
                     break
                 elif self.pause == "return":
                     return
@@ -699,7 +701,12 @@ class GoniometerMeasurement(QtCore.QThread):
             )
         if not math.isclose(self.goniometer_measurement_parameters["el_or_pl"], 0):
             line03 = (
-                "Total on time PL lamp: " + str(round(self.pl_elapsed_time, 2)) + " s"
+                "Total lamp on time: "
+                + str(round(self.pl_total_on_time, 2))
+                + " s"
+                + ", 0-90° lamp on time: "
+                + str(round(self.pl_zero_to_90_on_time, 2))
+                + " s"
             )
         else:
             line03 = (
