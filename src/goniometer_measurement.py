@@ -270,6 +270,10 @@ class GoniometerMeasurement(QtCore.QThread):
             else:
                 self.uno.trigger_relay(self.pixel[0])
                 oled_on_time_start = time.time()
+                time.sleep(
+                    self.goniometer_measurement_parameters["oled_on_time"]
+                    # - processing_time
+                )
 
             # This here is temporarily saved in another variable to not distort
             # the dataframe column order
@@ -467,6 +471,10 @@ class GoniometerMeasurement(QtCore.QThread):
                 # self.keithley_source.deactivate_output()
                 self.uno.trigger_relay(self.pixel[0])
                 oled_on_time_start = time.time()
+                time.sleep(
+                    self.goniometer_measurement_parameters["oled_on_time"]
+                    # - processing_time
+                )
 
             self.spectrum_data[str(0.0) + "_deg1"] = degradation_data_before
             self.spectrum_data[str(0.0) + "_deg2"] = self.spectrometer.measure()[1]
