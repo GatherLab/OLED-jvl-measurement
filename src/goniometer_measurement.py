@@ -351,7 +351,6 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # Move motor by given increment while giving current to OLED and reading spectrum
         for angle in all_angles:
-
             # This is checked in each iteration so that the user can interrupt
             # the measurement after each iterration by simply pressing the
             # pushButton again
@@ -458,7 +457,8 @@ class GoniometerMeasurement(QtCore.QThread):
                 progress / np.size(all_angles) * 100,
             )
 
-        self.pl_zero_to_90_on_time = round(time.time() - absolute_starting_time, 2)
+        if self.goniometer_measurement_parameters["el_or_pl"]:
+            self.pl_zero_to_90_on_time = round(time.time() - absolute_starting_time, 2)
 
         # If the user wants it, move again back to zero angle
         # another spectrum to see if the device degraded already
