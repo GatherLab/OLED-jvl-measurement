@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# Initial gui design with QtCreator then translated into python code and adjusted
-
-# from UI_settings_window import Ui_Settings
 from costum_widgets import (
     HumbleDoubleSpinBox,
     HumbleSpinBox,
@@ -10,19 +5,13 @@ from costum_widgets import (
     Ui_GoniometerAnimation,
 )
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
-import matplotlib.pylab as plt
-import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar,
 )
 from matplotlib.figure import Figure
-import matplotlib.backends.backend_qt5
-
-import time
-
 
 # ---------------------------------------------------------------------------- #
 # --------------------------- Define Main Window ----------------------------- #
@@ -1338,14 +1327,18 @@ class Ui_MainWindow(object):
         self.gw_select_pixel_label.setObjectName("gw_select_pixel_label")
         self.gridLayout_9.addWidget(self.gw_select_pixel_label, 31, 0, 1, 1)
 
-        # Voltage scan
-        self.gw_voltage_scan_HLayout = QtWidgets.QHBoxLayout()
-        self.gw_voltage_scan_toggleSwitch = ToggleSwitch()
-        self.gw_voltage_scan_label = QtWidgets.QLabel("JVL Scan")
-        self.gw_voltage_scan_HLayout.addWidget(self.gw_voltage_scan_toggleSwitch)
-        self.gw_voltage_scan_HLayout.addWidget(self.gw_voltage_scan_label)
+        # Background at every step
+        self.gw_background_every_step_HLayout = QtWidgets.QHBoxLayout()
+        self.gw_background_every_step_toggleSwitch = ToggleSwitch()
+        self.gw_background_every_step_label = QtWidgets.QLabel("Multi Background")
+        self.gw_background_every_step_HLayout.addWidget(
+            self.gw_background_every_step_toggleSwitch
+        )
+        self.gw_background_every_step_HLayout.addWidget(
+            self.gw_background_every_step_label
+        )
 
-        self.gridLayout_9.addLayout(self.gw_voltage_scan_HLayout, 24, 0, 1, 1)
+        self.gridLayout_9.addLayout(self.gw_background_every_step_HLayout, 24, 0, 1, 1)
 
         # Offset angle
         self.gw_offset_angle_label = QtWidgets.QLabel(self.gw_scrollAreaWidgetContents)
@@ -1641,31 +1634,31 @@ class Ui_MainWindow(object):
         MainWindow.setMenuBar(self.menubar)
 
         # Define actions for menubar
-        self.actionOpen_Logs = QtWidgets.QAction(MainWindow)
+        self.actionOpen_Logs = QtGui.QAction(MainWindow)
         self.actionOpen_Logs.setObjectName("actionOpen_Logs")
-        # self.actionOpen_Logfile_on_Machine = QtWidgets.QAction(MainWindow)
+        # self.actionOpen_Logfile_on_Machine = QtGui.QAction(MainWindow)
         # self.actionOpen_Logfile_on_Machine.setObjectName(
         # "actionOpen_Logfile_on_Machine"
         # )
 
-        self.actionChange_Path = QtWidgets.QAction(MainWindow)
+        self.actionChange_Path = QtGui.QAction(MainWindow)
         self.actionChange_Path.setObjectName("actionChange_Path")
 
-        self.actionOptions = QtWidgets.QAction(MainWindow)
+        self.actionOptions = QtGui.QAction(MainWindow)
         self.actionOptions.setObjectName("actionOptions")
 
-        self.actionDocumentation = QtWidgets.QAction(MainWindow)
+        self.actionDocumentation = QtGui.QAction(MainWindow)
         self.actionDocumentation.setObjectName("actionDocumentation")
 
-        self.actionLoad_Measurement_Parameters = QtWidgets.QAction(MainWindow)
+        self.actionLoad_Measurement_Parameters = QtGui.QAction(MainWindow)
         self.actionLoad_Measurement_Parameters.setObjectName(
             "actionLoad_Measurement_Parameters"
         )
-        self.actionSave_Measurement_Parameters = QtWidgets.QAction(MainWindow)
+        self.actionSave_Measurement_Parameters = QtGui.QAction(MainWindow)
         self.actionSave_Measurement_Parameters.setObjectName(
             "actionSave_Measurement_Parameters"
         )
-        self.actionOpen_Log = QtWidgets.QAction(MainWindow)
+        self.actionOpen_Log = QtGui.QAction(MainWindow)
         self.actionOpen_Log.setObjectName("actionOpen_Log")
         # self.menudfg.addAction(self.actionLoad_Measurement_Parameters)
         # self.menudfg.addAction(self.actionSave_Measurement_Parameters)
@@ -2002,9 +1995,7 @@ class Ui_MainWindow(object):
 
         # self.showFullScreen()
         qc = self.frameGeometry()
-        # desktopWidget = QtWidgets.QApplication.desktop()
-        # PCGeometry = desktopWidget.screenGeometry()
-        # self.resize(PCGeometry.height(), PCGeometry.height())
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+        screen = QtWidgets.QApplication.primaryScreen()
+        cp = screen.availableGeometry().center()
         qc.moveCenter(cp)
         self.move(qc.topLeft())

@@ -2,7 +2,6 @@ import json
 import logging
 import os.path
 from pathlib import Path
-import pandas as pd
 
 
 def log_message(message):

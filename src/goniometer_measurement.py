@@ -1,22 +1,5 @@
-# -*- coding: utf-8 -*-
+from PySide6 import QtCore
 
-from PySide2 import QtCore, QtWidgets
-
-from hardware import (
-    ArduinoUno,
-    KeithleySource,
-    KeithleyMultimeter,
-    OceanSpectrometer,
-    ThorlabMotor,
-)
-from tests.tests import (
-    MockArduinoUno,
-    MockKeithleySource,
-    MockKeithleyMultimeter,
-    MockOceanSpectrometer,
-    MockThorlabMotor,
-)
-from autotube_measurement import AutotubeMeasurement
 import core_functions as cf
 
 import time
@@ -24,6 +7,10 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 import math
+
+# Function to do moving average
+from scipy.ndimage.filters import uniform_filter1d
+from copy import copy
 
 
 class GoniometerMeasurement(QtCore.QThread):
@@ -120,6 +107,7 @@ class GoniometerMeasurement(QtCore.QThread):
 
         # The following is only needed for EL measurement
         if not self.goniometer_measurement_parameters["el_or_pl"]:
+            """
             if self.goniometer_measurement_parameters["voltage_scan"]:
                 # Move to initial position which is the offset position
                 if self.setup_parameters["top_emitting"]:
@@ -170,9 +158,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 # function is called, because the goniometer thread should wait
                 # for the autotube thread to be finished
                 autotube_measurement.run()
-
-            # # Take background voltage and measure specific current and voltage of photodiode and oled
-            # background_diode_voltage = self.keithley_multimeter.measure_voltage()
+            """
 
             # Depending on if the user selected constant current or constant
             # voltage it is selected in the following what the Keithley source
@@ -194,41 +180,23 @@ class GoniometerMeasurement(QtCore.QThread):
                 )
                 cf.log_message("Keithley source initialised as current source")
 
-            # self.keithley_source.init_buffer("pulsebuffer", buffer_length=1000)
-
-            # # Now activate the output to measure the specific voltages/current
-            # self.uno.trigger_relay(self.pixel[0])
-            # oled_on_time_start = time.time()
-            # self.keithley_source.activate_output()
-
-            # self.specific_pd_voltage = (
-            #     self.keithley_multimeter.measure_voltage() - background_diode_voltage
-            # )
-            # self.specific_oled_current = self.keithley_source.read_current()
-            # self.specific_oled_voltage = self.keithley_source.read_voltage()
-
-            # # Deactivate output
-            # self.keithley_source.deactivate_output()
-            # self.uno.trigger_relay(0)
-            # self.total_oled_on_time += time.time() - oled_on_time_start
-
-            # cf.log_message("Specific voltages measured")
-
-            # time.sleep(0.5)
-
-        # Take calibration readings
         calibration_spectrum = self.spectrometer.measure()
-        self.spectrum_data["wavelength"] = calibration_spectrum[0]
-        self.spectrum_data["background"] = calibration_spectrum[1]
 
-        self.update_simple_spectrum_signal.emit(
-            [
-                calibration_spectrum[0],
-                calibration_spectrum[1],
-            ],
-            ["background"],
-        )
-        cf.log_message("Calibration spectrum measured")
+        if not self.goniometer_measurement_parameters["background_every_step"]:
+            # Take calibration readings
+            self.spectrum_data["background"] = calibration_spectrum[1]
+
+            self.update_simple_spectrum_signal.emit(
+                [
+                    calibration_spectrum[0],
+                    calibration_spectrum[1],
+                ],
+                ["background"],
+            )
+            cf.log_message("Background spectrum measured")
+
+        # The wavelength must be saved in all cases as a column
+        self.spectrum_data["wavelength"] = calibration_spectrum[0]
 
         # If el measurement was selected, activate the selected pixel already
         if not self.goniometer_measurement_parameters["el_or_pl"]:
@@ -269,6 +237,9 @@ class GoniometerMeasurement(QtCore.QThread):
                         return
 
             else:
+                if self.goniometer_measurement_parameters["background_every_step"]:
+                    # Take background readings
+                    degradation_data_before_bg = self.spectrometer.measure()[1]
                 self.uno.trigger_relay(self.pixel[0])
                 oled_on_time_start = time.time()
                 time.sleep(
@@ -394,6 +365,11 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # Only activate output for EL measurement
             if not self.goniometer_measurement_parameters["el_or_pl"]:
+                if self.goniometer_measurement_parameters["background_every_step"]:
+                    # Take background readings
+                    self.spectrum_data[str(angle) + "_bg"] = (
+                        self.spectrometer.measure()[1]
+                    )
                 self.uno.trigger_relay(self.pixel[0])
                 oled_on_time_start = time.time()
 
@@ -403,13 +379,6 @@ class GoniometerMeasurement(QtCore.QThread):
                     self.goniometer_measurement_parameters["oled_on_time"]
                     # - processing_time
                 )
-
-            # start_process = time.process_time()
-
-            # These measurements are only taken for el measurements
-            if not self.goniometer_measurement_parameters["el_or_pl"]:
-                # Here the keithley switches from voltage measurement to current
-                # measurement
 
                 # In the case of a voltage scan
                 if self.goniometer_measurement_parameters["voltage_or_current"]:
@@ -471,6 +440,9 @@ class GoniometerMeasurement(QtCore.QThread):
 
             # Only activate output for el (otherwise it was never activated)
             if not self.goniometer_measurement_parameters["el_or_pl"]:
+                if self.goniometer_measurement_parameters["background_every_step"]:
+                    # Take background readings
+                    degradation_data_after_bg = self.spectrometer.measure()[1]
                 # self.keithley_source.deactivate_output()
                 self.uno.trigger_relay(self.pixel[0])
                 oled_on_time_start = time.time()
@@ -479,7 +451,11 @@ class GoniometerMeasurement(QtCore.QThread):
                     # - processing_time
                 )
 
+            if self.goniometer_measurement_parameters["background_every_step"]:
+                self.spectrum_data[str(0.0) + "_deg1_bg"] = degradation_data_before_bg
             self.spectrum_data[str(0.0) + "_deg1"] = degradation_data_before
+            if self.goniometer_measurement_parameters["background_every_step"]:
+                self.spectrum_data[str(0.0) + "_deg2_bg"] = degradation_data_after_bg
             self.spectrum_data[str(0.0) + "_deg2"] = self.spectrometer.measure()[1]
 
             # Only deactivate output for el (otherwise it was never activated)
@@ -488,11 +464,26 @@ class GoniometerMeasurement(QtCore.QThread):
                 self.total_oled_on_time += time.time() - oled_on_time_start
 
             # Now plot the spectrum of minimum angle and the final repeated measurement
+            if not self.goniometer_measurement_parameters["background_every_step"]:
+                deg_1 = (
+                    self.spectrum_data["0.0_deg1"] - self.spectrum_data["background"]
+                )
+                deg_2 = (
+                    self.spectrum_data["0.0_deg2"] - self.spectrum_data["background"]
+                )
+            else:
+                deg_1 = (
+                    self.spectrum_data["0.0_deg1"] - self.spectrum_data["0.0_deg1_bg"]
+                )
+                deg_2 = (
+                    self.spectrum_data["0.0_deg2"] - self.spectrum_data["0.0_deg2_bg"]
+                )
+
             self.update_simple_spectrum_signal.emit(
                 [
                     self.spectrum_data["wavelength"],
-                    self.spectrum_data["0.0_deg1"] - self.spectrum_data["background"],
-                    self.spectrum_data["0.0_deg2"] - self.spectrum_data["background"],
+                    deg_1,
+                    deg_2,
                 ],
                 [
                     "initial spectrum",
@@ -500,7 +491,9 @@ class GoniometerMeasurement(QtCore.QThread):
                 ],
             )
 
-            corrected_spectrum_data = self.correct_spectrum_for_degradation()
+            corrected_spectrum_data = self.correct_spectrum_for_degradation(
+                deg_1, deg_2
+            )
             self.save_spectrum_data(corrected_spectrum_data, "-deg")
 
         self.save_spectrum_data(self.spectrum_data)
@@ -543,28 +536,20 @@ class GoniometerMeasurement(QtCore.QThread):
                 elif self.pause == "return":
                     return
 
-    def correct_spectrum_for_degradation(self):
+    def correct_spectrum_for_degradation(self, deg_before, deg_after):
         """
         In case the degradation check was activated, correct the specturm for
         the degradation.
         """
-        # Function to do moving average
-        from scipy.ndimage.filters import uniform_filter1d
 
-        initial_maximum_intensity = max(
-            uniform_filter1d(self.spectrum_data["0.0_deg1"], 25)
-        )
-        final_maximum_intensity = max(
-            uniform_filter1d(self.spectrum_data["0.0_deg2"], 25)
-        )
+        initial_maximum_intensity = max(uniform_filter1d(deg_before, 25))
+        final_maximum_intensity = max(uniform_filter1d(deg_after, 25))
 
         # Assuming an exponential decay of the device, calculate the decay
         # constant. Time is replaced by column number.
         decay_constant = -len(self.spectrum_data.columns) / np.log(
             final_maximum_intensity / initial_maximum_intensity
         )
-
-        from copy import copy
 
         # Apply the correction to the data
         corrected_spectrum_data = copy(self.spectrum_data)

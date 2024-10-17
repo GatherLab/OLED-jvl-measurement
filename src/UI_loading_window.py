@@ -1,26 +1,21 @@
-# -*- coding: utf-8 -*-
-
-# Template by Wanderson-Magalhaes
-
-from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtGui import QLinearGradient
+from PySide6 import QtCore, QtGui, QtWidgets
 
 
 class Ui_LoadingWindow(object):
     def setupUi(self, LoadingWindow):
         if LoadingWindow.objectName():
-            LoadingWindow.setObjectName(u"LoadingWindow")
+            LoadingWindow.setObjectName("LoadingWindow")
         LoadingWindow.resize(680, 400)
         self.centralwidget = QtWidgets.QWidget()
-        self.centralwidget.setObjectName(u"centralwidget")
+        self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(LoadingWindow)
         self.verticalLayout.setSpacing(0)
-        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout.setObjectName("verticalLayout")
         self.verticalLayout.setContentsMargins(10, 10, 10, 10)
         self.dropShadowFrame = QtWidgets.QFrame(self.centralwidget)
-        self.dropShadowFrame.setObjectName(u"dropShadowFrame")
+        self.dropShadowFrame.setObjectName("dropShadowFrame")
         self.dropShadowFrame.setStyleSheet(
-            u"QFrame {	\n"
+            "QFrame {	\n"
             "background-color: rgb(44, 49, 60);\n"
             "	color: rgb(220, 220, 220);\n"
             "	border-radius: 10px;\n"
@@ -48,22 +43,22 @@ class Ui_LoadingWindow(object):
         self.dropShadowFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.dropShadowFrame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.label_title = QtWidgets.QLabel(self.dropShadowFrame)
-        self.label_title.setObjectName(u"label_title")
+        self.label_title.setObjectName("label_title")
         self.label_title.setGeometry(QtCore.QRect(0, 90, 661, 61))
         font = QtGui.QFont()
-        font.setFamily(u"Segoe UI")
+        font.setFamily("Segoe UI")
         font.setPointSize(40)
         self.label_title.setFont(font)
-        self.label_title.setStyleSheet(u"color: rgb(85, 170, 255);")
+        self.label_title.setStyleSheet("color: rgb(85, 170, 255);")
         self.label_title.setAlignment(QtCore.Qt.AlignCenter)
         self.label_description = QtWidgets.QLabel(self.dropShadowFrame)
-        self.label_description.setObjectName(u"label_description")
+        self.label_description.setObjectName("label_description")
         self.label_description.setGeometry(QtCore.QRect(0, 150, 661, 31))
         font1 = QtGui.QFont()
-        font1.setFamily(u"Segoe UI")
+        font1.setFamily("Segoe UI")
         font1.setPointSize(14)
         self.label_description.setFont(font1)
-        self.label_description.setStyleSheet(u"color: rgb(98, 114, 164);")
+        self.label_description.setStyleSheet("color: rgb(98, 114, 164);")
         self.label_description.setAlignment(QtCore.Qt.AlignCenter)
 
         # self.horizontal_layout = QtWidgets.QGridLayout(self.dropShadowFrame)
@@ -78,10 +73,10 @@ class Ui_LoadingWindow(object):
         self.button_continue.hide()
 
         self.progressBar = QtWidgets.QProgressBar(self.dropShadowFrame)
-        self.progressBar.setObjectName(u"progressBar")
+        self.progressBar.setObjectName("progressBar")
         self.progressBar.setGeometry(QtCore.QRect(50, 280, 561, 23))
         self.progressBar.setStyleSheet(
-            u"QProgressBar {\n"
+            "QProgressBar {\n"
             "	\n"
             "	background-color: rgb(98, 114, 164);\n"
             "	color: rgb(20, 20, 20);\n"
@@ -96,22 +91,22 @@ class Ui_LoadingWindow(object):
         )
         self.progressBar.setValue(24)
         self.label_loading = QtWidgets.QLabel(self.dropShadowFrame)
-        self.label_loading.setObjectName(u"label_loading")
+        self.label_loading.setObjectName("label_loading")
         self.label_loading.setGeometry(QtCore.QRect(0, 320, 661, 21))
         font2 = QtGui.QFont()
-        font2.setFamily(u"Segoe UI")
+        font2.setFamily("Segoe UI")
         font2.setPointSize(12)
         self.label_loading.setFont(font2)
-        self.label_loading.setStyleSheet(u"color: rgb(98, 114, 164);")
+        self.label_loading.setStyleSheet("color: rgb(98, 114, 164);")
         self.label_loading.setAlignment(QtCore.Qt.AlignCenter)
         self.label_credits = QtWidgets.QLabel(self.dropShadowFrame)
-        self.label_credits.setObjectName(u"label_credits")
+        self.label_credits.setObjectName("label_credits")
         self.label_credits.setGeometry(QtCore.QRect(20, 350, 621, 21))
         font3 = QtGui.QFont()
-        font3.setFamily(u"Segoe UI")
+        font3.setFamily("Segoe UI")
         font3.setPointSize(10)
         self.label_credits.setFont(font3)
-        self.label_credits.setStyleSheet(u"color: rgb(98, 114, 164);")
+        self.label_credits.setStyleSheet("color: rgb(98, 114, 164);")
         self.label_credits.setAlignment(
             QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
         )
@@ -129,18 +124,18 @@ class Ui_LoadingWindow(object):
     def retranslateUi(self, LoadingWindow):
 
         _translate = QtCore.QCoreApplication.translate
-        LoadingWindow.setWindowTitle(_translate("LoadingWindow", u"MainWindow", None))
+        LoadingWindow.setWindowTitle(_translate("LoadingWindow", "MainWindow", None))
         self.label_title.setText(
-            _translate("LoadingWindow", u"<strong>OLED</strong> Characterisation", None)
+            _translate("LoadingWindow", "<strong>OLED</strong> Characterisation", None)
         )
         self.label_description.setText(
-            _translate("LoadingWindow", u"<strong>APP</strong> DESCRIPTION", None)
+            _translate("LoadingWindow", "<strong>APP</strong> DESCRIPTION", None)
         )
-        self.label_loading.setText(_translate("LoadingWindow", u"loading...", None))
+        self.label_loading.setText(_translate("LoadingWindow", "loading...", None))
         self.label_credits.setText(
             _translate(
                 "LoadingWindow",
-                u"GatherLab",
+                "GatherLab",
                 None,
             )
         )
