@@ -1,4 +1,4 @@
-from PySide2 import QtCore
+from PySide6 import QtCore
 
 from hardware import ArduinoUno, KeithleySource, KeithleyMultimeter
 
@@ -21,7 +21,7 @@ class CurrentTester(QtCore.QThread):
 
     # Define costum signals
     # https://stackoverflow.com/questions/36434706/pyqt-proper-use-of-emit-and-pyqtsignal
-    # With pyside2 https://wiki.qt.io/Qt_for_Python_Signals_and_Slots
+    # With PySide6 https://wiki.qt.io/Qt_for_Python_Signals_and_Slots
     update_ammeter_signal = QtCore.Signal(float)
 
     def __init__(

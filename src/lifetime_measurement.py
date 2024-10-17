@@ -3,7 +3,7 @@
 import pyvisa  # Keithley Module
 import serial  # Arduino Module
 
-from PySide2 import QtCore
+from PySide6 import QtCore
 
 from hardware import ArduinoUno, KeithleySource, KeithleyMultimeter
 from tests.tests import MockArduinoUno, MockKeithleySource, MockKeithleyMultimeter

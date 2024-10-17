@@ -1,8 +1,8 @@
-from PySide2 import QtWidgets, QtCore, QtGui
+from PySide6 import QtWidgets, QtCore, QtGui
 
-from PySide2.QtCore import QPropertyAnimation, QRectF, QSize, Qt, Property
-from PySide2.QtGui import QPainter, QColor, QPalette
-from PySide2.QtWidgets import QAbstractButton, QSizePolicy
+from PySide6.QtCore import QPropertyAnimation, QRectF, QSize, Qt, Property
+from PySide6.QtGui import QPainter, QColor, QPalette
+from PySide6.QtWidgets import QAbstractButton, QSizePolicy
 
 import time
 

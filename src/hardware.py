@@ -17,7 +17,7 @@ import numpy as np
 import math
 import copy
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 
 class ArduinoUno:
@@ -27,7 +27,7 @@ class ArduinoUno:
 
     def __init__(self, com_address):
         # Define a mutex
-        self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
+        self.mutex = QtCore.QRecursiveMutex()
 
         # Check for devices on the pc
         rm = pyvisa.ResourceManager()
@@ -169,7 +169,7 @@ class KeithleySource:
         For the time being it is probably alright.
         """
         # Define a mutex
-        self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
+        self.mutex = QtCore.QRecursiveMutex()
 
         # Keithley Finding Device
         rm = pyvisa.ResourceManager()
@@ -346,7 +346,7 @@ class KeithleyMultimeter:
 
     def __init__(self, keithley_multimeter_address):
         # Define a mutex
-        self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
+        self.mutex = QtCore.QMutex()
 
         # Keithley Finding Device
         rm = pyvisa.ResourceManager()
@@ -420,7 +420,7 @@ class OceanSpectrometer:
 
     def __init__(self, non_linearity_correction):
         # Define a mutex
-        self.mutex = QtCore.QMutex(QtCore.QMutex.NonRecursive)
+        self.mutex = QtCore.QMutex()
         # List all spectrometers
         maya_devices = sb.list_devices()
 
@@ -489,7 +489,7 @@ class ThorlabMotor:
 
     def __init__(self, motor_run, motor_number, offset_angle, motor_speed, main_widget):
         # Define a mutex
-        self.mutex = QtCore.QMutex(QtCore.QMutex.Recursive)
+        self.mutex = QtCore.QRecursiveMutex()
 
         # First cleanup before we can work with things (otherwise there might be
         # an open connection somewhere)
@@ -642,7 +642,7 @@ class MotorMoveThread(QtCore.QThread):
 
     # Define costum signals
     # https://stackoverflow.com/questions/36434706/pyqt-proper-use-of-emit-and-pyqtsignal
-    # With pyside2 https://wiki.qt.io/Qt_for_Python_Signals_and_Slots
+    # With PySide6 https://wiki.qt.io/Qt_for_Python_Signals_and_Slots
     # read_motor_position_signal = QtCore.Signal()
     update_animation_signal = QtCore.Signal(float)
     update_progress_bar_signal = QtCore.Signal(str, float)

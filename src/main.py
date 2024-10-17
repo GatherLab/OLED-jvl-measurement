@@ -21,7 +21,7 @@ from hardware import (
 import core_functions as cf
 import pyvisa
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 import time
 import os
@@ -368,6 +368,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Set true by default
         self.gw_voltage_or_current_toggleSwitch.setChecked(True)
+        self.gw_background_every_step_toggleSwitch.setChecked(True)
         self.gw_degradation_check_toggleSwitch.setChecked(True)
 
         # self.motor_run = motormovethread(0, 45, self)
@@ -678,6 +679,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         function to allow display of both coordinates for figures with two axis
         """
+
         # current and other are axes
         def format_coord(x, y):
             # x, y are data coordinates
@@ -1393,7 +1395,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         # Clear plot
         # self.specw_ax.cla()
-        del self.specw_ax.lines[0]
+        if self.specw_ax.lines:
+            self.specw_ax.lines[0].remove()
 
         # Plot current
         self.specw_ax.plot(
@@ -1621,7 +1624,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # "moving_time": self.gw_moving_time_spinBox.value(),
             "oled_on_time": global_parameters["oled_on_time"],
             "voltage_or_current": self.gw_voltage_or_current_toggleSwitch.isChecked(),
-            "voltage_scan": self.gw_voltage_scan_toggleSwitch.isChecked(),
+            "background_every_step": self.gw_background_every_step_toggleSwitch.isChecked(),
             "degradation_check": self.gw_degradation_check_toggleSwitch.isChecked(),
             "el_or_pl": self.gw_el_or_pl_toggleSwitch.isChecked(),
             "vc_value": self.gw_vc_value_spinBox.value(),
@@ -1733,19 +1736,41 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gw_ax1.cla()
             self.gw_ax2.cla()
 
-        # first subtract the background from all columns but the wavelength
-        temp = (
-            spectrum.drop(["wavelength"], axis=1)
-            .transpose()
-            .sub(spectrum["background"])
-            .transpose()
-        )
+        # Check if there are multiple background spectra
+        background_columns = [col for col in spectrum.columns if "bg" in col]
 
-        # Now add the wavelength to the dataframe again
-        temp["wavelength"] = spectrum["wavelength"]
+        if len(background_columns) == 0:
+            # Case 1: Only one background spectrum
+            temp = (
+                spectrum.drop(["wavelength"], axis=1)
+                .transpose()
+                .sub(spectrum["background"])
+                .transpose()
+            )
 
-        # And set the wavelength as index of the dataframe and drop the background instead now
-        temp = temp.set_index("wavelength").drop(["background"], axis=1)
+            # Now add the wavelength to the dataframe again
+            temp["wavelength"] = spectrum["wavelength"]
+
+            # And set the wavelength as index of the dataframe and drop the background instead now
+            temp = temp.set_index("wavelength").drop(["background"], axis=1)
+        else:
+            # Case 2: Multiple background spectra
+            temp = spectrum.copy()
+
+            for i in range(0, len(background_columns)):
+                background_col = background_columns[i]
+                intensity_col = spectrum.columns[
+                    spectrum.columns.get_loc(background_col) + 1
+                ]
+
+                # Subtract the background spectrum from the corresponding intensity data
+                temp[intensity_col] = temp[intensity_col] - temp[background_col]
+
+            # Drop all background columns
+            temp = temp.drop(background_columns, axis=1)
+
+            # Set the wavelength as index of the dataframe
+            temp = temp.set_index("wavelength")
 
         # Plot current data
         # This is the best way I could come up with so far. There must be a better one, however.
@@ -1830,11 +1855,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # If it is checked, disable buttons. Else enable them
         if self.gw_el_or_pl_toggleSwitch.isChecked():
             # Set the two other toggle switches to False
-            self.gw_voltage_scan_toggleSwitch.setChecked(False)
+            self.gw_background_every_step_toggleSwitch.setChecked(False)
             self.gw_voltage_or_current_toggleSwitch.setChecked(False)
 
             # Disable all non-relevant options
-            self.gw_voltage_scan_toggleSwitch.setEnabled(False)
+            self.gw_background_every_step_toggleSwitch.setEnabled(False)
             self.gw_voltage_or_current_toggleSwitch.setEnabled(False)
             # self.gw_oled_on_time_spinBox.setEnabled(False)
             self.gw_vc_value_spinBox.setEnabled(False)
@@ -1851,7 +1876,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         else:
             # Enable all options that are only relevant for EL measurements
-            self.gw_voltage_scan_toggleSwitch.setEnabled(True)
+            self.gw_background_every_step_toggleSwitch.setEnabled(True)
             self.gw_voltage_or_current_toggleSwitch.setEnabled(True)
             # self.gw_oled_on_time_spinBox.setEnabled(True)
             self.gw_vc_value_spinBox.setEnabled(True)
@@ -2067,4 +2092,4 @@ if __name__ == "__main__":
     app.setWindowIcon(app_icon)
 
     ui.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
