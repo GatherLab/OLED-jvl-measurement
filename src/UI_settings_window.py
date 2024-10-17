@@ -1,10 +1,4 @@
-# -*- coding: utf-8 -*-
-from PySide6 import QtCore, QtGui, QtWidgets
-
-import json
-import core_functions as cf
-
-from loading_window import LoadingWindow
+from PySide6 import QtCore, QtWidgets
 
 from costum_widgets import ToggleSwitch, HumbleDoubleSpinBox
 

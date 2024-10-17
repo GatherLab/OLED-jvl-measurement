@@ -1,22 +1,5 @@
-# -*- coding: utf-8 -*-
+from PySide6 import QtCore
 
-from PySide6 import QtCore, QtWidgets
-
-from hardware import (
-    ArduinoUno,
-    KeithleySource,
-    KeithleyMultimeter,
-    OceanSpectrometer,
-    ThorlabMotor,
-)
-from tests.tests import (
-    MockArduinoUno,
-    MockKeithleySource,
-    MockKeithleyMultimeter,
-    MockOceanSpectrometer,
-    MockThorlabMotor,
-)
-from autotube_measurement import AutotubeMeasurement
 import core_functions as cf
 
 import time

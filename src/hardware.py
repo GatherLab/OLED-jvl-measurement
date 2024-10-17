@@ -17,7 +17,7 @@ import numpy as np
 import math
 import copy
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore
 
 
 class ArduinoUno:

@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# Initial gui design with QtCreator then translated into python code and adjusted
-
-# from UI_settings_window import Ui_Settings
 from costum_widgets import (
     HumbleDoubleSpinBox,
     HumbleSpinBox,
@@ -12,17 +7,11 @@ from costum_widgets import (
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-import matplotlib.pylab as plt
-import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar,
 )
 from matplotlib.figure import Figure
-import matplotlib.backends.backend_qt5
-
-import time
-
 
 # ---------------------------------------------------------------------------- #
 # --------------------------- Define Main Window ----------------------------- #

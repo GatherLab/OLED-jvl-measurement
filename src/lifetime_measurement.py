@@ -1,26 +1,10 @@
-# -*- coding: utf-8 -*-
-
-import pyvisa  # Keithley Module
-import serial  # Arduino Module
-
 from PySide6 import QtCore
 
-from hardware import ArduinoUno, KeithleySource, KeithleyMultimeter
-from tests.tests import MockArduinoUno, MockKeithleySource, MockKeithleyMultimeter
-
-# My suspicion about the queue module is that it is only there for logging. If
-# that is really the case I would rather not use it to simplify things
-# import queue
 import time
 import datetime as dt
-import sys
 import core_functions as cf
 
-import os
-
 import pandas as pd
-import numpy as np
-import math
 
 
 class LifetimeMeasurement(QtCore.QThread):

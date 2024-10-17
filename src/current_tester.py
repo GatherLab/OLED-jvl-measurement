@@ -1,9 +1,5 @@
 from PySide6 import QtCore
 
-from hardware import ArduinoUno, KeithleySource, KeithleyMultimeter
-
-from tests.tests import MockArduinoUno, MockKeithleySource, MockKeithleyMultimeter
-
 # for testing reasons
 import time
 
