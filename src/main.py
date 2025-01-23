@@ -1225,6 +1225,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             setup_parameters,
             global_settings["multimeter_latency"],
             selected_pixels,
+            global_settings["photodiode_position"],
             self,
         )
 

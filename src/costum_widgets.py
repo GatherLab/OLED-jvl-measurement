@@ -226,8 +226,8 @@ class ToggleSwitch(QAbstractButton):
         )
 
     def setChecked(self, checked):
-        super().setChecked(checked)
-        self.offset = self._end_offset[checked]()
+        super().setChecked(bool(checked))
+        self.offset = self._end_offset[bool(checked)]()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

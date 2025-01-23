@@ -28,6 +28,7 @@ class AutotubeMeasurement(QtCore.QThread):
         setup_parameters,
         multimeter_latency,
         selected_pixels,
+        photodiode_position,
         parent=None,
     ):
         """
@@ -51,6 +52,7 @@ class AutotubeMeasurement(QtCore.QThread):
         self.setup_parameters = setup_parameters
         # self.PDcutoff = self.set_photodiode_gain(photodiode_gain)
         self.selected_pixels = selected_pixels
+        self.photodiode_position = photodiode_position
 
         # Since the data shall be plotted after each measurement (it could also
         # be done while measuring but I think there is not much benefit and the
@@ -88,9 +90,9 @@ class AutotubeMeasurement(QtCore.QThread):
         if self.measurement_parameters["auto_spectrum"]:
             cf.log_message("Motor is moving to Photodiode Position")
             if self.setup_parameters["top_emitting"]:
-                pd_position = -90
+                pd_position = -1 * self.photodiode_position
             else:
-                pd_position = 90
+                pd_position = self.photodiode_position
             self.parent.motor.move_to(pd_position)
 
             # Wait until the motor move is finished
