@@ -13,6 +13,7 @@ from matplotlib.backends.backend_qt5agg import (
 )
 from matplotlib.figure import Figure
 
+
 # ---------------------------------------------------------------------------- #
 # --------------------------- Define Main Window ----------------------------- #
 # ---------------------------------------------------------------------------- #
@@ -763,7 +764,7 @@ class Ui_MainWindow(object):
         self.specw_ax.grid(True)
         self.specw_ax.set_xlabel("Wavelength (nm)", fontsize=14)
         self.specw_ax.set_ylabel("Intensity (a.u.)", fontsize=14)
-        self.specw_ax.set_xlim([350, 830])
+        self.specw_ax.set_xlim([350, 930])
 
         self.specw_ax.axhline(linewidth=1, color="black")
         self.specw_ax.axvline(linewidth=1, color="black")
