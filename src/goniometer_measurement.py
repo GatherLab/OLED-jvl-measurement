@@ -90,8 +90,8 @@ class GoniometerMeasurement(QtCore.QThread):
         # Introduce a pause variable
         self.pause = "False"
 
-        self.pl_total_on_time = 0
-        self.pl_zero_to_90_on_time = 0
+        self.pl_deg_on_time = 0
+        self.pl_zero_to_max_on_time = 0
         self.total_oled_on_time = 0
 
     def run(self):
@@ -380,6 +380,13 @@ class GoniometerMeasurement(QtCore.QThread):
                     # - processing_time
                 )
 
+            # start_process = time.process_time()
+
+            # These measurements are only taken for el measurements
+            if not self.goniometer_measurement_parameters["el_or_pl"]:
+                # Here the keithley switches from voltage measurement to current
+                # measurement
+
                 # In the case of a voltage scan
                 if self.goniometer_measurement_parameters["voltage_or_current"]:
                     temp_buffer = self.keithley_source.read_voltage()
@@ -427,7 +434,7 @@ class GoniometerMeasurement(QtCore.QThread):
             )
 
         if self.goniometer_measurement_parameters["el_or_pl"]:
-            self.pl_zero_to_90_on_time = round(time.time() - absolute_starting_time, 2)
+            self.pl_min_to_max_on_time = round(time.time() - absolute_starting_time, 2)
 
         # If the user wants it, move again back to zero angle
         # another spectrum to see if the device degraded already
@@ -478,6 +485,17 @@ class GoniometerMeasurement(QtCore.QThread):
                 deg_2 = (
                     self.spectrum_data["0.0_deg2"] - self.spectrum_data["0.0_deg2_bg"]
                 )
+            
+            on_time_to_show = 0
+            if self.goniometer_measurement_parameters["el_or_pl"]:
+                self.pl_deg_on_time = round(time.time() - absolute_starting_time, 2)
+
+                cf.log_message(
+                    str(self.pl_deg_on_time) + " s passed since PL lamp was turned on."
+                )
+                on_time_to_show = self.pl_deg_on_time
+            else:
+                on_time_to_show = self.total_oled_on_time
 
             self.update_simple_spectrum_signal.emit(
                 [
@@ -487,7 +505,7 @@ class GoniometerMeasurement(QtCore.QThread):
                 ],
                 [
                     "initial spectrum",
-                    "after " + str(round(self.total_oled_on_time, 2)) + " s on time",
+                    "after " + str(round(on_time_to_show, 2)) + " s on time",
                 ],
             )
 
@@ -522,19 +540,18 @@ class GoniometerMeasurement(QtCore.QThread):
             self.pause = "True"
             self.pause_thread_pl.emit("off")
 
-            self.pl_total_on_time = round(time.time() - absolute_starting_time, 2)
-
-            cf.log_message(
-                str(self.pl_total_on_time) + " s passed since PL lamp was turned on."
-            )
-
             while self.pause == "True":
                 time.sleep(0.1)
                 if self.pause == "break":
                     # Print total time elapsed
                     break
                 elif self.pause == "return":
-                    return
+                    break
+
+        self.hide_progress_bar.emit()
+        self.reset_start_button.emit(False)
+
+        cf.log_message("Measurement finished")
 
     def correct_spectrum_for_degradation(self, deg_before, deg_after):
         """
@@ -692,15 +709,18 @@ class GoniometerMeasurement(QtCore.QThread):
                 + str(self.goniometer_measurement_parameters["vc_compliance"])
                 + " V"
             )
-        if not math.isclose(self.goniometer_measurement_parameters["el_or_pl"], 0):
+        if self.goniometer_measurement_parameters["el_or_pl"]:
             line03 = (
-                "Total lamp on time: "
-                + str(round(self.pl_total_on_time, 2))
-                + " s"
-                + ", 0-90° lamp on time: "
-                + str(round(self.pl_zero_to_90_on_time, 2))
+                "Min-Max lamp on time: "
+                + str(round(self.pl_min_to_max_on_time, 2))
                 + " s"
             )
+            if self.goniometer_measurement_parameters["degradation_check"]:
+                line03 += (
+                    ", Min-deg.check lamp on time: "
+                    + str(round(self.pl_deg_on_time, 2))
+                    + " s"
+                )
         else:
             line03 = (
                 "Total OLED on time: " + str(round(self.total_oled_on_time, 2)) + " s"
