@@ -182,6 +182,9 @@ class GoniometerMeasurement(QtCore.QThread):
 
         calibration_spectrum = self.spectrometer.measure()
 
+        # The wavelength must be saved in all cases as a column
+        self.spectrum_data["wavelength"] = calibration_spectrum[0]
+
         if not self.goniometer_measurement_parameters["background_every_step"]:
             # Take calibration readings
             self.spectrum_data["background"] = calibration_spectrum[1]
@@ -194,9 +197,6 @@ class GoniometerMeasurement(QtCore.QThread):
                 ["background"],
             )
             cf.log_message("Background spectrum measured")
-
-        # The wavelength must be saved in all cases as a column
-        self.spectrum_data["wavelength"] = calibration_spectrum[0]
 
         # If el measurement was selected, activate the selected pixel already
         if not self.goniometer_measurement_parameters["el_or_pl"]:
